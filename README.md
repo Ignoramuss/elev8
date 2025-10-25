@@ -40,6 +40,81 @@ Elev8 solves these problems with:
 - **Multi-Cluster**: Simple configuration for multiple EKS clusters
 - **Minimal Dependencies**: Only AWS SDK 2.x, Jackson, SLF4J, and OkHttp
 
+## Prerequisites
+
+### System Requirements
+
+- **Operating System**: macOS, Linux, or Windows
+- **Java**: 17 or later
+- **Maven**: 3.8 or later
+- **AWS Account**: With EKS cluster access
+- **AWS Credentials**: Configured via AWS CLI or environment variables
+
+### Installation
+
+#### macOS (via Homebrew)
+
+**Install Java 17:**
+```bash
+brew install openjdk@17
+
+# Add to your ~/.zshrc or ~/.bash_profile
+export JAVA_HOME="/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+
+# Reload shell configuration
+source ~/.zshrc
+```
+
+**Install Maven:**
+```bash
+brew install maven
+
+# Verify installation
+mvn -version
+java -version
+```
+
+#### Linux (Ubuntu/Debian)
+
+```bash
+# Install Java 17
+sudo apt update
+sudo apt install openjdk-17-jdk
+
+# Install Maven
+sudo apt install maven
+
+# Verify installation
+mvn -version
+java -version
+```
+
+#### Windows
+
+1. Download and install [OpenJDK 17](https://adoptium.net/)
+2. Download and install [Maven](https://maven.apache.org/download.cgi)
+3. Add JAVA_HOME and Maven to your PATH environment variables
+
+### AWS Setup
+
+**Configure AWS Credentials:**
+```bash
+# Option 1: AWS CLI
+aws configure
+
+# Option 2: Environment Variables
+export AWS_ACCESS_KEY_ID=your_access_key
+export AWS_SECRET_ACCESS_KEY=your_secret_key
+export AWS_REGION=us-east-1
+```
+
+**Verify EKS Access:**
+```bash
+aws eks list-clusters --region us-east-1
+aws eks describe-cluster --name your-cluster --region us-east-1
+```
+
 ## Quick Start
 
 ### Maven Dependency
@@ -199,17 +274,24 @@ elev8/
 └── examples/                # Usage examples
 ```
 
-## Requirements
-
-- Java 17 or later
-- AWS SDK for Java 2.x
-- Access to an EKS cluster with appropriate IAM permissions
-
 ## Building from Source
 
 ```bash
-git clone https://github.com/yourusername/elev8.git
+# Clone the repository
+git clone https://github.com/Ignoramuss/elev8.git
 cd elev8
+
+# Build all modules
+mvn clean install
+
+# Run tests
+mvn test
+
+# Build without tests
+mvn clean install -DskipTests
+
+# Build a specific module
+cd elev8-core
 mvn clean install
 ```
 
@@ -246,6 +328,99 @@ EksClient client = EksClient.builder()
     .build();
 ```
 
+## kubectl Command Equivalents
+
+Elev8 provides type-safe Java alternatives to common kubectl commands:
+
+### Pod Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get pods -n default` | `client.pods().list("default")` |
+| `kubectl get pods --all-namespaces` | `client.pods().listAllNamespaces()` |
+| `kubectl get pod my-pod -n default` | `client.pods().get("default", "my-pod")` |
+| `kubectl get pod my-pod -n default -o json` | `Pod pod = client.pods().get("default", "my-pod");<br>String json = pod.toJson();` |
+| `kubectl create -f pod.yaml` | `Pod pod = Pod.builder()...build();<br>client.pods().create(pod);` |
+| `kubectl delete pod my-pod -n default` | `client.pods().delete("default", "my-pod")` |
+| `kubectl describe pod my-pod` | `Pod pod = client.pods().get("default", "my-pod");<br>// Access pod.getStatus(), pod.getSpec()` |
+
+### Service Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get services -n default` | `client.services().list("default")` |
+| `kubectl get svc my-service -n default` | `client.services().get("default", "my-service")` |
+| `kubectl create -f service.yaml` | `Service svc = Service.builder()...build();<br>client.services().create(svc);` |
+| `kubectl delete service my-service` | `client.services().delete("default", "my-service")` |
+| `kubectl expose deployment my-deploy --port=80` | `Service svc = Service.builder()<br>  .name("my-deploy")<br>  .spec(ServiceSpec.builder()<br>    .addSelector("app", "my-deploy")<br>    .addPort(80, 8080)<br>    .build())<br>  .build();<br>client.services().create(svc);` |
+
+### Deployment Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get deployments -n default` | `client.deployments().list("default")` |
+| `kubectl get deployment my-deploy -n default` | `client.deployments().get("default", "my-deploy")` |
+| `kubectl create -f deployment.yaml` | `Deployment deploy = Deployment.builder()...build();<br>client.deployments().create(deploy);` |
+| `kubectl apply -f deployment.yaml` | `Deployment deploy = ...; // modified deployment<br>client.deployments().update(deploy);` |
+| `kubectl delete deployment my-deploy` | `client.deployments().delete("default", "my-deploy")` |
+| `kubectl scale deployment my-deploy --replicas=5` | `Deployment d = client.deployments().get("default", "my-deploy");<br>d.getSpec().setReplicas(5);<br>client.deployments().update(d);` |
+| `kubectl rollout restart deployment/my-deploy` | `Deployment d = client.deployments().get("default", "my-deploy");<br>// Add/update annotation to trigger restart<br>d.getMetadata().getAnnotations().put("kubectl.kubernetes.io/restartedAt", Instant.now().toString());<br>client.deployments().update(d);` |
+
+### Complete Example: Creating a Deployment
+
+**kubectl:**
+```bash
+kubectl create deployment nginx --image=nginx:1.21 --replicas=3 -n default
+kubectl expose deployment nginx --port=80 --target-port=80
+```
+
+**Elev8:**
+```java
+// Create deployment
+Deployment deployment = Deployment.builder()
+    .name("nginx")
+    .namespace("default")
+    .spec(DeploymentSpec.builder()
+        .replicas(3)
+        .addSelector("app", "nginx")
+        .template(PodTemplateSpec.builder()
+            .label("app", "nginx")
+            .spec(PodSpec.builder()
+                .addContainer(Container.builder()
+                    .name("nginx")
+                    .image("nginx:1.21")
+                    .addPort(80)
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.deployments().create(deployment);
+
+// Create service
+Service service = Service.builder()
+    .name("nginx")
+    .namespace("default")
+    .spec(ServiceSpec.builder()
+        .addSelector("app", "nginx")
+        .addPort(80, 80)
+        .type("ClusterIP")
+        .build())
+    .build();
+
+client.services().create(service);
+```
+
+### Key Advantages Over kubectl
+
+- **Type Safety**: Compile-time validation of all fields
+- **IDE Support**: Auto-completion and inline documentation
+- **Programmatic Control**: Full control flow and error handling
+- **Integration**: Seamlessly integrates with Java applications
+- **No External Dependencies**: No need to install kubectl
+- **Consistent API**: Same pattern for all resource types
+
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
@@ -262,12 +437,31 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 
 ## Roadmap
 
+### Completed
+
 - [x] IAM authentication with automatic token refresh
-- [x] EKS Access Entries API integration
-- [x] OIDC/IRSA support
-- [x] Core resources (Pod, Service, Deployment, ConfigMap)
+- [x] Core Kubernetes client framework with HTTP abstraction
+- [x] EKS cluster auto-discovery (endpoint and CA certificate)
+- [x] Core resources with full CRUD (Pod, Service, Deployment)
+- [x] Type-safe builder pattern for all resources
+- [x] JSON serialization with Jackson
+- [x] Resource manager architecture
+- [x] Fluent API integration with EksClient
+
+### In Progress
+
+- [ ] OIDC/IRSA authentication support
+- [ ] EKS Access Entries API integration
+- [ ] Comprehensive unit test coverage
+
+### Planned
+
+- [ ] ConfigMap and Secret resources
 - [ ] Additional resources (StatefulSet, DaemonSet, Job, CronJob)
 - [ ] Watch/stream support for resource updates
+- [ ] Namespace resource support
+- [ ] Event streaming and logging
 - [ ] CRD support with code generation
-- [ ] GKE/AKS support
-- [ ] Reactive API support
+- [ ] GKE/AKS support for multi-cloud
+- [ ] Reactive API support (Project Reactor)
+- [ ] Maven Central publication
