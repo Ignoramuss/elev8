@@ -4,6 +4,9 @@ import io.elev8.auth.iam.IamAuthProvider;
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
+import io.elev8.resources.deployment.DeploymentManager;
+import io.elev8.resources.pod.PodManager;
+import io.elev8.resources.service.ServiceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -25,6 +28,9 @@ public class EksClient implements AutoCloseable {
     private final KubernetesClient kubernetesClient;
     private final String clusterName;
     private final Region region;
+    private final PodManager podManager;
+    private final ServiceManager serviceManager;
+    private final DeploymentManager deploymentManager;
 
     private EksClient(Builder builder) {
         this.clusterName = builder.clusterName;
@@ -53,6 +59,9 @@ public class EksClient implements AutoCloseable {
                 .build();
 
         this.kubernetesClient = new KubernetesClient(config);
+        this.podManager = new PodManager(kubernetesClient);
+        this.serviceManager = new ServiceManager(kubernetesClient);
+        this.deploymentManager = new DeploymentManager(kubernetesClient);
     }
 
     private ClusterDetails discoverClusterDetails(Region region, String clusterName) {
@@ -84,6 +93,18 @@ public class EksClient implements AutoCloseable {
 
     public Region getRegion() {
         return region;
+    }
+
+    public PodManager pods() {
+        return podManager;
+    }
+
+    public ServiceManager services() {
+        return serviceManager;
+    }
+
+    public DeploymentManager deployments() {
+        return deploymentManager;
     }
 
     @Override
