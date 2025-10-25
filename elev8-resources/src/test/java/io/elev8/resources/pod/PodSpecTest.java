@@ -15,7 +15,7 @@ class PodSpecTest {
                 .build();
 
         final PodSpec spec = PodSpec.builder()
-                .addContainer(container)
+                .container(container)
                 .build();
 
         assertThat(spec.getContainers()).hasSize(1);
@@ -36,12 +36,12 @@ class PodSpecTest {
                 .build();
 
         final PodSpec spec = PodSpec.builder()
-                .addContainer(container1)
-                .addInitContainer(initContainer)
+                .container(container1)
+                .initContainer(initContainer)
                 .restartPolicy("OnFailure")
                 .serviceAccountName("my-service-account")
                 .nodeName("node-1")
-                .terminationGracePeriodSeconds(30)
+                .terminationGracePeriodSeconds(30L)
                 .build();
 
         assertThat(spec.getContainers()).hasSize(1);
@@ -53,9 +53,8 @@ class PodSpecTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenNoContainers() {
-        assertThatThrownBy(() -> PodSpec.builder().build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("At least one container is required");
+    void shouldAllowEmptyContainers() {
+        final PodSpec spec = PodSpec.builder().build();
+        assertThat(spec.getContainers()).isNullOrEmpty();
     }
 }

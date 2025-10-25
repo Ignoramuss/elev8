@@ -5,15 +5,15 @@ package io.elev8.core.auth;
  */
 public class AuthenticationException extends Exception {
 
-    public AuthenticationException(String message) {
+    public AuthenticationException(final String message) {
         super(message);
     }
 
-    public AuthenticationException(String message, Throwable cause) {
+    public AuthenticationException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public AuthenticationException(Throwable cause) {
+    public AuthenticationException(final Throwable cause) {
         super(cause);
     }
 }

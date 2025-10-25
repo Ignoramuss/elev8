@@ -4,53 +4,30 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Abstract base class for Kubernetes resources with JSON serialization support.
  */
+@Getter
+@Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class AbstractResource implements KubernetesResource {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
-    private String apiVersion;
-    private String kind;
-    private Metadata metadata;
+    String apiVersion;
+    String kind;
+    Metadata metadata;
 
     protected AbstractResource() {
     }
 
-    protected AbstractResource(String apiVersion, String kind, Metadata metadata) {
+    protected AbstractResource(final String apiVersion, final String kind, final Metadata metadata) {
         this.apiVersion = apiVersion;
         this.kind = kind;
-        this.metadata = metadata;
-    }
-
-    @Override
-    public String getApiVersion() {
-        return apiVersion;
-    }
-
-    public void setApiVersion(String apiVersion) {
-        this.apiVersion = apiVersion;
-    }
-
-    @Override
-    public String getKind() {
-        return kind;
-    }
-
-    public void setKind(String kind) {
-        this.kind = kind;
-    }
-
-    @Override
-    public Metadata getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Metadata metadata) {
         this.metadata = metadata;
     }
 

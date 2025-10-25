@@ -1,31 +1,30 @@
 package io.elev8.resources;
 
+import lombok.Getter;
+
+@Getter
 public class ResourceException extends Exception {
 
     private final Integer statusCode;
 
-    public ResourceException(String message) {
+    public ResourceException(final String message) {
         super(message);
         this.statusCode = null;
     }
 
-    public ResourceException(String message, int statusCode) {
+    public ResourceException(final String message, final int statusCode) {
         super(message);
         this.statusCode = statusCode;
     }
 
-    public ResourceException(String message, Throwable cause) {
+    public ResourceException(final String message, final Throwable cause) {
         super(message, cause);
         this.statusCode = null;
     }
 
-    public ResourceException(String message, int statusCode, Throwable cause) {
+    public ResourceException(final String message, final int statusCode, final Throwable cause) {
         super(message, cause);
         this.statusCode = statusCode;
-    }
-
-    public Integer getStatusCode() {
-        return statusCode;
     }
 
     public boolean hasStatusCode() {

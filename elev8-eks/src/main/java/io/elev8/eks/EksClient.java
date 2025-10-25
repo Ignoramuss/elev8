@@ -7,8 +7,8 @@ import io.elev8.core.client.KubernetesClientConfig;
 import io.elev8.resources.deployment.DeploymentManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.service.ServiceManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eks.model.Cluster;
@@ -21,34 +21,36 @@ import java.util.function.Consumer;
 /**
  * EKS-optimized Kubernetes client with native AWS IAM authentication.
  */
-public class EksClient implements AutoCloseable {
-
-    private static final Logger log = LoggerFactory.getLogger(EksClient.class);
+@Slf4j
+public final class EksClient implements AutoCloseable {
 
     private final KubernetesClient kubernetesClient;
+
+    @Getter
     private final String clusterName;
+
+    @Getter
     private final Region region;
+
     private final PodManager podManager;
     private final ServiceManager serviceManager;
     private final DeploymentManager deploymentManager;
 
-    private EksClient(Builder builder) {
+    private EksClient(final Builder builder) {
         this.clusterName = builder.clusterName;
         this.region = builder.region;
 
-        // Fetch cluster details if auto-discovery is enabled
         String apiServerUrl = builder.apiServerUrl;
         String certificateAuthority = builder.certificateAuthority;
 
         if (apiServerUrl == null || certificateAuthority == null) {
             log.debug("Auto-discovering EKS cluster details for: {}", clusterName);
-            ClusterDetails details = discoverClusterDetails(builder.region, builder.clusterName);
+            final ClusterDetails details = discoverClusterDetails(builder.region, builder.clusterName);
             apiServerUrl = details.endpoint();
             certificateAuthority = details.certificateAuthority();
         }
 
-        // Build Kubernetes client config
-        KubernetesClientConfig config = KubernetesClientConfig.builder()
+        final KubernetesClientConfig config = KubernetesClientConfig.builder()
                 .apiServerUrl(apiServerUrl)
                 .authProvider(builder.authProvider)
                 .certificateAuthority(certificateAuthority)
@@ -64,13 +66,13 @@ public class EksClient implements AutoCloseable {
         this.deploymentManager = new DeploymentManager(kubernetesClient);
     }
 
-    private ClusterDetails discoverClusterDetails(Region region, String clusterName) {
+    private ClusterDetails discoverClusterDetails(final Region region, final String clusterName) {
         try (software.amazon.awssdk.services.eks.EksClient eksClient =
                 software.amazon.awssdk.services.eks.EksClient.builder().region(region).build()) {
-            DescribeClusterResponse response = eksClient.describeCluster(
+            final DescribeClusterResponse response = eksClient.describeCluster(
                     DescribeClusterRequest.builder().name(clusterName).build());
 
-            Cluster cluster = response.cluster();
+            final Cluster cluster = response.cluster();
             return new ClusterDetails(
                     cluster.endpoint(),
                     cluster.certificateAuthority().data()
@@ -78,21 +80,8 @@ public class EksClient implements AutoCloseable {
         }
     }
 
-    /**
-     * Get the underlying Kubernetes client for direct API access.
-     *
-     * @return the Kubernetes client
-     */
     public KubernetesClient getKubernetesClient() {
         return kubernetesClient;
-    }
-
-    public String getClusterName() {
-        return clusterName;
-    }
-
-    public Region getRegion() {
-        return region;
     }
 
     public PodManager pods() {

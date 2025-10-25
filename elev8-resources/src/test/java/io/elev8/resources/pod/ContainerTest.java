@@ -25,8 +25,8 @@ class ContainerTest {
         final Container container = Container.builder()
                 .name("app")
                 .image("app:1.0")
-                .command("sh", "-c", "echo hello")
-                .args("arg1", "arg2")
+                .command(List.of("sh", "-c", "echo hello"))
+                .args(List.of("arg1", "arg2"))
                 .workingDir("/app")
                 .addPort(8080)
                 .addEnv("KEY", "value")
@@ -49,7 +49,7 @@ class ContainerTest {
                 .name("app")
                 .image("app:1.0")
                 .addPort(8080)
-                .addPort(Container.ContainerPort.builder()
+                .port(Container.ContainerPort.builder()
                         .name("metrics")
                         .containerPort(9090)
                         .protocol("TCP")
@@ -80,8 +80,8 @@ class ContainerTest {
         assertThatThrownBy(() -> Container.builder()
                 .image("nginx:latest")
                 .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Container name is required");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("name is marked non-null but is null");
     }
 
     @Test
@@ -89,7 +89,7 @@ class ContainerTest {
         assertThatThrownBy(() -> Container.builder()
                 .name("nginx")
                 .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Container image is required");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("image is marked non-null but is null");
     }
 }

@@ -15,10 +15,10 @@ class DeploymentSpecTest {
     void shouldBuildDeploymentSpecWithRequiredFields() {
         final DeploymentSpec spec = DeploymentSpec.builder()
                 .replicas(3)
-                .addSelector("app", "test")
+                .selector("app", "test")
                 .template(DeploymentSpec.PodTemplateSpec.builder()
                         .spec(PodSpec.builder()
-                                .addContainer(Container.builder()
+                                .container(Container.builder()
                                         .name("nginx")
                                         .image("nginx:latest")
                                         .build())
@@ -41,7 +41,7 @@ class DeploymentSpecTest {
                 .template(DeploymentSpec.PodTemplateSpec.builder()
                         .label("app", "test")
                         .spec(PodSpec.builder()
-                                .addContainer(Container.builder()
+                                .container(Container.builder()
                                         .name("app")
                                         .image("app:1.0")
                                         .build())
@@ -58,36 +58,36 @@ class DeploymentSpecTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenNoSelector() {
-        assertThatThrownBy(() -> DeploymentSpec.builder()
+    void shouldAllowDeploymentWithoutSelector() {
+        final DeploymentSpec spec = DeploymentSpec.builder()
                 .replicas(1)
                 .template(DeploymentSpec.PodTemplateSpec.builder()
                         .spec(PodSpec.builder()
-                                .addContainer(Container.builder()
+                                .container(Container.builder()
                                         .name("test")
                                         .image("test")
                                         .build())
                                 .build())
                         .build())
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Selector is required");
+                .build();
+
+        assertThat(spec.getSelector()).isEmpty();
     }
 
     @Test
     void shouldThrowExceptionWhenNoTemplate() {
         assertThatThrownBy(() -> DeploymentSpec.builder()
                 .replicas(1)
-                .addSelector("app", "test")
+                .selector("app", "test")
                 .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Pod template is required");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("template is marked non-null but is null");
     }
 
     @Test
     void shouldBuildPodTemplateSpec() {
         final PodSpec podSpec = PodSpec.builder()
-                .addContainer(Container.builder()
+                .container(Container.builder()
                         .name("nginx")
                         .image("nginx:latest")
                         .build())

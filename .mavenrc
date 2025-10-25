@@ -1,0 +1,3 @@
+#!/bin/bash
+# Force Maven to use Java 21 for this project
+export JAVA_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"

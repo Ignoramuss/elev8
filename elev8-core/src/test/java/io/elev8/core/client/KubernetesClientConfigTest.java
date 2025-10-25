@@ -61,7 +61,7 @@ class KubernetesClientConfigTest {
                 .authProvider(authProvider)
                 .build())
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("API server URL is required");
+                .hasMessageContaining("apiServerUrl is marked non-null but is null");
     }
 
     @Test
@@ -70,6 +70,6 @@ class KubernetesClientConfigTest {
                 .apiServerUrl("https://api.example.com")
                 .build())
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("Auth provider is required");
+                .hasMessageContaining("authProvider is marked non-null but is null");
     }
 }

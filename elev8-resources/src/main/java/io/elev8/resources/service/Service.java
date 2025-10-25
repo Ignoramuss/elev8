@@ -3,54 +3,44 @@ package io.elev8.resources.service;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.elev8.resources.AbstractResource;
 import io.elev8.resources.Metadata;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Service extends AbstractResource {
 
-    private ServiceSpec spec;
-    private ServiceStatus status;
+    ServiceSpec spec;
+    ServiceStatus status;
 
     public Service() {
         super("v1", "Service", null);
     }
 
-    private Service(Builder builder) {
+    private Service(final Builder builder) {
         super("v1", "Service", builder.metadata);
         this.spec = builder.spec;
         this.status = builder.status;
-    }
-
-    public ServiceSpec getSpec() {
-        return spec;
-    }
-
-    public void setSpec(ServiceSpec spec) {
-        this.spec = spec;
-    }
-
-    public ServiceStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ServiceStatus status) {
-        this.status = status;
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public static class Builder {
+    public static final class Builder {
         private Metadata metadata;
         private ServiceSpec spec;
         private ServiceStatus status;
 
-        public Builder metadata(Metadata metadata) {
+        public Builder metadata(final Metadata metadata) {
             this.metadata = metadata;
             return this;
         }
 
-        public Builder name(String name) {
+        public Builder name(final String name) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -58,7 +48,7 @@ public class Service extends AbstractResource {
             return this;
         }
 
-        public Builder namespace(String namespace) {
+        public Builder namespace(final String namespace) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -66,7 +56,7 @@ public class Service extends AbstractResource {
             return this;
         }
 
-        public Builder label(String key, String value) {
+        public Builder label(final String key, final String value) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -79,12 +69,12 @@ public class Service extends AbstractResource {
             return this;
         }
 
-        public Builder spec(ServiceSpec spec) {
+        public Builder spec(final ServiceSpec spec) {
             this.spec = spec;
             return this;
         }
 
-        public Builder status(ServiceStatus status) {
+        public Builder status(final ServiceStatus status) {
             this.status = status;
             return this;
         }
@@ -100,35 +90,17 @@ public class Service extends AbstractResource {
         }
     }
 
+    @Data
+    @NoArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ServiceStatus {
-        private LoadBalancerStatus loadBalancer;
+        LoadBalancerStatus loadBalancer;
 
-        public ServiceStatus() {
-        }
-
-        public LoadBalancerStatus getLoadBalancer() {
-            return loadBalancer;
-        }
-
-        public void setLoadBalancer(LoadBalancerStatus loadBalancer) {
-            this.loadBalancer = loadBalancer;
-        }
-
+        @Data
+        @NoArgsConstructor
         @JsonInclude(JsonInclude.Include.NON_NULL)
         public static class LoadBalancerStatus {
-            private String ingress;
-
-            public LoadBalancerStatus() {
-            }
-
-            public String getIngress() {
-                return ingress;
-            }
-
-            public void setIngress(String ingress) {
-                this.ingress = ingress;
-            }
+            String ingress;
         }
     }
 }

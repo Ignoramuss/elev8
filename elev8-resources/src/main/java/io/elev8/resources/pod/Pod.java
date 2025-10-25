@@ -3,54 +3,42 @@ package io.elev8.resources.pod;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.elev8.resources.AbstractResource;
 import io.elev8.resources.Metadata;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Pod extends AbstractResource {
 
-    private PodSpec spec;
-    private PodStatus status;
+    PodSpec spec;
+    PodStatus status;
 
     public Pod() {
         super("v1", "Pod", null);
     }
 
-    private Pod(Builder builder) {
+    private Pod(final Builder builder) {
         super("v1", "Pod", builder.metadata);
         this.spec = builder.spec;
         this.status = builder.status;
-    }
-
-    public PodSpec getSpec() {
-        return spec;
-    }
-
-    public void setSpec(PodSpec spec) {
-        this.spec = spec;
-    }
-
-    public PodStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PodStatus status) {
-        this.status = status;
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public static class Builder {
+    public static final class Builder {
         private Metadata metadata;
         private PodSpec spec;
         private PodStatus status;
 
-        public Builder metadata(Metadata metadata) {
+        public Builder metadata(final Metadata metadata) {
             this.metadata = metadata;
             return this;
         }
 
-        public Builder name(String name) {
+        public Builder name(final String name) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -58,7 +46,7 @@ public class Pod extends AbstractResource {
             return this;
         }
 
-        public Builder namespace(String namespace) {
+        public Builder namespace(final String namespace) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -66,7 +54,7 @@ public class Pod extends AbstractResource {
             return this;
         }
 
-        public Builder label(String key, String value) {
+        public Builder label(final String key, final String value) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -79,12 +67,12 @@ public class Pod extends AbstractResource {
             return this;
         }
 
-        public Builder spec(PodSpec spec) {
+        public Builder spec(final PodSpec spec) {
             this.spec = spec;
             return this;
         }
 
-        public Builder status(PodStatus status) {
+        public Builder status(final PodStatus status) {
             this.status = status;
             return this;
         }

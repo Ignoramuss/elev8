@@ -10,7 +10,7 @@ class ServiceTest {
     @Test
     void shouldBuildServiceWithRequiredFields() {
         final ServiceSpec spec = ServiceSpec.builder()
-                .addSelector("app", "test")
+                .selector("app", "test")
                 .addPort(80, 8080)
                 .build();
 
@@ -35,7 +35,7 @@ class ServiceTest {
                 .label("app", "test")
                 .label("env", "dev")
                 .spec(ServiceSpec.builder()
-                        .addSelector("app", "test")
+                        .selector("app", "test")
                         .addPort(80, 8080)
                         .build())
                 .build();
@@ -50,7 +50,7 @@ class ServiceTest {
                 .name("test-service")
                 .namespace("default")
                 .spec(ServiceSpec.builder()
-                        .addSelector("app", "test")
+                        .selector("app", "test")
                         .addPort(80, 8080)
                         .type("ClusterIP")
                         .build())
@@ -68,7 +68,7 @@ class ServiceTest {
         assertThatThrownBy(() -> Service.builder()
                 .namespace("default")
                 .spec(ServiceSpec.builder()
-                        .addSelector("app", "test")
+                        .selector("app", "test")
                         .addPort(80, 8080)
                         .build())
                 .build())

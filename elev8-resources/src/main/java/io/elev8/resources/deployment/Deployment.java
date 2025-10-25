@@ -3,54 +3,44 @@ package io.elev8.resources.deployment;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.elev8.resources.AbstractResource;
 import io.elev8.resources.Metadata;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Deployment extends AbstractResource {
 
-    private DeploymentSpec spec;
-    private DeploymentStatus status;
+    DeploymentSpec spec;
+    DeploymentStatus status;
 
     public Deployment() {
         super("apps/v1", "Deployment", null);
     }
 
-    private Deployment(Builder builder) {
+    private Deployment(final Builder builder) {
         super("apps/v1", "Deployment", builder.metadata);
         this.spec = builder.spec;
         this.status = builder.status;
-    }
-
-    public DeploymentSpec getSpec() {
-        return spec;
-    }
-
-    public void setSpec(DeploymentSpec spec) {
-        this.spec = spec;
-    }
-
-    public DeploymentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(DeploymentStatus status) {
-        this.status = status;
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public static class Builder {
+    public static final class Builder {
         private Metadata metadata;
         private DeploymentSpec spec;
         private DeploymentStatus status;
 
-        public Builder metadata(Metadata metadata) {
+        public Builder metadata(final Metadata metadata) {
             this.metadata = metadata;
             return this;
         }
 
-        public Builder name(String name) {
+        public Builder name(final String name) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -58,7 +48,7 @@ public class Deployment extends AbstractResource {
             return this;
         }
 
-        public Builder namespace(String namespace) {
+        public Builder namespace(final String namespace) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -66,7 +56,7 @@ public class Deployment extends AbstractResource {
             return this;
         }
 
-        public Builder label(String key, String value) {
+        public Builder label(final String key, final String value) {
             if (this.metadata == null) {
                 this.metadata = Metadata.builder().build();
             }
@@ -79,12 +69,12 @@ public class Deployment extends AbstractResource {
             return this;
         }
 
-        public Builder spec(DeploymentSpec spec) {
+        public Builder spec(final DeploymentSpec spec) {
             this.spec = spec;
             return this;
         }
 
-        public Builder status(DeploymentStatus status) {
+        public Builder status(final DeploymentStatus status) {
             this.status = status;
             return this;
         }
@@ -100,55 +90,14 @@ public class Deployment extends AbstractResource {
         }
     }
 
+    @Data
+    @NoArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class DeploymentStatus {
-        private Integer replicas;
-        private Integer updatedReplicas;
-        private Integer readyReplicas;
-        private Integer availableReplicas;
-        private Long observedGeneration;
-
-        public DeploymentStatus() {
-        }
-
-        public Integer getReplicas() {
-            return replicas;
-        }
-
-        public void setReplicas(Integer replicas) {
-            this.replicas = replicas;
-        }
-
-        public Integer getUpdatedReplicas() {
-            return updatedReplicas;
-        }
-
-        public void setUpdatedReplicas(Integer updatedReplicas) {
-            this.updatedReplicas = updatedReplicas;
-        }
-
-        public Integer getReadyReplicas() {
-            return readyReplicas;
-        }
-
-        public void setReadyReplicas(Integer readyReplicas) {
-            this.readyReplicas = readyReplicas;
-        }
-
-        public Integer getAvailableReplicas() {
-            return availableReplicas;
-        }
-
-        public void setAvailableReplicas(Integer availableReplicas) {
-            this.availableReplicas = availableReplicas;
-        }
-
-        public Long getObservedGeneration() {
-            return observedGeneration;
-        }
-
-        public void setObservedGeneration(Long observedGeneration) {
-            this.observedGeneration = observedGeneration;
-        }
+        Integer replicas;
+        Integer updatedReplicas;
+        Integer readyReplicas;
+        Integer availableReplicas;
+        Long observedGeneration;
     }
 }

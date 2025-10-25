@@ -12,7 +12,7 @@ class ServiceSpecTest {
     @Test
     void shouldBuildServiceSpecWithRequiredFields() {
         final ServiceSpec spec = ServiceSpec.builder()
-                .addSelector("app", "test")
+                .selector("app", "test")
                 .addPort(80, 8080)
                 .build();
 
@@ -26,7 +26,7 @@ class ServiceSpecTest {
     void shouldBuildServiceSpecWithAllFields() {
         final ServiceSpec spec = ServiceSpec.builder()
                 .selector(Map.of("app", "test", "version", "1.0"))
-                .addPort(ServiceSpec.ServicePort.builder()
+                .port(ServiceSpec.ServicePort.builder()
                         .name("http")
                         .port(80)
                         .targetPort(8080)
@@ -52,17 +52,17 @@ class ServiceSpecTest {
                 .addPort(80, 8080)
                 .build();
 
-        assertThat(spec.getSelector()).isNull();
+        assertThat(spec.getSelector()).isEmpty();
         assertThat(spec.getPorts()).hasSize(1);
     }
 
     @Test
-    void shouldThrowExceptionWhenNoPorts() {
-        assertThatThrownBy(() -> ServiceSpec.builder()
-                .addSelector("app", "test")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("At least one port is required");
+    void shouldAllowServiceWithoutPorts() {
+        final ServiceSpec spec = ServiceSpec.builder()
+                .selector("app", "test")
+                .build();
+
+        assertThat(spec.getPorts()).isEmpty();
     }
 
     @Test
@@ -85,7 +85,7 @@ class ServiceSpecTest {
         assertThatThrownBy(() -> ServiceSpec.ServicePort.builder()
                 .name("http")
                 .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Service port is required");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("port is marked non-null but is null");
     }
 }

@@ -16,7 +16,7 @@ class PodTest {
                 .build();
 
         final PodSpec spec = PodSpec.builder()
-                .addContainer(container)
+                .container(container)
                 .build();
 
         final Pod pod = Pod.builder()
@@ -45,7 +45,7 @@ class PodTest {
                 .label("app", "test")
                 .label("version", "1.0")
                 .spec(PodSpec.builder()
-                        .addContainer(container)
+                        .container(container)
                         .build())
                 .build();
 
@@ -65,7 +65,7 @@ class PodTest {
                 .name("test-pod")
                 .namespace("default")
                 .spec(PodSpec.builder()
-                        .addContainer(container)
+                        .container(container)
                         .build())
                 .build();
 
@@ -83,7 +83,7 @@ class PodTest {
         assertThatThrownBy(() -> Pod.builder()
                 .namespace("default")
                 .spec(PodSpec.builder()
-                        .addContainer(Container.builder()
+                        .container(Container.builder()
                                 .name("test")
                                 .image("test")
                                 .build())

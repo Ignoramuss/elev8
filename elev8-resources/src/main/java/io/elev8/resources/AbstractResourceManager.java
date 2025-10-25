@@ -4,20 +4,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 public abstract class AbstractResourceManager<T extends KubernetesResource> implements ResourceManager<T> {
-
-    private static final Logger log = LoggerFactory.getLogger(AbstractResourceManager.class);
 
     protected final KubernetesClient client;
     protected final Class<T> resourceClass;
     protected final String apiPath;
 
-    protected AbstractResourceManager(KubernetesClient client, Class<T> resourceClass, String apiPath) {
+    protected AbstractResourceManager(final KubernetesClient client, final Class<T> resourceClass, final String apiPath) {
         this.client = client;
         this.resourceClass = resourceClass;
         this.apiPath = apiPath;

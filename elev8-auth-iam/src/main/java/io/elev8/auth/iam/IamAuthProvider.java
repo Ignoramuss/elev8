@@ -2,8 +2,7 @@ package io.elev8.auth.iam;
 
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.auth.AuthenticationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -24,9 +23,9 @@ import java.util.Base64;
  * IAM-based authentication provider for EKS.
  * Generates authentication tokens using AWS STS GetCallerIdentity with Signature Version 4.
  */
-public class IamAuthProvider implements AuthProvider {
+@Slf4j
+public final class IamAuthProvider implements AuthProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(IamAuthProvider.class);
     private static final String TOKEN_PREFIX = "k8s-aws-v1.";
     private static final Duration TOKEN_EXPIRATION = Duration.ofMinutes(14);
     private static final int PRESIGNED_URL_EXPIRATION_SECONDS = 60;
@@ -39,7 +38,7 @@ public class IamAuthProvider implements AuthProvider {
     private String cachedToken;
     private Instant tokenExpiration;
 
-    private IamAuthProvider(Builder builder) {
+    private IamAuthProvider(final Builder builder) {
         this.clusterName = builder.clusterName;
         this.region = builder.region != null ? builder.region : Region.US_EAST_1;
         this.credentialsProvider = builder.credentialsProvider != null ?
@@ -69,34 +68,28 @@ public class IamAuthProvider implements AuthProvider {
         try {
             log.debug("Generating new IAM authentication token for cluster: {}", clusterName);
 
-            // Get credentials
-            AwsCredentials credentials = credentialsProvider.resolveCredentials();
+            final AwsCredentials credentials = credentialsProvider.resolveCredentials();
 
-            // Build STS GetCallerIdentity request
-            String stsEndpoint = "https://sts." + region.id() + ".amazonaws.com";
-            SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+            final String stsEndpoint = "https://sts." + region.id() + ".amazonaws.com";
+            final SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
                     .uri(URI.create(stsEndpoint + "/?Action=GetCallerIdentity&Version=2011-06-15"))
                     .method(SdkHttpMethod.GET)
                     .putHeader("x-k8s-aws-id", clusterName)
                     .build();
 
-            // Sign the request
-            Aws4SignerParams signerParams = Aws4SignerParams.builder()
+            final Aws4SignerParams signerParams = Aws4SignerParams.builder()
                     .awsCredentials(credentials)
                     .signingRegion(region)
                     .signingName("sts")
                     .build();
 
-            SdkHttpFullRequest signedRequest = signer.sign(httpRequest, signerParams);
+            final SdkHttpFullRequest signedRequest = signer.sign(httpRequest, signerParams);
 
-            // Build the presigned URL
-            String presignedUrl = buildPresignedUrl(signedRequest);
+            final String presignedUrl = buildPresignedUrl(signedRequest);
 
-            // Encode the URL in base64
-            String encodedUrl = Base64.getUrlEncoder().withoutPadding()
+            final String encodedUrl = Base64.getUrlEncoder().withoutPadding()
                     .encodeToString(presignedUrl.getBytes(StandardCharsets.UTF_8));
 
-            // Create token with prefix
             cachedToken = TOKEN_PREFIX + encodedUrl;
             tokenExpiration = Instant.now().plus(TOKEN_EXPIRATION);
 
@@ -160,27 +153,27 @@ public class IamAuthProvider implements AuthProvider {
         return new Builder();
     }
 
-    public static class Builder {
+    public static final class Builder {
         private String clusterName;
         private Region region;
         private AwsCredentialsProvider credentialsProvider;
 
-        public Builder clusterName(String clusterName) {
+        public Builder clusterName(final String clusterName) {
             this.clusterName = clusterName;
             return this;
         }
 
-        public Builder region(Region region) {
+        public Builder region(final Region region) {
             this.region = region;
             return this;
         }
 
-        public Builder region(String region) {
+        public Builder region(final String region) {
             this.region = Region.of(region);
             return this;
         }
 
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+        public Builder credentialsProvider(final AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }

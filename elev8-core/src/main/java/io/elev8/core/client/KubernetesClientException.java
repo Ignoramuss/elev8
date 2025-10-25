@@ -1,34 +1,33 @@
 package io.elev8.core.client;
 
+import lombok.Getter;
+
 /**
  * Exception thrown when a Kubernetes API request fails.
  */
+@Getter
 public class KubernetesClientException extends Exception {
 
     private final Integer statusCode;
 
-    public KubernetesClientException(String message) {
+    public KubernetesClientException(final String message) {
         super(message);
         this.statusCode = null;
     }
 
-    public KubernetesClientException(String message, int statusCode) {
+    public KubernetesClientException(final String message, final int statusCode) {
         super(message);
         this.statusCode = statusCode;
     }
 
-    public KubernetesClientException(String message, Throwable cause) {
+    public KubernetesClientException(final String message, final Throwable cause) {
         super(message, cause);
         this.statusCode = null;
     }
 
-    public KubernetesClientException(String message, int statusCode, Throwable cause) {
+    public KubernetesClientException(final String message, final int statusCode, final Throwable cause) {
         super(message, cause);
         this.statusCode = statusCode;
-    }
-
-    public Integer getStatusCode() {
-        return statusCode;
     }
 
     public boolean hasStatusCode() {

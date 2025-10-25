@@ -5,8 +5,8 @@ import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpException;
 import io.elev8.core.http.HttpResponse;
 import io.elev8.core.http.OkHttpClientImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,14 +14,14 @@ import java.util.Map;
 /**
  * Core Kubernetes client for making API requests.
  */
-public class KubernetesClient implements AutoCloseable {
+@Slf4j
+public final class KubernetesClient implements AutoCloseable {
 
-    private static final Logger log = LoggerFactory.getLogger(KubernetesClient.class);
-
+    @Getter
     private final KubernetesClientConfig config;
     private final HttpClient httpClient;
 
-    public KubernetesClient(KubernetesClientConfig config) {
+    public KubernetesClient(final KubernetesClientConfig config) {
         this.config = config;
         this.httpClient = createHttpClient();
     }
@@ -33,7 +33,7 @@ public class KubernetesClient implements AutoCloseable {
      * @return the HTTP response
      * @throws KubernetesClientException if the request fails
      */
-    public HttpResponse get(String path) throws KubernetesClientException {
+    public HttpResponse get(final String path) throws KubernetesClientException {
         return execute("GET", path, null);
     }
 
@@ -45,7 +45,7 @@ public class KubernetesClient implements AutoCloseable {
      * @return the HTTP response
      * @throws KubernetesClientException if the request fails
      */
-    public HttpResponse post(String path, String body) throws KubernetesClientException {
+    public HttpResponse post(final String path, final String body) throws KubernetesClientException {
         return execute("POST", path, body);
     }
 
@@ -57,7 +57,7 @@ public class KubernetesClient implements AutoCloseable {
      * @return the HTTP response
      * @throws KubernetesClientException if the request fails
      */
-    public HttpResponse put(String path, String body) throws KubernetesClientException {
+    public HttpResponse put(final String path, final String body) throws KubernetesClientException {
         return execute("PUT", path, body);
     }
 
@@ -69,7 +69,7 @@ public class KubernetesClient implements AutoCloseable {
      * @return the HTTP response
      * @throws KubernetesClientException if the request fails
      */
-    public HttpResponse patch(String path, String body) throws KubernetesClientException {
+    public HttpResponse patch(final String path, final String body) throws KubernetesClientException {
         return execute("PATCH", path, body);
     }
 
@@ -80,31 +80,27 @@ public class KubernetesClient implements AutoCloseable {
      * @return the HTTP response
      * @throws KubernetesClientException if the request fails
      */
-    public HttpResponse delete(String path) throws KubernetesClientException {
+    public HttpResponse delete(final String path) throws KubernetesClientException {
         return execute("DELETE", path, null);
     }
 
-    private HttpResponse execute(String method, String path, String body) throws KubernetesClientException {
+    private HttpResponse execute(final String method, final String path, final String body) throws KubernetesClientException {
         try {
-            // Refresh token if needed
             if (config.getAuthProvider().needsRefresh()) {
                 log.debug("Refreshing authentication token");
                 config.getAuthProvider().refresh();
             }
 
-            // Build URL
-            String url = config.getApiServerUrl() + path;
+            final String url = config.getApiServerUrl() + path;
 
-            // Build headers
-            Map<String, String> headers = new HashMap<>();
+            final Map<String, String> headers = new HashMap<>();
             headers.put("Authorization", config.getAuthProvider().getAuthHeader());
             headers.put("Accept", "application/json");
             if (body != null) {
                 headers.put("Content-Type", "application/json");
             }
 
-            // Execute request
-            HttpResponse response = switch (method) {
+            final HttpResponse response = switch (method) {
                 case "GET" -> httpClient.get(url, headers);
                 case "POST" -> httpClient.post(url, headers, body);
                 case "PUT" -> httpClient.put(url, headers, body);
@@ -113,7 +109,6 @@ public class KubernetesClient implements AutoCloseable {
                 default -> throw new KubernetesClientException("Unsupported HTTP method: " + method);
             };
 
-            // Handle authentication errors
             if (response.isUnauthorized() || response.isForbidden()) {
                 throw new KubernetesClientException(
                         "Authentication failed: " + response.getStatusCode() + " - " + response.getBody(),
@@ -136,10 +131,6 @@ public class KubernetesClient implements AutoCloseable {
                 .certificateAuthority(config.getCertificateAuthority())
                 .skipTlsVerify(config.isSkipTlsVerify())
                 .build();
-    }
-
-    public KubernetesClientConfig getConfig() {
-        return config;
     }
 
     @Override
