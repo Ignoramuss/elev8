@@ -131,30 +131,33 @@ aws eks describe-cluster --name your-cluster --region us-east-1
 
 ```java
 import io.elev8.eks.EksClient;
-import io.elev8.core.resources.Pod;
+import io.elev8.resources.pod.Pod;
+
+import java.util.List;
 
 // Create client with automatic IAM authentication
-EksClient client = EksClient.builder()
+final final EksClient client = EksClient.builder()
     .region("us-east-1")
     .cluster("my-cluster")
     .iamAuth()  // Auto-discovers credentials from environment
     .build();
 
 // List pods in a namespace
-List<Pod> pods = client.pods()
-    .namespace("default")
-    .list();
+final List<Pod> pods = client.pods().list("default");
 
 // Get a specific pod
-Pod pod = client.pods()
-    .namespace("default")
-    .get("my-pod");
+final final Pod pod = client.pods().get("default", "my-pod");
 
 // Create a pod
-Pod newPod = Pod.builder()
+final Pod newPod = Pod.builder()
     .name("nginx")
     .namespace("default")
-    .image("nginx:latest")
+    .spec(PodSpec.builder()
+        .addContainer(Container.builder()
+            .name("nginx")
+            .image("nginx:latest")
+            .build())
+        .build())
     .build();
 
 client.pods().create(newPod);
@@ -166,7 +169,7 @@ client.pods().create(newPod);
 
 ```java
 // Uses instance profile credentials automatically
-EksClient client = EksClient.builder()
+final EksClient client = EksClient.builder()
     .region("us-east-1")
     .cluster("my-cluster")
     .iamAuth()
@@ -177,7 +180,7 @@ EksClient client = EksClient.builder()
 
 ```java
 // Uses Lambda execution role automatically
-EksClient client = EksClient.builder()
+final EksClient client = EksClient.builder()
     .region(System.getenv("AWS_REGION"))
     .cluster(System.getenv("EKS_CLUSTER_NAME"))
     .iamAuth()
@@ -187,7 +190,7 @@ EksClient client = EksClient.builder()
 #### With Assume Role
 
 ```java
-EksClient client = EksClient.builder()
+final EksClient client = EksClient.builder()
     .region("us-east-1")
     .cluster("my-cluster")
     .iamAuth(auth -> auth
@@ -199,11 +202,11 @@ EksClient client = EksClient.builder()
 #### With Specific Credentials
 
 ```java
-AwsCredentialsProvider credentialsProvider =
+final AwsCredentialsProvider credentialsProvider =
     StaticCredentialsProvider.create(
         AwsBasicCredentials.create(accessKey, secretKey));
 
-EksClient client = EksClient.builder()
+final EksClient client = EksClient.builder()
     .region("us-east-1")
     .cluster("my-cluster")
     .iamAuth(auth -> auth
@@ -216,7 +219,7 @@ EksClient client = EksClient.builder()
 For pods running in EKS with IAM Roles for Service Accounts:
 
 ```java
-EksClient client = EksClient.builder()
+final EksClient client = EksClient.builder()
     .region("us-east-1")
     .cluster("my-cluster")
     .oidcAuth()  // Auto-discovers web identity token
@@ -230,10 +233,10 @@ import io.elev8.auth.accessentries.AccessEntry;
 import io.elev8.auth.accessentries.AccessEntryManager;
 
 // Create access entry manager
-AccessEntryManager manager = client.accessEntries();
+final AccessEntryManager manager = client.accessEntries();
 
 // Create an access entry
-AccessEntry entry = AccessEntry.builder()
+final AccessEntry entry = AccessEntry.builder()
     .principalArn("arn:aws:iam::123456789012:role/Developer")
     .kubernetesGroups(List.of("developers"))
     .type("STANDARD")
@@ -242,7 +245,7 @@ AccessEntry entry = AccessEntry.builder()
 manager.create(entry);
 
 // List access entries
-List<AccessEntry> entries = manager.list();
+final List<AccessEntry> entries = manager.list();
 
 // Migrate from aws-auth ConfigMap
 manager.migrateFromConfigMap();
@@ -295,6 +298,74 @@ cd elev8-core
 mvn clean install
 ```
 
+## Logging
+
+Elev8 uses **SLF4J** as a logging facade, following best practices for open source Java libraries. This means you have complete control over the logging implementation.
+
+### Adding a Logging Implementation
+
+**Elev8 only depends on slf4j-api**. You must add your own SLF4J implementation:
+
+**Option 1: Logback (Recommended)**
+```xml
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>1.5.17</version>
+</dependency>
+```
+
+**Option 2: Log4j 2**
+```xml
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-slf4j2-impl</artifactId>
+    <version>2.24.3</version>
+</dependency>
+```
+
+**Option 3: Simple Logger (for testing)**
+```xml
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-simple</artifactId>
+    <version>2.0.16</version>
+</dependency>
+```
+
+### Configuring Logback
+
+Create `src/main/resources/logback.xml`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Set Elev8 logging level -->
+    <logger name="io.elev8" level="INFO"/>
+
+    <!-- Set AWS SDK logging level (reduce noise) -->
+    <logger name="software.amazon.awssdk" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
+```
+
+### Log Levels
+
+- **TRACE**: Very detailed debugging (token generation details)
+- **DEBUG**: IAM authentication flow, HTTP requests
+- **INFO**: Client initialization, resource operations
+- **WARN**: Deprecated features, potential issues
+- **ERROR**: Authentication failures, API errors
+
 ## Examples
 
 See the [examples](examples/) directory for comprehensive examples:
@@ -321,7 +392,7 @@ KubernetesClient client = new KubernetesClientBuilder()
     .build();
 
 // Elev8
-EksClient client = EksClient.builder()
+final EksClient client = EksClient.builder()
     .region("us-east-1")
     .cluster("my-cluster")
     .iamAuth()  // No manual token management!
@@ -339,10 +410,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl get pods -n default` | `client.pods().list("default")` |
 | `kubectl get pods --all-namespaces` | `client.pods().listAllNamespaces()` |
 | `kubectl get pod my-pod -n default` | `client.pods().get("default", "my-pod")` |
-| `kubectl get pod my-pod -n default -o json` | `Pod pod = client.pods().get("default", "my-pod");<br>String json = pod.toJson();` |
+| `kubectl get pod my-pod -n default -o json` | `final Pod pod = client.pods().get("default", "my-pod");<br>String json = pod.toJson();` |
 | `kubectl create -f pod.yaml` | `Pod pod = Pod.builder()...build();<br>client.pods().create(pod);` |
 | `kubectl delete pod my-pod -n default` | `client.pods().delete("default", "my-pod")` |
-| `kubectl describe pod my-pod` | `Pod pod = client.pods().get("default", "my-pod");<br>// Access pod.getStatus(), pod.getSpec()` |
+| `kubectl describe pod my-pod` | `final Pod pod = client.pods().get("default", "my-pod");<br>// Access pod.getStatus(), pod.getSpec()` |
 
 ### Service Operations
 
@@ -363,8 +434,8 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl create -f deployment.yaml` | `Deployment deploy = Deployment.builder()...build();<br>client.deployments().create(deploy);` |
 | `kubectl apply -f deployment.yaml` | `Deployment deploy = ...; // modified deployment<br>client.deployments().update(deploy);` |
 | `kubectl delete deployment my-deploy` | `client.deployments().delete("default", "my-deploy")` |
-| `kubectl scale deployment my-deploy --replicas=5` | `Deployment d = client.deployments().get("default", "my-deploy");<br>d.getSpec().setReplicas(5);<br>client.deployments().update(d);` |
-| `kubectl rollout restart deployment/my-deploy` | `Deployment d = client.deployments().get("default", "my-deploy");<br>// Add/update annotation to trigger restart<br>d.getMetadata().getAnnotations().put("kubectl.kubernetes.io/restartedAt", Instant.now().toString());<br>client.deployments().update(d);` |
+| `kubectl scale deployment my-deploy --replicas=5` | `final Deployment d = client.deployments().get("default", "my-deploy");<br>d.getSpec().setReplicas(5);<br>client.deployments().update(d);` |
+| `kubectl rollout restart deployment/my-deploy` | `final Deployment d = client.deployments().get("default", "my-deploy");<br>// Add/update annotation to trigger restart<br>d.getMetadata().getAnnotations().put("kubectl.kubernetes.io/restartedAt", Instant.now().toString());<br>client.deployments().update(d);` |
 
 ### Complete Example: Creating a Deployment
 
@@ -377,7 +448,7 @@ kubectl expose deployment nginx --port=80 --target-port=80
 **Elev8:**
 ```java
 // Create deployment
-Deployment deployment = Deployment.builder()
+final Deployment deployment = Deployment.builder()
     .name("nginx")
     .namespace("default")
     .spec(DeploymentSpec.builder()
@@ -399,7 +470,7 @@ Deployment deployment = Deployment.builder()
 client.deployments().create(deployment);
 
 // Create service
-Service service = Service.builder()
+final Service service = Service.builder()
     .name("nginx")
     .namespace("default")
     .spec(ServiceSpec.builder()
