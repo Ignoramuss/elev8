@@ -42,8 +42,8 @@ class MetadataTest {
 
         assertThat(metadata.getName()).isEqualTo("test-resource");
         assertThat(metadata.getNamespace()).isNull();
-        assertThat(metadata.getLabels()).isNull();
-        assertThat(metadata.getAnnotations()).isNull();
+        assertThat(metadata.getLabels()).isEmpty();
+        assertThat(metadata.getAnnotations()).isEmpty();
     }
 
     @Test
@@ -72,11 +72,33 @@ class MetadataTest {
 
     @Test
     void shouldSupportSetters() {
-        final Metadata metadata = new Metadata();
+        final Metadata metadata = Metadata.builder()
+                .name("old-name")
+                .build();
+
         metadata.setName("new-name");
         metadata.setNamespace("new-namespace");
 
         assertThat(metadata.getName()).isEqualTo("new-name");
         assertThat(metadata.getNamespace()).isEqualTo("new-namespace");
+    }
+
+    @Test
+    void shouldSupportToBuilder() {
+        final Metadata original = Metadata.builder()
+                .name("test")
+                .namespace("default")
+                .label("app", "test")
+                .build();
+
+        final Metadata modified = original.toBuilder()
+                .name("modified-test")
+                .label("env", "prod")
+                .build();
+
+        assertThat(modified.getName()).isEqualTo("modified-test");
+        assertThat(modified.getNamespace()).isEqualTo("default");
+        assertThat(modified.getLabels()).containsEntry("app", "test");
+        assertThat(modified.getLabels()).containsEntry("env", "prod");
     }
 }
