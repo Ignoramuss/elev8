@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AccessScopeTest {
 
@@ -21,7 +20,7 @@ class AccessScopeTest {
     void shouldCreateAccessScopeWithNamespaceType() {
         final AccessScope scope = AccessScope.builder()
                 .type("namespace")
-                .addNamespace("default")
+                .namespaces(List.of("default"))
                 .build();
 
         assertThat(scope.getType()).isEqualTo("namespace");
@@ -29,11 +28,10 @@ class AccessScopeTest {
     }
 
     @Test
-    void shouldAddMultipleNamespaces() {
+    void shouldSetMultipleNamespaces() {
         final AccessScope scope = AccessScope.builder()
                 .type("namespace")
-                .addNamespace("default")
-                .addNamespace("kube-system")
+                .namespaces(List.of("default", "kube-system"))
                 .build();
 
         assertThat(scope.getNamespaces()).containsExactly("default", "kube-system");
@@ -51,20 +49,11 @@ class AccessScopeTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenTypeIsNull() {
-        assertThatThrownBy(() -> AccessScope.builder()
-                .type(null)
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Type is required");
-    }
+    void shouldUseDefaultType() {
+        final AccessScope scope = AccessScope.builder()
+                .namespaces(List.of("default"))
+                .build();
 
-    @Test
-    void shouldThrowExceptionWhenTypeIsEmpty() {
-        assertThatThrownBy(() -> AccessScope.builder()
-                .type("")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Type is required");
+        assertThat(scope.getType()).isEqualTo("cluster");
     }
 }

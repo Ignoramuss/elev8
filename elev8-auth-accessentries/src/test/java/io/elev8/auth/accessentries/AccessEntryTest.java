@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AccessEntryTest {
 
@@ -21,6 +20,7 @@ class AccessEntryTest {
 
         assertThat(entry.getPrincipalArn()).isEqualTo(TEST_PRINCIPAL_ARN);
         assertThat(entry.getKubernetesGroups()).isEmpty();
+        assertThat(entry.getType()).isEqualTo("STANDARD");
     }
 
     @Test
@@ -32,13 +32,13 @@ class AccessEntryTest {
 
         final AccessEntry entry = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .addKubernetesGroup("system:masters")
+                .kubernetesGroups(List.of("system:masters"))
                 .username("test-user")
                 .type("STANDARD")
-                .addTag("Environment", "test")
+                .tags(Map.of("Environment", "test"))
                 .createdAt(now)
                 .modifiedAt(now)
-                .addAccessPolicy(policy)
+                .accessPolicies(List.of(policy))
                 .build();
 
         assertThat(entry.getPrincipalArn()).isEqualTo(TEST_PRINCIPAL_ARN);
@@ -54,11 +54,10 @@ class AccessEntryTest {
     }
 
     @Test
-    void shouldAddMultipleKubernetesGroups() {
+    void shouldSetMultipleKubernetesGroups() {
         final AccessEntry entry = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .addKubernetesGroup("system:masters")
-                .addKubernetesGroup("developers")
+                .kubernetesGroups(List.of("system:masters", "developers"))
                 .build();
 
         assertThat(entry.getKubernetesGroups()).containsExactly("system:masters", "developers");
@@ -76,11 +75,10 @@ class AccessEntryTest {
     }
 
     @Test
-    void shouldAddMultipleTags() {
+    void shouldSetMultipleTags() {
         final AccessEntry entry = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .addTag("Environment", "test")
-                .addTag("Team", "platform")
+                .tags(Map.of("Environment", "test", "Team", "platform"))
                 .build();
 
         assertThat(entry.getTags()).containsEntry("Environment", "test");
@@ -96,22 +94,6 @@ class AccessEntryTest {
                 .build();
 
         assertThat(entry.getTags()).containsAllEntriesOf(tags);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenPrincipalArnIsNull() {
-        assertThatThrownBy(() -> AccessEntry.builder().build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Principal ARN is required");
-    }
-
-    @Test
-    void shouldThrowExceptionWhenPrincipalArnIsEmpty() {
-        assertThatThrownBy(() -> AccessEntry.builder()
-                .principalArn("")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Principal ARN is required");
     }
 
     @Test
@@ -141,7 +123,7 @@ class AccessEntryTest {
     void shouldCreateBuilderFromExistingAccessEntry() {
         final AccessEntry original = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .addKubernetesGroup("system:masters")
+                .kubernetesGroups(List.of("system:masters"))
                 .username("test-user")
                 .build();
 

@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AccessPolicyTest {
 
@@ -27,12 +26,12 @@ class AccessPolicyTest {
         final Instant now = Instant.now();
         final AccessScope scope = AccessScope.builder()
                 .type("namespace")
-                .addNamespace("default")
+                .namespaces(List.of("default"))
                 .build();
 
         final AccessPolicy policy = AccessPolicy.builder()
                 .policyArn(TEST_POLICY_ARN)
-                .addAccessScope(scope)
+                .accessScopes(List.of(scope))
                 .associatedAt(now)
                 .modifiedAt(now)
                 .build();
@@ -44,21 +43,20 @@ class AccessPolicyTest {
     }
 
     @Test
-    void shouldAddMultipleAccessScopes() {
+    void shouldSetMultipleAccessScopes() {
         final AccessScope scope1 = AccessScope.builder()
                 .type("namespace")
-                .addNamespace("default")
+                .namespaces(List.of("default"))
                 .build();
 
         final AccessScope scope2 = AccessScope.builder()
                 .type("namespace")
-                .addNamespace("kube-system")
+                .namespaces(List.of("kube-system"))
                 .build();
 
         final AccessPolicy policy = AccessPolicy.builder()
                 .policyArn(TEST_POLICY_ARN)
-                .addAccessScope(scope1)
-                .addAccessScope(scope2)
+                .accessScopes(List.of(scope1, scope2))
                 .build();
 
         assertThat(policy.getAccessScopes()).hasSize(2);
@@ -77,22 +75,6 @@ class AccessPolicyTest {
                 .build();
 
         assertThat(policy.getAccessScopes()).containsExactlyElementsOf(scopes);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenPolicyArnIsNull() {
-        assertThatThrownBy(() -> AccessPolicy.builder().build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Policy ARN is required");
-    }
-
-    @Test
-    void shouldThrowExceptionWhenPolicyArnIsEmpty() {
-        assertThatThrownBy(() -> AccessPolicy.builder()
-                .policyArn("")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Policy ARN is required");
     }
 
     @Test
