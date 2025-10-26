@@ -2,7 +2,6 @@ package io.elev8.auth.oidc;
 
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.auth.AuthenticationException;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -31,7 +30,6 @@ import java.util.Base64;
  * Uses web identity tokens to assume IAM roles and generate Kubernetes authentication tokens.
  */
 @Slf4j
-@Builder(toBuilder = true)
 public final class OidcAuthProvider implements AuthProvider {
 
     private static final String TOKEN_PREFIX = "k8s-aws-v1.";
@@ -47,36 +45,24 @@ public final class OidcAuthProvider implements AuthProvider {
     private final String webIdentityTokenFile;
     private final String roleSessionName;
     private final StsClient stsClient;
+    private final Aws4Signer signer;
 
-    @Builder.Default
-    private final Aws4Signer signer = Aws4Signer.create();
+    private String cachedToken;
+    private Instant tokenExpiration;
+    private AwsSessionCredentials sessionCredentials;
+    private Instant credentialsExpiration;
 
-    private transient String cachedToken;
-    private transient Instant tokenExpiration;
-    private transient AwsSessionCredentials sessionCredentials;
-    private transient Instant credentialsExpiration;
-
-    private OidcAuthProvider(final String clusterName,
-                            final Region region,
-                            final String roleArn,
-                            final String webIdentityTokenFile,
-                            final String roleSessionName,
-                            final StsClient stsClient,
-                            final Aws4Signer signer) {
-        if (clusterName == null || clusterName.isEmpty()) {
-            throw new IllegalArgumentException("Cluster name is required");
-        }
-
-        this.clusterName = clusterName;
-        this.region = region != null ? region : Region.US_EAST_1;
-        this.roleArn = roleArn != null ? roleArn : System.getenv(AWS_ROLE_ARN);
-        this.webIdentityTokenFile = webIdentityTokenFile != null ?
-                webIdentityTokenFile : System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE);
-        this.roleSessionName = roleSessionName != null ?
-                roleSessionName : getDefaultSessionName();
-        this.stsClient = stsClient != null ?
-                stsClient : StsClient.builder().region(this.region).build();
-        this.signer = signer != null ? signer : Aws4Signer.create();
+    private OidcAuthProvider(final Builder builder) {
+        this.clusterName = builder.clusterName;
+        this.region = builder.region != null ? builder.region : Region.US_EAST_1;
+        this.roleArn = builder.roleArn != null ? builder.roleArn : System.getenv(AWS_ROLE_ARN);
+        this.webIdentityTokenFile = builder.webIdentityTokenFile != null ?
+                builder.webIdentityTokenFile : System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE);
+        this.roleSessionName = builder.roleSessionName != null ?
+                builder.roleSessionName : getDefaultSessionName();
+        this.stsClient = builder.stsClient != null ?
+                builder.stsClient : StsClient.builder().region(this.region).build();
+        this.signer = Aws4Signer.create();
 
         validateConfiguration();
     }
@@ -241,20 +227,65 @@ public final class OidcAuthProvider implements AuthProvider {
                 .replace("%7E", "~");
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private String clusterName;
+        private Region region;
+        private String roleArn;
+        private String webIdentityTokenFile;
+        private String roleSessionName;
+        private StsClient stsClient;
+
+        public Builder clusterName(final String clusterName) {
+            this.clusterName = clusterName;
+            return this;
+        }
+
+        public Builder region(final Region region) {
+            this.region = region;
+            return this;
+        }
+
+        public Builder region(final String region) {
+            this.region = Region.of(region);
+            return this;
+        }
+
+        public Builder roleArn(final String roleArn) {
+            this.roleArn = roleArn;
+            return this;
+        }
+
+        public Builder webIdentityTokenFile(final String webIdentityTokenFile) {
+            this.webIdentityTokenFile = webIdentityTokenFile;
+            return this;
+        }
+
+        public Builder roleSessionName(final String roleSessionName) {
+            this.roleSessionName = roleSessionName;
+            return this;
+        }
+
+        public Builder stsClient(final StsClient stsClient) {
+            this.stsClient = stsClient;
+            return this;
+        }
+
+        public OidcAuthProvider build() {
+            if (clusterName == null || clusterName.isEmpty()) {
+                throw new IllegalArgumentException("Cluster name is required");
+            }
+            return new OidcAuthProvider(this);
+        }
+    }
+
     @Override
     public void close() {
         if (stsClient != null) {
             stsClient.close();
-        }
-    }
-
-    /**
-     * Custom builder class to support region as String.
-     */
-    public static class OidcAuthProviderBuilder {
-        public OidcAuthProviderBuilder region(final String region) {
-            this.region = Region.of(region);
-            return this;
         }
     }
 }

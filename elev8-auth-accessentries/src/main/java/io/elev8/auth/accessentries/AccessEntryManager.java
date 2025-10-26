@@ -1,6 +1,5 @@
 package io.elev8.auth.accessentries;
 
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eks.EksClient;
@@ -25,27 +24,20 @@ import java.util.stream.Collectors;
  * Provides methods to create, read, update, and delete access entries.
  */
 @Slf4j
-@Builder(toBuilder = true)
 public final class AccessEntryManager implements AutoCloseable {
 
     private final String clusterName;
     private final EksClient eksClient;
     private final boolean ownsClient;
 
-    private AccessEntryManager(final String clusterName,
-                              final Region region,
-                              final EksClient eksClient) {
-        if (clusterName == null || clusterName.isEmpty()) {
-            throw new IllegalArgumentException("Cluster name is required");
-        }
+    private AccessEntryManager(final Builder builder) {
+        this.clusterName = builder.clusterName;
 
-        this.clusterName = clusterName;
-
-        if (eksClient != null) {
-            this.eksClient = eksClient;
+        if (builder.eksClient != null) {
+            this.eksClient = builder.eksClient;
             this.ownsClient = false;
-        } else if (region != null) {
-            this.eksClient = EksClient.builder().region(region).build();
+        } else if (builder.region != null) {
+            this.eksClient = EksClient.builder().region(builder.region).build();
             this.ownsClient = true;
         } else {
             throw new IllegalArgumentException("Either region or eksClient is required");
@@ -215,13 +207,40 @@ public final class AccessEntryManager implements AutoCloseable {
         }
     }
 
-    /**
-     * Custom builder class to support region as String.
-     */
-    public static class AccessEntryManagerBuilder {
-        public AccessEntryManagerBuilder region(final String region) {
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private String clusterName;
+        private Region region;
+        private EksClient eksClient;
+
+        public Builder clusterName(final String clusterName) {
+            this.clusterName = clusterName;
+            return this;
+        }
+
+        public Builder region(final Region region) {
+            this.region = region;
+            return this;
+        }
+
+        public Builder region(final String region) {
             this.region = Region.of(region);
             return this;
+        }
+
+        public Builder eksClient(final EksClient eksClient) {
+            this.eksClient = eksClient;
+            return this;
+        }
+
+        public AccessEntryManager build() {
+            if (clusterName == null || clusterName.isEmpty()) {
+                throw new IllegalArgumentException("Cluster name is required");
+            }
+            return new AccessEntryManager(this);
         }
     }
 }
