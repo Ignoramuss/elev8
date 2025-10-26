@@ -14,6 +14,9 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eks.model.Cluster;
 import software.amazon.awssdk.services.eks.model.DescribeClusterRequest;
 import software.amazon.awssdk.services.eks.model.DescribeClusterResponse;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
 import java.time.Duration;
 import java.util.function.Consumer;
@@ -248,18 +251,34 @@ public final class EksClient implements AutoCloseable {
             return this;
         }
 
-        private IamAuthProvider build(String clusterName, Region region) {
-            IamAuthProvider.Builder builder = IamAuthProvider.builder()
+        private IamAuthProvider build(final String clusterName, final Region region) {
+            final IamAuthProvider.Builder builder = IamAuthProvider.builder()
                     .clusterName(clusterName)
                     .region(region);
 
-            if (credentialsProvider != null) {
-                builder.credentialsProvider(credentialsProvider);
+            AwsCredentialsProvider finalCredentialsProvider = credentialsProvider;
+
+            if (roleArn != null) {
+                final StsClient stsClient = StsClient.builder()
+                        .region(region)
+                        .credentialsProvider(credentialsProvider)
+                        .build();
+
+                final String effectiveSessionName = sessionName != null ? sessionName : "elev8-eks-session";
+
+                finalCredentialsProvider = StsAssumeRoleCredentialsProvider.builder()
+                        .stsClient(stsClient)
+                        .refreshRequest(AssumeRoleRequest.builder()
+                                .roleArn(roleArn)
+                                .roleSessionName(effectiveSessionName)
+                                .build())
+                        .build();
+
+                log.debug("Configured AssumeRole for {} with session name {}", roleArn, effectiveSessionName);
             }
 
-            // TODO: Add assume role support
-            if (roleArn != null) {
-                log.warn("Assume role support not yet implemented, using provided credentials provider");
+            if (finalCredentialsProvider != null) {
+                builder.credentialsProvider(finalCredentialsProvider);
             }
 
             return builder.build();

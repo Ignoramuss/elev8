@@ -82,4 +82,68 @@ class EksClientTest {
 
         assertThat(builder).isNotNull();
     }
+
+    @Test
+    void shouldConfigureIamAuthWithAssumeRole() {
+        final EksClient client = EksClient.builder()
+                .cluster("test-cluster")
+                .region(Region.US_EAST_1)
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .iamAuth(builder -> builder
+                        .credentialsProvider(software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
+                                software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-key", "test-secret")))
+                        .assumeRole("arn:aws:iam::123456789012:role/TestRole"))
+                .build();
+
+        assertThat(client).isNotNull();
+        assertThat(client.getClusterName()).isEqualTo("test-cluster");
+        assertThat(client.getRegion()).isEqualTo(Region.US_EAST_1);
+
+        client.close();
+    }
+
+    @Test
+    void shouldConfigureIamAuthWithAssumeRoleAndCustomSessionName() {
+        final EksClient client = EksClient.builder()
+                .cluster("test-cluster")
+                .region(Region.US_EAST_1)
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .iamAuth(builder -> builder
+                        .credentialsProvider(software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
+                                software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-key", "test-secret")))
+                        .assumeRole("arn:aws:iam::123456789012:role/TestRole")
+                        .sessionName("custom-session-name"))
+                .build();
+
+        assertThat(client).isNotNull();
+        assertThat(client.getClusterName()).isEqualTo("test-cluster");
+        assertThat(client.getRegion()).isEqualTo(Region.US_EAST_1);
+
+        client.close();
+    }
+
+    @Test
+    void shouldConfigureIamAuthWithAssumeRoleAndCustomCredentialsProvider() {
+        final EksClient client = EksClient.builder()
+                .cluster("test-cluster")
+                .region(Region.US_EAST_1)
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .iamAuth(builder -> builder
+                        .credentialsProvider(software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
+                                software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-key", "test-secret")))
+                        .assumeRole("arn:aws:iam::123456789012:role/TestRole"))
+                .build();
+
+        assertThat(client).isNotNull();
+        assertThat(client.getClusterName()).isEqualTo("test-cluster");
+        assertThat(client.getRegion()).isEqualTo(Region.US_EAST_1);
+
+        client.close();
+    }
 }
