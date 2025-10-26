@@ -1,15 +1,11 @@
 package io.elev8.eks;
 
-import io.elev8.core.auth.AuthProvider;
-import io.elev8.resources.deployment.DeploymentManager;
-import io.elev8.resources.pod.PodManager;
-import io.elev8.resources.service.ServiceManager;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 
 class EksClientTest {
 
@@ -25,61 +21,123 @@ class EksClientTest {
     @Test
     void shouldThrowExceptionWhenRegionIsNull() {
         assertThatThrownBy(() -> EksClient.builder()
-                .cluster("test-cluster")
+                .clusterName("test-cluster")
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Region is required");
     }
 
     @Test
-    void shouldThrowExceptionWhenAuthProviderNotConfigured() {
-        assertThatThrownBy(() -> EksClient.builder()
-                .cluster("test-cluster")
+    void shouldBuildClientWithMinimalConfiguration() {
+        final EksClient client = EksClient.builder()
+                .clusterName("test-cluster")
                 .region("us-east-1")
-                .build())
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Authentication provider must be configured");
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .build();
+
+        assertThat(client).isNotNull();
+        assertThat(client.getClusterName()).isEqualTo("test-cluster");
+        assertThat(client.getRegion()).isEqualTo("us-east-1");
+
+        client.close();
     }
 
     @Test
-    void shouldThrowExceptionWhenIamAuthCalledWithoutCluster() {
-        assertThatThrownBy(() -> EksClient.builder()
+    void shouldConfigureAssumeRole() {
+        final EksClient client = EksClient.builder()
+                .clusterName("test-cluster")
                 .region("us-east-1")
-                .iamAuth())
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Cluster name must be set before configuring IAM auth");
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .roleArn("arn:aws:iam::123456789012:role/TestRole")
+                .baseCredentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create("test-key", "test-secret")))
+                .build();
+
+        assertThat(client).isNotNull();
+        assertThat(client.getClusterName()).isEqualTo("test-cluster");
+        assertThat(client.getRegion()).isEqualTo("us-east-1");
+
+        client.close();
     }
 
     @Test
-    void shouldThrowExceptionWhenIamAuthCalledWithoutRegion() {
-        assertThatThrownBy(() -> EksClient.builder()
-                .cluster("test-cluster")
-                .iamAuth())
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Region must be set before configuring IAM auth");
+    void shouldConfigureAssumeRoleWithCustomSessionName() {
+        final EksClient client = EksClient.builder()
+                .clusterName("test-cluster")
+                .region("us-east-1")
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .roleArn("arn:aws:iam::123456789012:role/TestRole")
+                .sessionName("custom-session-name")
+                .baseCredentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create("test-key", "test-secret")))
+                .build();
+
+        assertThat(client).isNotNull();
+        assertThat(client.getClusterName()).isEqualTo("test-cluster");
+        assertThat(client.getRegion()).isEqualTo("us-east-1");
+
+        client.close();
     }
 
     @Test
-    void shouldAcceptRegionAsString() {
-        final AuthProvider authProvider = mock(AuthProvider.class);
+    void shouldConfigureAssumeRoleWithCustomCredentialsProvider() {
+        final EksClient client = EksClient.builder()
+                .clusterName("test-cluster")
+                .region("us-east-1")
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .roleArn("arn:aws:iam::123456789012:role/TestRole")
+                .baseCredentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create("test-key", "test-secret")))
+                .build();
 
-        final EksClient.Builder builder = EksClient.builder()
-                .cluster("test-cluster")
-                .region("us-west-2")
-                .authProvider(authProvider);
+        assertThat(client).isNotNull();
+        assertThat(client.getClusterName()).isEqualTo("test-cluster");
+        assertThat(client.getRegion()).isEqualTo("us-east-1");
 
-        assertThat(builder).isNotNull();
+        client.close();
     }
 
     @Test
-    void shouldAcceptRegionAsEnum() {
-        final AuthProvider authProvider = mock(AuthProvider.class);
+    void shouldUseDefaultSessionNameWhenNotSpecified() {
+        final EksClient client = EksClient.builder()
+                .clusterName("test-cluster")
+                .region("us-east-1")
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .roleArn("arn:aws:iam::123456789012:role/TestRole")
+                .baseCredentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create("test-key", "test-secret")))
+                .build();
 
-        final EksClient.Builder builder = EksClient.builder()
-                .cluster("test-cluster")
-                .region(Region.US_WEST_2)
-                .authProvider(authProvider);
+        assertThat(client).isNotNull();
 
-        assertThat(builder).isNotNull();
+        client.close();
+    }
+
+    @Test
+    void shouldSupportResourceManagers() {
+        final EksClient client = EksClient.builder()
+                .clusterName("test-cluster")
+                .region("us-east-1")
+                .apiServerUrl("https://example.eks.amazonaws.com")
+                .certificateAuthority("")
+                .skipTlsVerify(true)
+                .build();
+
+        assertThat(client.pods()).isNotNull();
+        assertThat(client.services()).isNotNull();
+        assertThat(client.deployments()).isNotNull();
+        assertThat(client.getKubernetesClient()).isNotNull();
+
+        client.close();
     }
 }

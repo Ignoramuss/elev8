@@ -33,9 +33,8 @@ public class ResourceCrudExample {
         final String namespace = "default";
 
         try (EksClient client = EksClient.builder()
-                .cluster(clusterName)
+                .clusterName(clusterName)
                 .region(region)
-                .iamAuth()
                 .build()) {
 
             log.info("Connected to EKS cluster: {}", clusterName);

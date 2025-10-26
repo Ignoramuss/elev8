@@ -136,17 +136,16 @@ import io.elev8.resources.pod.Pod;
 import java.util.List;
 
 // Create client with automatic IAM authentication
-final final EksClient client = EksClient.builder()
+final EksClient client = EksClient.builder()
+    .clusterName("my-cluster")
     .region("us-east-1")
-    .cluster("my-cluster")
-    .iamAuth()  // Auto-discovers credentials from environment
     .build();
 
 // List pods in a namespace
 final List<Pod> pods = client.pods().list("default");
 
 // Get a specific pod
-final final Pod pod = client.pods().get("default", "my-pod");
+final Pod pod = client.pods().get("default", "my-pod");
 
 // Create a pod
 final Pod newPod = Pod.builder()
@@ -170,9 +169,8 @@ client.pods().create(newPod);
 ```java
 // Uses instance profile credentials automatically
 final EksClient client = EksClient.builder()
+    .clusterName("my-cluster")
     .region("us-east-1")
-    .cluster("my-cluster")
-    .iamAuth()
     .build();
 ```
 
@@ -181,9 +179,8 @@ final EksClient client = EksClient.builder()
 ```java
 // Uses Lambda execution role automatically
 final EksClient client = EksClient.builder()
+    .clusterName(System.getenv("EKS_CLUSTER_NAME"))
     .region(System.getenv("AWS_REGION"))
-    .cluster(System.getenv("EKS_CLUSTER_NAME"))
-    .iamAuth()
     .build();
 ```
 
@@ -191,11 +188,10 @@ final EksClient client = EksClient.builder()
 
 ```java
 final EksClient client = EksClient.builder()
+    .clusterName("my-cluster")
     .region("us-east-1")
-    .cluster("my-cluster")
-    .iamAuth(auth -> auth
-        .assumeRole("arn:aws:iam::123456789012:role/EksAdmin")
-        .sessionName("my-session"))
+    .roleArn("arn:aws:iam::123456789012:role/EksAdmin")
+    .sessionName("my-session")
     .build();
 ```
 
@@ -207,10 +203,9 @@ final AwsCredentialsProvider credentialsProvider =
         AwsBasicCredentials.create(accessKey, secretKey));
 
 final EksClient client = EksClient.builder()
+    .clusterName("my-cluster")
     .region("us-east-1")
-    .cluster("my-cluster")
-    .iamAuth(auth -> auth
-        .credentialsProvider(credentialsProvider))
+    .baseCredentialsProvider(credentialsProvider)
     .build();
 ```
 
@@ -393,9 +388,8 @@ KubernetesClient client = new KubernetesClientBuilder()
 
 // Elev8
 final EksClient client = EksClient.builder()
-    .region("us-east-1")
-    .cluster("my-cluster")
-    .iamAuth()  // No manual token management!
+    .clusterName("my-cluster")
+    .region("us-east-1")  // No manual token management!
     .build();
 ```
 

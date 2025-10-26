@@ -30,9 +30,8 @@ public class SimpleExample {
 
         // Create EKS client with IAM authentication
         try (EksClient client = EksClient.builder()
-                .cluster(clusterName)
+                .clusterName(clusterName)
                 .region(region)
-                .iamAuth()  // Automatically uses default AWS credentials
                 .build()) {
 
             log.info("Successfully created EKS client for cluster: {}", clusterName);
