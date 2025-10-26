@@ -26,18 +26,18 @@ import java.time.Duration;
 @Slf4j
 public final class EksClient implements AutoCloseable {
 
-    private KubernetesClient kubernetesClient;
+    private final KubernetesClient kubernetesClient;
 
     @Getter
     private final String clusterName;
 
     @Getter
-    private final Region region;
+    private final String region;
 
-    private PodManager podManager;
-    private ServiceManager serviceManager;
-    private DeploymentManager deploymentManager;
-    private StsClient stsClient;
+    private final PodManager podManager;
+    private final ServiceManager serviceManager;
+    private final DeploymentManager deploymentManager;
+    private final StsClient stsClient;
 
     private final boolean skipTlsVerify;
     private final Duration connectTimeout;
@@ -57,7 +57,7 @@ public final class EksClient implements AutoCloseable {
 
     @lombok.Builder(toBuilder = true)
     private EksClient(final String clusterName,
-                      final Region region,
+                      final String region,
                       final String apiServerUrl,
                       final String certificateAuthority,
                       final Boolean skipTlsVerify,
@@ -71,7 +71,7 @@ public final class EksClient implements AutoCloseable {
         if (clusterName == null || clusterName.isEmpty()) {
             throw new IllegalArgumentException("Cluster name is required");
         }
-        if (region == null) {
+        if (region == null || region.isEmpty()) {
             throw new IllegalArgumentException("Region is required");
         }
 
@@ -92,7 +92,7 @@ public final class EksClient implements AutoCloseable {
 
         if (apiServerUrl == null || certificateAuthority == null) {
             log.debug("Auto-discovering EKS cluster details for: {}", clusterName);
-            final ClusterDetails details = discoverClusterDetails(region, clusterName);
+            final ClusterDetails details = discoverClusterDetails(Region.of(region), clusterName);
             finalApiServerUrl = details.endpoint();
             finalCertificateAuthority = details.certificateAuthority();
         } else {
@@ -136,13 +136,13 @@ public final class EksClient implements AutoCloseable {
     private AuthComponents buildAuthProvider() {
         final IamAuthProvider.Builder builder = IamAuthProvider.builder()
                 .clusterName(clusterName)
-                .region(region);
+                .region(Region.of(region));
 
-        AwsCredentialsProvider finalCredentialsProvider = baseCredentialsProvider;
-        StsClient createdStsClient = null;
+        final AwsCredentialsProvider finalCredentialsProvider;
+        final StsClient createdStsClient;
 
         if (roleArn != null) {
-            final var stsBuilder = StsClient.builder().region(region);
+            final var stsBuilder = StsClient.builder().region(Region.of(region));
 
             if (baseCredentialsProvider != null) {
                 stsBuilder.credentialsProvider(baseCredentialsProvider);
@@ -160,6 +160,9 @@ public final class EksClient implements AutoCloseable {
                     .build();
 
             log.debug("Configured AssumeRole for {} with session name {}", roleArn, effectiveSessionName);
+        } else {
+            createdStsClient = null;
+            finalCredentialsProvider = baseCredentialsProvider;
         }
 
         if (finalCredentialsProvider != null) {

@@ -3,7 +3,6 @@ package io.elev8.eks;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -13,7 +12,7 @@ class EksClientTest {
     @Test
     void shouldThrowExceptionWhenClusterNameIsNull() {
         assertThatThrownBy(() -> EksClient.builder()
-                .region(Region.US_EAST_1)
+                .region("us-east-1")
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Cluster name is required");
@@ -32,7 +31,7 @@ class EksClientTest {
     void shouldBuildClientWithMinimalConfiguration() {
         final EksClient client = EksClient.builder()
                 .clusterName("test-cluster")
-                .region(Region.US_EAST_1)
+                .region("us-east-1")
                 .apiServerUrl("https://example.eks.amazonaws.com")
                 .certificateAuthority("")
                 .skipTlsVerify(true)
@@ -40,7 +39,7 @@ class EksClientTest {
 
         assertThat(client).isNotNull();
         assertThat(client.getClusterName()).isEqualTo("test-cluster");
-        assertThat(client.getRegion()).isEqualTo(Region.US_EAST_1);
+        assertThat(client.getRegion()).isEqualTo("us-east-1");
 
         client.close();
     }
@@ -49,7 +48,7 @@ class EksClientTest {
     void shouldConfigureAssumeRole() {
         final EksClient client = EksClient.builder()
                 .clusterName("test-cluster")
-                .region(Region.US_EAST_1)
+                .region("us-east-1")
                 .apiServerUrl("https://example.eks.amazonaws.com")
                 .certificateAuthority("")
                 .skipTlsVerify(true)
@@ -60,7 +59,7 @@ class EksClientTest {
 
         assertThat(client).isNotNull();
         assertThat(client.getClusterName()).isEqualTo("test-cluster");
-        assertThat(client.getRegion()).isEqualTo(Region.US_EAST_1);
+        assertThat(client.getRegion()).isEqualTo("us-east-1");
 
         client.close();
     }
@@ -69,7 +68,7 @@ class EksClientTest {
     void shouldConfigureAssumeRoleWithCustomSessionName() {
         final EksClient client = EksClient.builder()
                 .clusterName("test-cluster")
-                .region(Region.US_EAST_1)
+                .region("us-east-1")
                 .apiServerUrl("https://example.eks.amazonaws.com")
                 .certificateAuthority("")
                 .skipTlsVerify(true)
@@ -81,7 +80,7 @@ class EksClientTest {
 
         assertThat(client).isNotNull();
         assertThat(client.getClusterName()).isEqualTo("test-cluster");
-        assertThat(client.getRegion()).isEqualTo(Region.US_EAST_1);
+        assertThat(client.getRegion()).isEqualTo("us-east-1");
 
         client.close();
     }
@@ -90,7 +89,7 @@ class EksClientTest {
     void shouldConfigureAssumeRoleWithCustomCredentialsProvider() {
         final EksClient client = EksClient.builder()
                 .clusterName("test-cluster")
-                .region(Region.US_EAST_1)
+                .region("us-east-1")
                 .apiServerUrl("https://example.eks.amazonaws.com")
                 .certificateAuthority("")
                 .skipTlsVerify(true)
@@ -101,7 +100,7 @@ class EksClientTest {
 
         assertThat(client).isNotNull();
         assertThat(client.getClusterName()).isEqualTo("test-cluster");
-        assertThat(client.getRegion()).isEqualTo(Region.US_EAST_1);
+        assertThat(client.getRegion()).isEqualTo("us-east-1");
 
         client.close();
     }
@@ -110,7 +109,7 @@ class EksClientTest {
     void shouldUseDefaultSessionNameWhenNotSpecified() {
         final EksClient client = EksClient.builder()
                 .clusterName("test-cluster")
-                .region(Region.US_EAST_1)
+                .region("us-east-1")
                 .apiServerUrl("https://example.eks.amazonaws.com")
                 .certificateAuthority("")
                 .skipTlsVerify(true)
@@ -128,7 +127,7 @@ class EksClientTest {
     void shouldSupportResourceManagers() {
         final EksClient client = EksClient.builder()
                 .clusterName("test-cluster")
-                .region(Region.US_EAST_1)
+                .region("us-east-1")
                 .apiServerUrl("https://example.eks.amazonaws.com")
                 .certificateAuthority("")
                 .skipTlsVerify(true)

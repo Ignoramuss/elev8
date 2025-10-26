@@ -5,7 +5,6 @@ import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.regions.Region;
 
 /**
  * Simple example demonstrating EKS client usage with IAM authentication.
@@ -32,7 +31,7 @@ public class SimpleExample {
         // Create EKS client with IAM authentication
         try (EksClient client = EksClient.builder()
                 .clusterName(clusterName)
-                .region(Region.of(region))
+                .region(region)
                 .build()) {
 
             log.info("Successfully created EKS client for cluster: {}", clusterName);
