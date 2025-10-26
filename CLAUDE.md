@@ -1,0 +1,1 @@
+- Always add unit tests when you add new code unless it is configuration or other files where unit tests make no sense

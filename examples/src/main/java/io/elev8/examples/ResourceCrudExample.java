@@ -11,6 +11,7 @@ import io.elev8.resources.service.ServiceSpec;
 import io.elev8.resources.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.regions.Region;
 
 import java.util.List;
 
@@ -33,9 +34,8 @@ public class ResourceCrudExample {
         final String namespace = "default";
 
         try (EksClient client = EksClient.builder()
-                .cluster(clusterName)
-                .region(region)
-                .iamAuth()
+                .clusterName(clusterName)
+                .region(Region.of(region))
                 .build()) {
 
             log.info("Connected to EKS cluster: {}", clusterName);
