@@ -1,9 +1,9 @@
 package io.elev8.auth.accessentries;
 
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eks.EksClient;
-import software.amazon.awssdk.services.eks.model.AccessPolicyType;
 import software.amazon.awssdk.services.eks.model.AccessScopeType;
 import software.amazon.awssdk.services.eks.model.AssociateAccessPolicyRequest;
 import software.amazon.awssdk.services.eks.model.CreateAccessEntryRequest;
@@ -25,26 +25,31 @@ import java.util.stream.Collectors;
  * Provides methods to create, read, update, and delete access entries.
  */
 @Slf4j
+@Builder(toBuilder = true)
 public final class AccessEntryManager implements AutoCloseable {
 
     private final String clusterName;
     private final EksClient eksClient;
     private final boolean ownsClient;
 
-    public AccessEntryManager(final String clusterName, final Region region) {
-        this.clusterName = clusterName;
-        this.eksClient = EksClient.builder().region(region).build();
-        this.ownsClient = true;
-    }
+    private AccessEntryManager(final String clusterName,
+                              final Region region,
+                              final EksClient eksClient) {
+        if (clusterName == null || clusterName.isEmpty()) {
+            throw new IllegalArgumentException("Cluster name is required");
+        }
 
-    public AccessEntryManager(final String clusterName, final EksClient eksClient) {
         this.clusterName = clusterName;
-        this.eksClient = eksClient;
-        this.ownsClient = false;
-    }
 
-    public static Builder builder() {
-        return new Builder();
+        if (eksClient != null) {
+            this.eksClient = eksClient;
+            this.ownsClient = false;
+        } else if (region != null) {
+            this.eksClient = EksClient.builder().region(region).build();
+            this.ownsClient = true;
+        } else {
+            throw new IllegalArgumentException("Either region or eksClient is required");
+        }
     }
 
     public AccessEntry create(final AccessEntry accessEntry) {
@@ -210,42 +215,13 @@ public final class AccessEntryManager implements AutoCloseable {
         }
     }
 
-    public static final class Builder {
-        private String clusterName;
-        private Region region;
-        private EksClient eksClient;
-
-        public Builder clusterName(final String clusterName) {
-            this.clusterName = clusterName;
-            return this;
-        }
-
-        public Builder region(final Region region) {
-            this.region = region;
-            return this;
-        }
-
-        public Builder region(final String region) {
+    /**
+     * Custom builder class to support region as String.
+     */
+    public static class AccessEntryManagerBuilder {
+        public AccessEntryManagerBuilder region(final String region) {
             this.region = Region.of(region);
             return this;
-        }
-
-        public Builder eksClient(final EksClient eksClient) {
-            this.eksClient = eksClient;
-            return this;
-        }
-
-        public AccessEntryManager build() {
-            if (clusterName == null || clusterName.isEmpty()) {
-                throw new IllegalArgumentException("Cluster name is required");
-            }
-            if (eksClient != null) {
-                return new AccessEntryManager(clusterName, eksClient);
-            }
-            if (region != null) {
-                return new AccessEntryManager(clusterName, region);
-            }
-            throw new IllegalArgumentException("Either region or eksClient is required");
         }
     }
 }
