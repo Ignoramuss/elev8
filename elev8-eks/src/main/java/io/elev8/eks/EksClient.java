@@ -1,6 +1,9 @@
 package io.elev8.eks;
 
+import io.elev8.auth.accessentries.AccessEntryManager;
 import io.elev8.auth.iam.IamAuthProvider;
+import io.elev8.auth.oidc.OidcAuthProvider;
+import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
 import io.elev8.resources.deployment.DeploymentManager;
@@ -37,6 +40,7 @@ public final class EksClient implements AutoCloseable {
     private final PodManager podManager;
     private final ServiceManager serviceManager;
     private final DeploymentManager deploymentManager;
+    private final AccessEntryManager accessEntryManager;
     private final StsClient stsClient;
 
     private final boolean skipTlsVerify;
@@ -48,6 +52,10 @@ public final class EksClient implements AutoCloseable {
     private final String roleArn;
     private final String sessionName;
     private final AwsCredentialsProvider baseCredentialsProvider;
+    private final boolean useOidcAuth;
+    private final String oidcRoleArn;
+    private final String oidcWebIdentityTokenFile;
+    private final String oidcRoleSessionName;
 
     private static final boolean DEFAULT_SKIP_TLS_VERIFY = false;
     private static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(30);
@@ -66,7 +74,11 @@ public final class EksClient implements AutoCloseable {
                       final String namespace,
                       final String roleArn,
                       final String sessionName,
-                      final AwsCredentialsProvider baseCredentialsProvider) {
+                      final AwsCredentialsProvider baseCredentialsProvider,
+                      final Boolean useOidcAuth,
+                      final String oidcRoleArn,
+                      final String oidcWebIdentityTokenFile,
+                      final String oidcRoleSessionName) {
 
         if (clusterName == null || clusterName.isEmpty()) {
             throw new IllegalArgumentException("Cluster name is required");
@@ -86,6 +98,10 @@ public final class EksClient implements AutoCloseable {
         this.roleArn = roleArn;
         this.sessionName = sessionName != null ? sessionName : DEFAULT_SESSION_NAME;
         this.baseCredentialsProvider = baseCredentialsProvider;
+        this.useOidcAuth = useOidcAuth != null && useOidcAuth;
+        this.oidcRoleArn = oidcRoleArn;
+        this.oidcWebIdentityTokenFile = oidcWebIdentityTokenFile;
+        this.oidcRoleSessionName = oidcRoleSessionName;
 
         final String finalApiServerUrl;
         final String finalCertificateAuthority;
@@ -117,6 +133,10 @@ public final class EksClient implements AutoCloseable {
         this.podManager = new PodManager(kubernetesClient);
         this.serviceManager = new ServiceManager(kubernetesClient);
         this.deploymentManager = new DeploymentManager(kubernetesClient);
+        this.accessEntryManager = AccessEntryManager.builder()
+                .clusterName(clusterName)
+                .region(region)
+                .build();
     }
 
     private ClusterDetails discoverClusterDetails(final Region region, final String clusterName) {
@@ -134,6 +154,14 @@ public final class EksClient implements AutoCloseable {
     }
 
     private AuthComponents buildAuthProvider() {
+        if (useOidcAuth) {
+            return buildOidcAuthProvider();
+        } else {
+            return buildIamAuthProvider();
+        }
+    }
+
+    private AuthComponents buildIamAuthProvider() {
         final IamAuthProvider.Builder builder = IamAuthProvider.builder()
                 .clusterName(clusterName)
                 .region(Region.of(region));
@@ -172,7 +200,29 @@ public final class EksClient implements AutoCloseable {
         return new AuthComponents(builder.build(), createdStsClient);
     }
 
-    private record AuthComponents(IamAuthProvider authProvider, StsClient stsClient) {}
+    private AuthComponents buildOidcAuthProvider() {
+        log.debug("Building OIDC auth provider for cluster: {}", clusterName);
+
+        final OidcAuthProvider.Builder builder = OidcAuthProvider.builder()
+                .clusterName(clusterName)
+                .region(Region.of(region));
+
+        if (oidcRoleArn != null) {
+            builder.roleArn(oidcRoleArn);
+        }
+
+        if (oidcWebIdentityTokenFile != null) {
+            builder.webIdentityTokenFile(oidcWebIdentityTokenFile);
+        }
+
+        if (oidcRoleSessionName != null) {
+            builder.roleSessionName(oidcRoleSessionName);
+        }
+
+        return new AuthComponents(builder.build(), null);
+    }
+
+    private record AuthComponents(AuthProvider authProvider, StsClient stsClient) {}
 
     public KubernetesClient getKubernetesClient() {
         return kubernetesClient;
@@ -190,10 +240,17 @@ public final class EksClient implements AutoCloseable {
         return deploymentManager;
     }
 
+    public AccessEntryManager accessEntries() {
+        return accessEntryManager;
+    }
+
     @Override
     public void close() {
         if (kubernetesClient != null) {
             kubernetesClient.close();
+        }
+        if (accessEntryManager != null) {
+            accessEntryManager.close();
         }
         if (stsClient != null) {
             stsClient.close();
