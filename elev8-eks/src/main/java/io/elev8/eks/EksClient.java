@@ -6,8 +6,10 @@ import io.elev8.auth.oidc.OidcAuthProvider;
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
+import io.elev8.resources.configmap.ConfigMapManager;
 import io.elev8.resources.deployment.DeploymentManager;
 import io.elev8.resources.pod.PodManager;
+import io.elev8.resources.secret.SecretManager;
 import io.elev8.resources.service.ServiceManager;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,6 +42,8 @@ public final class EksClient implements AutoCloseable {
     private final PodManager podManager;
     private final ServiceManager serviceManager;
     private final DeploymentManager deploymentManager;
+    private final ConfigMapManager configMapManager;
+    private final SecretManager secretManager;
     private final AccessEntryManager accessEntryManager;
     private final StsClient stsClient;
 
@@ -133,6 +137,8 @@ public final class EksClient implements AutoCloseable {
         this.podManager = new PodManager(kubernetesClient);
         this.serviceManager = new ServiceManager(kubernetesClient);
         this.deploymentManager = new DeploymentManager(kubernetesClient);
+        this.configMapManager = new ConfigMapManager(kubernetesClient);
+        this.secretManager = new SecretManager(kubernetesClient);
         this.accessEntryManager = AccessEntryManager.builder()
                 .clusterName(clusterName)
                 .region(region)
@@ -238,6 +244,14 @@ public final class EksClient implements AutoCloseable {
 
     public DeploymentManager deployments() {
         return deploymentManager;
+    }
+
+    public ConfigMapManager configMaps() {
+        return configMapManager;
+    }
+
+    public SecretManager secrets() {
+        return secretManager;
     }
 
     public AccessEntryManager accessEntries() {
