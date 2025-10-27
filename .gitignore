@@ -47,10 +47,14 @@ build/
 *.ear
 hs_err_pid*
 
-# Security
+# Security - actual secret files, not source code
 *.key
 *.pem
 *.p12
-*credentials*
-*secret*
+*credentials.json
+*credentials.yaml
+*credentials.yml
+secrets.yaml
+secrets.yml
 .env
+.env.*

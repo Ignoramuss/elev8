@@ -221,6 +221,80 @@ final EksClient client = EksClient.builder()
     .build();
 ```
 
+### ConfigMaps
+
+```java
+import io.elev8.resources.configmap.ConfigMap;
+
+// Create a ConfigMap with data
+final ConfigMap configMap = ConfigMap.builder()
+    .name("app-config")
+    .namespace("default")
+    .addData("database.url", "jdbc:postgresql://localhost:5432/mydb")
+    .addData("database.user", "admin")
+    .addData("app.environment", "production")
+    .build();
+
+client.configMaps().create(configMap);
+
+// Get a ConfigMap
+final ConfigMap retrieved = client.configMaps().get("default", "app-config");
+
+// List ConfigMaps in namespace
+final List<ConfigMap> configMaps = client.configMaps().list("default");
+
+// Create immutable ConfigMap
+final ConfigMap immutableConfig = ConfigMap.builder()
+    .name("constants")
+    .namespace("default")
+    .addData("version", "1.0.0")
+    .immutable(true)
+    .build();
+```
+
+### Secrets
+
+```java
+import io.elev8.resources.secret.Secret;
+
+// Create a basic authentication secret
+final Secret basicAuth = Secret.builder()
+    .name("database-credentials")
+    .namespace("default")
+    .basicAuth("admin", "password123")
+    .build();
+
+client.secrets().create(basicAuth);
+
+// Create a TLS secret
+final Secret tlsSecret = Secret.builder()
+    .name("tls-cert")
+    .namespace("default")
+    .tls("base64-encoded-cert", "base64-encoded-key")
+    .build();
+
+// Create an opaque secret with custom data
+final Secret apiSecret = Secret.builder()
+    .name("api-keys")
+    .namespace("default")
+    .addStringData("api-key", "my-secret-key")
+    .addStringData("api-secret", "my-secret-value")
+    .build();
+
+// Create Docker registry secret
+final Secret dockerSecret = Secret.builder()
+    .name("docker-registry")
+    .namespace("default")
+    .dockerConfigJson("base64-encoded-docker-config")
+    .build();
+
+// Get a Secret
+final Secret retrieved = client.secrets().get("default", "api-keys");
+
+// List Secrets in namespace
+final List<Secret> secrets = client.secrets().list("default");
+```
+
 ### EKS Access Entries
 
 ```java
@@ -431,6 +505,27 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl scale deployment my-deploy --replicas=5` | `final Deployment d = client.deployments().get("default", "my-deploy");<br>d.getSpec().setReplicas(5);<br>client.deployments().update(d);` |
 | `kubectl rollout restart deployment/my-deploy` | `final Deployment d = client.deployments().get("default", "my-deploy");<br>// Add/update annotation to trigger restart<br>d.getMetadata().getAnnotations().put("kubectl.kubernetes.io/restartedAt", Instant.now().toString());<br>client.deployments().update(d);` |
 
+### ConfigMap Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get configmaps -n default` | `client.configMaps().list("default")` |
+| `kubectl get configmap my-config -n default` | `client.configMaps().get("default", "my-config")` |
+| `kubectl create configmap my-config --from-literal=key=value` | `ConfigMap cm = ConfigMap.builder()<br>  .name("my-config")<br>  .namespace("default")<br>  .addData("key", "value")<br>  .build();<br>client.configMaps().create(cm);` |
+| `kubectl delete configmap my-config` | `client.configMaps().delete("default", "my-config")` |
+| `kubectl create configmap app-config --from-literal=env=prod` | `ConfigMap cm = ConfigMap.builder()<br>  .name("app-config")<br>  .namespace("default")<br>  .addData("env", "prod")<br>  .build();<br>client.configMaps().create(cm);` |
+
+### Secret Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get secrets -n default` | `client.secrets().list("default")` |
+| `kubectl get secret my-secret -n default` | `client.secrets().get("default", "my-secret")` |
+| `kubectl create secret generic my-secret --from-literal=password=abc123` | `Secret s = Secret.builder()<br>  .name("my-secret")<br>  .namespace("default")<br>  .addStringData("password", "abc123")<br>  .build();<br>client.secrets().create(s);` |
+| `kubectl create secret docker-registry regcred --docker-server=<server> --docker-username=<user> --docker-password=<pwd>` | `Secret s = Secret.builder()<br>  .name("regcred")<br>  .namespace("default")<br>  .dockerConfigJson("base64-encoded-config")<br>  .build();<br>client.secrets().create(s);` |
+| `kubectl create secret tls tls-secret --cert=path/to/cert --key=path/to/key` | `Secret s = Secret.builder()<br>  .name("tls-secret")<br>  .namespace("default")<br>  .tls("base64-cert", "base64-key")<br>  .build();<br>client.secrets().create(s);` |
+| `kubectl delete secret my-secret` | `client.secrets().delete("default", "my-secret")` |
+
 ### Complete Example: Creating a Deployment
 
 **kubectl:**
@@ -515,10 +610,9 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] OIDC/IRSA authentication support
 - [x] EKS Access Entries API integration
 - [x] Comprehensive unit test coverage
+- [x] ConfigMap and Secret resources
 
 ### Planned
-
-- [ ] ConfigMap and Secret resources
 - [ ] Additional resources (StatefulSet, DaemonSet, Job, CronJob)
 - [ ] Watch/stream support for resource updates
 - [ ] Namespace resource support
