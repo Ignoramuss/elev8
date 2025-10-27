@@ -295,6 +295,64 @@ final Secret retrieved = client.secrets().get("default", "api-keys");
 final List<Secret> secrets = client.secrets().list("default");
 ```
 
+### DaemonSets
+
+```java
+import io.elev8.resources.daemonset.DaemonSet;
+import io.elev8.resources.daemonset.DaemonSetSpec;
+
+// Create a DaemonSet for log collection on all nodes
+final DaemonSet logCollector = DaemonSet.builder()
+    .name("fluentd-elasticsearch")
+    .namespace("kube-system")
+    .spec(DaemonSetSpec.builder()
+        .selector("app", "fluentd")
+        .template(DaemonSetSpec.PodTemplateSpec.builder()
+            .label("app", "fluentd")
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("fluentd")
+                    .image("fluent/fluentd-kubernetes-daemonset:v1.14-debian-elasticsearch7")
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.daemonSets().create(logCollector);
+
+// Create a DaemonSet with custom update strategy
+final DaemonSet nodeExporter = DaemonSet.builder()
+    .name("node-exporter")
+    .namespace("monitoring")
+    .spec(DaemonSetSpec.builder()
+        .selector("app", "node-exporter")
+        .updateStrategy("OnDelete")
+        .minReadySeconds(30)
+        .template(DaemonSetSpec.PodTemplateSpec.builder()
+            .label("app", "node-exporter")
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("node-exporter")
+                    .image("prom/node-exporter:latest")
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.daemonSets().create(nodeExporter);
+
+// Get a DaemonSet
+final DaemonSet retrieved = client.daemonSets().get("kube-system", "fluentd-elasticsearch");
+
+// List DaemonSets in namespace
+final List<DaemonSet> daemonSets = client.daemonSets().list("kube-system");
+
+// Delete a DaemonSet
+client.daemonSets().delete("kube-system", "fluentd-elasticsearch");
+```
+
 ### EKS Access Entries
 
 ```java
@@ -526,6 +584,16 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl create secret tls tls-secret --cert=path/to/cert --key=path/to/key` | `Secret s = Secret.builder()<br>  .name("tls-secret")<br>  .namespace("default")<br>  .tls("base64-cert", "base64-key")<br>  .build();<br>client.secrets().create(s);` |
 | `kubectl delete secret my-secret` | `client.secrets().delete("default", "my-secret")` |
 
+### DaemonSet Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get daemonsets -n kube-system` | `client.daemonSets().list("kube-system")` |
+| `kubectl get daemonset fluentd -n kube-system` | `client.daemonSets().get("kube-system", "fluentd")` |
+| `kubectl create -f daemonset.yaml` | `DaemonSet ds = DaemonSet.builder()...build();<br>client.daemonSets().create(ds);` |
+| `kubectl delete daemonset fluentd -n kube-system` | `client.daemonSets().delete("kube-system", "fluentd")` |
+| `kubectl rollout status daemonset/fluentd -n kube-system` | `final DaemonSet ds = client.daemonSets().get("kube-system", "fluentd");<br>// Check ds.getStatus().getNumberReady() and ds.getStatus().getDesiredNumberScheduled()` |
+
 ### Complete Example: Creating a Deployment
 
 **kubectl:**
@@ -611,9 +679,12 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] EKS Access Entries API integration
 - [x] Comprehensive unit test coverage
 - [x] ConfigMap and Secret resources
+- [x] DaemonSet resource support
 
 ### Planned
-- [ ] Additional resources (StatefulSet, DaemonSet, Job, CronJob)
+- [ ] StatefulSet resource support
+- [ ] Job resource support
+- [ ] CronJob resource support
 - [ ] Watch/stream support for resource updates
 - [ ] Namespace resource support
 - [ ] Event streaming and logging
