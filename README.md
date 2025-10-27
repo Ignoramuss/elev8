@@ -1,27 +1,27 @@
-# Elev8 - EKS-Native Kubernetes Java Client
+# Elev8 ☁️ - Cloud-Native Kubernetes Java Client
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.elev8/elev8-parent.svg)](https://search.maven.org/search?q=g:io.elev8)
 
-A lightweight, EKS-optimized Kubernetes Java client that eliminates configuration complexity by providing native support for AWS IAM authentication, EKS Access Entries, and IRSA - without requiring kubectl or complex kubeconfig management.
+A lightweight, cloud-native Kubernetes Java client that eliminates configuration complexity by providing native support for AWS IAM authentication (EKS), GCP authentication (GKE), and Azure authentication (AKS) - without requiring kubectl or complex kubeconfig management.
 
 ## Why Elev8?
 
-Existing Kubernetes Java clients (fabric8, official client) struggle with EKS authentication:
+Existing Kubernetes Java clients (fabric8, official client) struggle with cloud provider authentication:
 
-- **Complex IAM Authentication**: Difficult to configure AWS IAM roles and temporary credentials
+- **Complex IAM Authentication**: Difficult to configure cloud IAM roles and temporary credentials
 - **Manual Token Management**: No automatic token refresh or credential management
 - **Heavy Dependencies**: Large dependency trees causing version conflicts
-- **Missing EKS Features**: No support for modern EKS features like Access Entries API
+- **Missing Cloud Features**: No support for modern cloud features like EKS Access Entries API
 
 Elev8 solves these problems with:
 
 ✅ Zero kubeconfig configuration needed
-✅ Native EKS Access Entries API support
+✅ Native cloud provider API support (EKS Access Entries, GKE, AKS)
 ✅ Automatic IAM token generation and refresh
 ✅ Minimal dependencies
-✅ EKS-first design with expansion path
-✅ Clear documentation for EKS scenarios
+✅ Cloud-first design with multi-cloud support (EKS/GKE/AKS)
+✅ Clear documentation for cloud provider scenarios
 
 ## Features
 
@@ -512,12 +512,9 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] JSON serialization with Jackson
 - [x] Resource manager architecture
 - [x] Fluent API integration with EksClient
-
-### In Progress
-
-- [ ] OIDC/IRSA authentication support
-- [ ] EKS Access Entries API integration
-- [ ] Comprehensive unit test coverage
+- [x] OIDC/IRSA authentication support
+- [x] EKS Access Entries API integration
+- [x] Comprehensive unit test coverage
 
 ### Planned
 

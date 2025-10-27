@@ -9,9 +9,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Elev8 - EKS-Native Kubernetes Java Client</name>
-    <description>A lightweight, EKS-optimized Kubernetes Java client with native AWS IAM authentication support</description>
-    <url>https://github.com/yourusername/elev8</url>
+    <name>Elev8 ☁️ - Cloud-Native Kubernetes Java Client</name>
+    <description>A lightweight, cloud-native Kubernetes Java client with native support for AWS (EKS), GCP (GKE), and Azure (AKS) authentication</description>
+    <url>https://github.com/Ignoramuss/elev8</url>
 
     <licenses>
         <license>
