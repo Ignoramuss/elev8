@@ -42,14 +42,17 @@ class AccessEntryManagerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        manager = new AccessEntryManager(TEST_CLUSTER_NAME, eksClient);
+        manager = AccessEntryManager.builder()
+                .clusterName(TEST_CLUSTER_NAME)
+                .eksClient(eksClient)
+                .build();
     }
 
     @Test
     void shouldCreateAccessEntry() {
         final AccessEntry entry = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .addKubernetesGroup("system:masters")
+                .kubernetesGroup("system:masters")
                 .type("STANDARD")
                 .build();
 
@@ -133,7 +136,7 @@ class AccessEntryManagerTest {
     void shouldUpdateAccessEntry() {
         final AccessEntry entry = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .addKubernetesGroup("developers")
+                .kubernetesGroup("developers")
                 .username("test-user")
                 .build();
 
