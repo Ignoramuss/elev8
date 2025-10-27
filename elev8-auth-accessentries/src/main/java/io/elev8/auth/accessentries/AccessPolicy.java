@@ -1,27 +1,29 @@
 package io.elev8.auth.accessentries;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.Singular;
+import lombok.extern.jackson.Jacksonized;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents an access policy that can be associated with an Access Entry.
  */
-@Getter
-@Setter
+@Data
 @Builder(toBuilder = true)
-public final class AccessPolicy {
+@Jacksonized
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AccessPolicy {
 
-    private final String policyArn;
+    String policyArn;
 
-    @Builder.Default
-    private List<AccessScope> accessScopes = new ArrayList<>();
+    @Singular
+    List<AccessScope> accessScopes;
 
-    private Instant associatedAt;
+    Instant associatedAt;
 
-    private Instant modifiedAt;
+    Instant modifiedAt;
 }

@@ -18,7 +18,7 @@ class AccessPolicyTest {
                 .build();
 
         assertThat(policy.getPolicyArn()).isEqualTo(TEST_POLICY_ARN);
-        assertThat(policy.getAccessScopes()).isEmpty();
+        assertThat(policy.getAccessScopes()).isNullOrEmpty();
     }
 
     @Test
@@ -26,12 +26,12 @@ class AccessPolicyTest {
         final Instant now = Instant.now();
         final AccessScope scope = AccessScope.builder()
                 .type("namespace")
-                .namespaces(List.of("default"))
+                .namespace("default")
                 .build();
 
         final AccessPolicy policy = AccessPolicy.builder()
                 .policyArn(TEST_POLICY_ARN)
-                .accessScopes(List.of(scope))
+                .accessScope(scope)
                 .associatedAt(now)
                 .modifiedAt(now)
                 .build();
@@ -46,17 +46,18 @@ class AccessPolicyTest {
     void shouldSetMultipleAccessScopes() {
         final AccessScope scope1 = AccessScope.builder()
                 .type("namespace")
-                .namespaces(List.of("default"))
+                .namespace("default")
                 .build();
 
         final AccessScope scope2 = AccessScope.builder()
                 .type("namespace")
-                .namespaces(List.of("kube-system"))
+                .namespace("kube-system")
                 .build();
 
         final AccessPolicy policy = AccessPolicy.builder()
                 .policyArn(TEST_POLICY_ARN)
-                .accessScopes(List.of(scope1, scope2))
+                .accessScope(scope1)
+                .accessScope(scope2)
                 .build();
 
         assertThat(policy.getAccessScopes()).hasSize(2);

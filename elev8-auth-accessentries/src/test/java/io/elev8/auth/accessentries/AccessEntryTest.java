@@ -19,7 +19,7 @@ class AccessEntryTest {
                 .build();
 
         assertThat(entry.getPrincipalArn()).isEqualTo(TEST_PRINCIPAL_ARN);
-        assertThat(entry.getKubernetesGroups()).isEmpty();
+        assertThat(entry.getKubernetesGroups()).isNullOrEmpty();
         assertThat(entry.getType()).isEqualTo("STANDARD");
     }
 
@@ -32,13 +32,13 @@ class AccessEntryTest {
 
         final AccessEntry entry = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .kubernetesGroups(List.of("system:masters"))
+                .kubernetesGroup("system:masters")
                 .username("test-user")
                 .type("STANDARD")
-                .tags(Map.of("Environment", "test"))
+                .tag("Environment", "test")
                 .createdAt(now)
                 .modifiedAt(now)
-                .accessPolicies(List.of(policy))
+                .accessPolicy(policy)
                 .build();
 
         assertThat(entry.getPrincipalArn()).isEqualTo(TEST_PRINCIPAL_ARN);
@@ -57,7 +57,8 @@ class AccessEntryTest {
     void shouldSetMultipleKubernetesGroups() {
         final AccessEntry entry = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .kubernetesGroups(List.of("system:masters", "developers"))
+                .kubernetesGroup("system:masters")
+                .kubernetesGroup("developers")
                 .build();
 
         assertThat(entry.getKubernetesGroups()).containsExactly("system:masters", "developers");
@@ -78,7 +79,8 @@ class AccessEntryTest {
     void shouldSetMultipleTags() {
         final AccessEntry entry = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .tags(Map.of("Environment", "test", "Team", "platform"))
+                .tag("Environment", "test")
+                .tag("Team", "platform")
                 .build();
 
         assertThat(entry.getTags()).containsEntry("Environment", "test");
@@ -123,7 +125,7 @@ class AccessEntryTest {
     void shouldCreateBuilderFromExistingAccessEntry() {
         final AccessEntry original = AccessEntry.builder()
                 .principalArn(TEST_PRINCIPAL_ARN)
-                .kubernetesGroups(List.of("system:masters"))
+                .kubernetesGroup("system:masters")
                 .username("test-user")
                 .build();
 

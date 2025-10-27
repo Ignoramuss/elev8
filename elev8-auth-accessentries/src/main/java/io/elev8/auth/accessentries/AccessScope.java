@@ -1,23 +1,25 @@
 package io.elev8.auth.accessentries;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.Singular;
+import lombok.extern.jackson.Jacksonized;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents the scope of an access policy.
  */
-@Getter
-@Setter
+@Data
 @Builder(toBuilder = true)
-public final class AccessScope {
+@Jacksonized
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AccessScope {
 
     @Builder.Default
-    private final String type = "cluster";
+    String type = "cluster";
 
-    @Builder.Default
-    private List<String> namespaces = new ArrayList<>();
+    @Singular
+    List<String> namespaces;
 }

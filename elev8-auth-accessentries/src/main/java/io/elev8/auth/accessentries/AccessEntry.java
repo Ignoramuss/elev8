@@ -1,12 +1,12 @@
 package io.elev8.auth.accessentries;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.Singular;
+import lombok.extern.jackson.Jacksonized;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,28 +14,29 @@ import java.util.Map;
  * Represents an EKS Access Entry for cluster authentication.
  * Access Entries provide a modern alternative to the aws-auth ConfigMap.
  */
-@Getter
-@Setter
+@Data
 @Builder(toBuilder = true)
-public final class AccessEntry {
+@Jacksonized
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AccessEntry {
 
-    private final String principalArn;
+    String principalArn;
 
-    @Builder.Default
-    private List<String> kubernetesGroups = new ArrayList<>();
+    @Singular
+    List<String> kubernetesGroups;
 
-    private String username;
-
-    @Builder.Default
-    private String type = "STANDARD";
-
-    @Builder.Default
-    private Map<String, String> tags = new HashMap<>();
-
-    private Instant createdAt;
-
-    private Instant modifiedAt;
+    String username;
 
     @Builder.Default
-    private List<AccessPolicy> accessPolicies = new ArrayList<>();
+    String type = "STANDARD";
+
+    @Singular
+    Map<String, String> tags;
+
+    Instant createdAt;
+
+    Instant modifiedAt;
+
+    @Singular
+    List<AccessPolicy> accessPolicies;
 }

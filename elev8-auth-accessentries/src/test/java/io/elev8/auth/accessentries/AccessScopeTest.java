@@ -13,14 +13,14 @@ class AccessScopeTest {
         final AccessScope scope = AccessScope.builder().build();
 
         assertThat(scope.getType()).isEqualTo("cluster");
-        assertThat(scope.getNamespaces()).isEmpty();
+        assertThat(scope.getNamespaces()).isNullOrEmpty();
     }
 
     @Test
     void shouldCreateAccessScopeWithNamespaceType() {
         final AccessScope scope = AccessScope.builder()
                 .type("namespace")
-                .namespaces(List.of("default"))
+                .namespace("default")
                 .build();
 
         assertThat(scope.getType()).isEqualTo("namespace");
@@ -31,7 +31,8 @@ class AccessScopeTest {
     void shouldSetMultipleNamespaces() {
         final AccessScope scope = AccessScope.builder()
                 .type("namespace")
-                .namespaces(List.of("default", "kube-system"))
+                .namespace("default")
+                .namespace("kube-system")
                 .build();
 
         assertThat(scope.getNamespaces()).containsExactly("default", "kube-system");
@@ -51,7 +52,7 @@ class AccessScopeTest {
     @Test
     void shouldUseDefaultType() {
         final AccessScope scope = AccessScope.builder()
-                .namespaces(List.of("default"))
+                .namespace("default")
                 .build();
 
         assertThat(scope.getType()).isEqualTo("cluster");
