@@ -7,6 +7,7 @@ import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
 import io.elev8.resources.configmap.ConfigMapManager;
+import io.elev8.resources.daemonset.DaemonSetManager;
 import io.elev8.resources.deployment.DeploymentManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.secret.SecretManager;
@@ -42,6 +43,7 @@ public final class EksClient implements AutoCloseable {
     private final PodManager podManager;
     private final ServiceManager serviceManager;
     private final DeploymentManager deploymentManager;
+    private final DaemonSetManager daemonSetManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
     private final AccessEntryManager accessEntryManager;
@@ -137,6 +139,7 @@ public final class EksClient implements AutoCloseable {
         this.podManager = new PodManager(kubernetesClient);
         this.serviceManager = new ServiceManager(kubernetesClient);
         this.deploymentManager = new DeploymentManager(kubernetesClient);
+        this.daemonSetManager = new DaemonSetManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
         this.accessEntryManager = AccessEntryManager.builder()
@@ -244,6 +247,10 @@ public final class EksClient implements AutoCloseable {
 
     public DeploymentManager deployments() {
         return deploymentManager;
+    }
+
+    public DaemonSetManager daemonSets() {
+        return daemonSetManager;
     }
 
     public ConfigMapManager configMaps() {
