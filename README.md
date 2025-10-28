@@ -499,6 +499,78 @@ final List<StatefulSet> statefulSets = client.statefulSets().list("default");
 client.statefulSets().delete("default", "web");
 ```
 
+### CronJobs
+
+```java
+import io.elev8.resources.cronjob.CronJob;
+import io.elev8.resources.cronjob.CronJobSpec;
+import io.elev8.resources.cronjob.CronJobJobTemplateSpec;
+
+// Create a simple CronJob that runs every 5 minutes
+final CronJob helloCron = CronJob.builder()
+    .name("hello")
+    .namespace("default")
+    .spec(CronJobSpec.builder()
+        .schedule("*/5 * * * *")
+        .jobTemplate(CronJobJobTemplateSpec.builder()
+            .spec(JobSpec.builder()
+                .template(JobPodTemplateSpec.builder()
+                    .spec(PodSpec.builder()
+                        .container(Container.builder()
+                            .name("hello")
+                            .image("busybox:latest")
+                            .command(List.of("/bin/sh", "-c", "date; echo Hello from Kubernetes"))
+                            .build())
+                        .restartPolicy("OnFailure")
+                        .build())
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.cronJobs().create(helloCron);
+
+// Create a CronJob with custom settings
+final CronJob backupJob = CronJob.builder()
+    .name("database-backup")
+    .namespace("default")
+    .spec(CronJobSpec.builder()
+        .schedule("0 2 * * *")
+        .concurrencyPolicy("Forbid")
+        .successfulJobsHistoryLimit(5)
+        .failedJobsHistoryLimit(3)
+        .startingDeadlineSeconds(300L)
+        .suspend(false)
+        .jobTemplate(CronJobJobTemplateSpec.builder()
+            .label("app", "backup")
+            .spec(JobSpec.builder()
+                .template(JobPodTemplateSpec.builder()
+                    .spec(PodSpec.builder()
+                        .container(Container.builder()
+                            .name("backup")
+                            .image("backup-tool:latest")
+                            .build())
+                        .restartPolicy("Never")
+                        .build())
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.cronJobs().create(backupJob);
+
+// Get a CronJob
+final CronJob retrieved = client.cronJobs().get("default", "hello");
+
+// List CronJobs in namespace
+final List<CronJob> cronJobs = client.cronJobs().list("default");
+
+// Delete a CronJob
+client.cronJobs().delete("default", "hello");
+```
+
 ### EKS Access Entries
 
 ```java
@@ -762,6 +834,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl scale statefulset web --replicas=5` | `final StatefulSet sts = client.statefulSets().get("default", "web");<br>sts.getSpec().setReplicas(5);<br>client.statefulSets().update(sts);` |
 | `kubectl rollout status statefulset/web -n default` | `final StatefulSet sts = client.statefulSets().get("default", "web");<br>// Check sts.getStatus().getReadyReplicas() and sts.getStatus().getReplicas()` |
 
+### CronJob Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get cronjobs -n default` | `client.cronJobs().list("default")` |
+| `kubectl get cronjob hello -n default` | `client.cronJobs().get("default", "hello")` |
+| `kubectl create -f cronjob.yaml` | `CronJob cj = CronJob.builder()...build();<br>client.cronJobs().create(cj);` |
+| `kubectl delete cronjob hello -n default` | `client.cronJobs().delete("default", "hello")` |
+| `kubectl patch cronjob hello -p '{"spec":{"suspend":true}}'` | `final CronJob cj = client.cronJobs().get("default", "hello");<br>cj.getSpec().setSuspend(true);<br>client.cronJobs().update(cj);` |
+| `kubectl get cronjob hello -o json` | `final CronJob cj = client.cronJobs().get("default", "hello");<br>String json = cj.toJson();` |
+
 ### Complete Example: Creating a Deployment
 
 **kubectl:**
@@ -850,9 +933,9 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] DaemonSet resource support
 - [x] Job resource support
 - [x] StatefulSet resource support
+- [x] CronJob resource support
 
 ### Planned
-- [ ] CronJob resource support
 - [ ] Watch/stream support for resource updates
 - [ ] Namespace resource support
 - [ ] Event streaming and logging

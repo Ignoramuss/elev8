@@ -136,6 +136,13 @@ class EksClientTest {
         assertThat(client.pods()).isNotNull();
         assertThat(client.services()).isNotNull();
         assertThat(client.deployments()).isNotNull();
+        assertThat(client.daemonSets()).isNotNull();
+        assertThat(client.jobs()).isNotNull();
+        assertThat(client.cronJobs()).isNotNull();
+        assertThat(client.statefulSets()).isNotNull();
+        assertThat(client.configMaps()).isNotNull();
+        assertThat(client.secrets()).isNotNull();
+        assertThat(client.accessEntries()).isNotNull();
         assertThat(client.getKubernetesClient()).isNotNull();
 
         client.close();

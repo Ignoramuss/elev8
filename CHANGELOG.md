@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Service account token authentication
 - Resource plugin architecture
 - StatefulSet resource support with full CRUD operations
+- CronJob resource support with scheduling and job template management
 - Cloud-native client with fluent builder API (EKS/GKE/AKS support)
 - Comprehensive examples for all authentication modes
 - GitHub Actions CI/CD pipeline
