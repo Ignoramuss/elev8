@@ -13,6 +13,7 @@ import io.elev8.resources.job.JobManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.secret.SecretManager;
 import io.elev8.resources.service.ServiceManager;
+import io.elev8.resources.statefulset.StatefulSetManager;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,7 @@ public final class EksClient implements AutoCloseable {
     private final DeploymentManager deploymentManager;
     private final DaemonSetManager daemonSetManager;
     private final JobManager jobManager;
+    private final StatefulSetManager statefulSetManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
     private final AccessEntryManager accessEntryManager;
@@ -143,6 +145,7 @@ public final class EksClient implements AutoCloseable {
         this.deploymentManager = new DeploymentManager(kubernetesClient);
         this.daemonSetManager = new DaemonSetManager(kubernetesClient);
         this.jobManager = new JobManager(kubernetesClient);
+        this.statefulSetManager = new StatefulSetManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
         this.accessEntryManager = AccessEntryManager.builder()
@@ -258,6 +261,10 @@ public final class EksClient implements AutoCloseable {
 
     public JobManager jobs() {
         return jobManager;
+    }
+
+    public StatefulSetManager statefulSets() {
+        return statefulSetManager;
     }
 
     public ConfigMapManager configMaps() {

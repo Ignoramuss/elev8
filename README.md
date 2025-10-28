@@ -434,6 +434,71 @@ final List<Job> jobs = client.jobs().list("default");
 client.jobs().delete("default", "pi-calculation");
 ```
 
+### StatefulSets
+
+```java
+import io.elev8.resources.statefulset.StatefulSet;
+import io.elev8.resources.statefulset.StatefulSetSpec;
+
+// Create a simple StatefulSet for a web application
+final StatefulSet webApp = StatefulSet.builder()
+    .name("web")
+    .namespace("default")
+    .spec(StatefulSetSpec.builder()
+        .serviceName("nginx")
+        .replicas(3)
+        .selector("app", "nginx")
+        .template(StatefulSetPodTemplateSpec.builder()
+            .label("app", "nginx")
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("nginx")
+                    .image("nginx:1.21")
+                    .addPort(80)
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.statefulSets().create(webApp);
+
+// Create a StatefulSet with custom update strategy
+final StatefulSet database = StatefulSet.builder()
+    .name("postgres")
+    .namespace("default")
+    .spec(StatefulSetSpec.builder()
+        .serviceName("postgres")
+        .replicas(3)
+        .selector("app", "postgres")
+        .updateStrategy("OnDelete")
+        .podManagementPolicy("Parallel")
+        .revisionHistoryLimit(5)
+        .minReadySeconds(10)
+        .template(StatefulSetPodTemplateSpec.builder()
+            .label("app", "postgres")
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("postgres")
+                    .image("postgres:14")
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.statefulSets().create(database);
+
+// Get a StatefulSet
+final StatefulSet retrieved = client.statefulSets().get("default", "web");
+
+// List StatefulSets in namespace
+final List<StatefulSet> statefulSets = client.statefulSets().list("default");
+
+// Delete a StatefulSet
+client.statefulSets().delete("default", "web");
+```
+
 ### EKS Access Entries
 
 ```java
@@ -686,6 +751,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl logs job/my-job -n default` | `final Job job = client.jobs().get("default", "my-job");<br>// Get pod logs using job.getStatus() to find pod names` |
 | `kubectl wait --for=condition=complete job/my-job` | `final Job job = client.jobs().get("default", "my-job");<br>// Poll job.getStatus().getSucceeded() until equals completions` |
 
+### StatefulSet Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get statefulsets -n default` | `client.statefulSets().list("default")` |
+| `kubectl get statefulset web -n default` | `client.statefulSets().get("default", "web")` |
+| `kubectl create -f statefulset.yaml` | `StatefulSet sts = StatefulSet.builder()...build();<br>client.statefulSets().create(sts);` |
+| `kubectl delete statefulset web -n default` | `client.statefulSets().delete("default", "web")` |
+| `kubectl scale statefulset web --replicas=5` | `final StatefulSet sts = client.statefulSets().get("default", "web");<br>sts.getSpec().setReplicas(5);<br>client.statefulSets().update(sts);` |
+| `kubectl rollout status statefulset/web -n default` | `final StatefulSet sts = client.statefulSets().get("default", "web");<br>// Check sts.getStatus().getReadyReplicas() and sts.getStatus().getReplicas()` |
+
 ### Complete Example: Creating a Deployment
 
 **kubectl:**
@@ -773,9 +849,9 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] ConfigMap and Secret resources
 - [x] DaemonSet resource support
 - [x] Job resource support
+- [x] StatefulSet resource support
 
 ### Planned
-- [ ] StatefulSet resource support
 - [ ] CronJob resource support
 - [ ] Watch/stream support for resource updates
 - [ ] Namespace resource support

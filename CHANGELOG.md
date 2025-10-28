@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - EKS Access Entries API integration
 - Service account token authentication
 - Resource plugin architecture
+- StatefulSet resource support with full CRUD operations
 - Cloud-native client with fluent builder API (EKS/GKE/AKS support)
 - Comprehensive examples for all authentication modes
 - GitHub Actions CI/CD pipeline
