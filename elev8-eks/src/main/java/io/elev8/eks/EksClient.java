@@ -7,6 +7,7 @@ import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
 import io.elev8.resources.configmap.ConfigMapManager;
+import io.elev8.resources.cronjob.CronJobManager;
 import io.elev8.resources.daemonset.DaemonSetManager;
 import io.elev8.resources.deployment.DeploymentManager;
 import io.elev8.resources.job.JobManager;
@@ -47,6 +48,7 @@ public final class EksClient implements AutoCloseable {
     private final DeploymentManager deploymentManager;
     private final DaemonSetManager daemonSetManager;
     private final JobManager jobManager;
+    private final CronJobManager cronJobManager;
     private final StatefulSetManager statefulSetManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
@@ -145,6 +147,7 @@ public final class EksClient implements AutoCloseable {
         this.deploymentManager = new DeploymentManager(kubernetesClient);
         this.daemonSetManager = new DaemonSetManager(kubernetesClient);
         this.jobManager = new JobManager(kubernetesClient);
+        this.cronJobManager = new CronJobManager(kubernetesClient);
         this.statefulSetManager = new StatefulSetManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
@@ -261,6 +264,10 @@ public final class EksClient implements AutoCloseable {
 
     public JobManager jobs() {
         return jobManager;
+    }
+
+    public CronJobManager cronJobs() {
+        return cronJobManager;
     }
 
     public StatefulSetManager statefulSets() {
