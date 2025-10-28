@@ -11,6 +11,7 @@ import io.elev8.resources.cronjob.CronJobManager;
 import io.elev8.resources.daemonset.DaemonSetManager;
 import io.elev8.resources.deployment.DeploymentManager;
 import io.elev8.resources.job.JobManager;
+import io.elev8.resources.namespace.NamespaceManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.secret.SecretManager;
 import io.elev8.resources.service.ServiceManager;
@@ -52,6 +53,7 @@ public final class EksClient implements AutoCloseable {
     private final StatefulSetManager statefulSetManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
+    private final NamespaceManager namespaceManager;
     private final AccessEntryManager accessEntryManager;
     private final StsClient stsClient;
 
@@ -151,6 +153,7 @@ public final class EksClient implements AutoCloseable {
         this.statefulSetManager = new StatefulSetManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
+        this.namespaceManager = new NamespaceManager(kubernetesClient);
         this.accessEntryManager = AccessEntryManager.builder()
                 .clusterName(clusterName)
                 .region(region)
@@ -280,6 +283,10 @@ public final class EksClient implements AutoCloseable {
 
     public SecretManager secrets() {
         return secretManager;
+    }
+
+    public NamespaceManager namespaces() {
+        return namespaceManager;
     }
 
     public AccessEntryManager accessEntries() {
