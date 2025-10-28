@@ -88,17 +88,4 @@ public class Job extends AbstractResource {
             return new Job(this);
         }
     }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class JobStatus {
-        Integer active;
-        Integer succeeded;
-        Integer failed;
-        String startTime;
-        String completionTime;
-        Long observedGeneration;
-    }
 }

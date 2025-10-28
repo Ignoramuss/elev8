@@ -88,19 +88,4 @@ public class DaemonSet extends AbstractResource {
             return new DaemonSet(this);
         }
     }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class DaemonSetStatus {
-        Integer currentNumberScheduled;
-        Integer numberMisscheduled;
-        Integer desiredNumberScheduled;
-        Integer numberReady;
-        Long observedGeneration;
-        Integer updatedNumberScheduled;
-        Integer numberAvailable;
-        Integer numberUnavailable;
-    }
 }
