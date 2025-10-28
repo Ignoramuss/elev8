@@ -571,6 +571,48 @@ final List<CronJob> cronJobs = client.cronJobs().list("default");
 client.cronJobs().delete("default", "hello");
 ```
 
+### Namespaces
+
+```java
+import io.elev8.resources.namespace.Namespace;
+import io.elev8.resources.namespace.NamespaceSpec;
+
+// Create a simple Namespace
+final Namespace namespace = Namespace.builder()
+    .name("production")
+    .build();
+
+client.namespaces().create(namespace);
+
+// Create a Namespace with labels
+final Namespace devNamespace = Namespace.builder()
+    .name("development")
+    .label("env", "dev")
+    .label("team", "backend")
+    .build();
+
+client.namespaces().create(devNamespace);
+
+// Create a Namespace with finalizers
+final Namespace protectedNamespace = Namespace.builder()
+    .name("protected")
+    .label("environment", "production")
+    .addFinalizer("kubernetes")
+    .addFinalizer("example.com/custom-finalizer")
+    .build();
+
+client.namespaces().create(protectedNamespace);
+
+// List all Namespaces
+final List<Namespace> namespaces = client.namespaces().listAllNamespaces();
+
+// Get a specific Namespace
+final Namespace retrieved = client.namespaces().get("production");
+
+// Delete a Namespace
+client.namespaces().delete("development");
+```
+
 ### EKS Access Entries
 
 ```java
@@ -845,6 +887,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl patch cronjob hello -p '{"spec":{"suspend":true}}'` | `final CronJob cj = client.cronJobs().get("default", "hello");<br>cj.getSpec().setSuspend(true);<br>client.cronJobs().update(cj);` |
 | `kubectl get cronjob hello -o json` | `final CronJob cj = client.cronJobs().get("default", "hello");<br>String json = cj.toJson();` |
 
+### Namespace Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get namespaces` | `client.namespaces().listAllNamespaces()` |
+| `kubectl get namespace production` | `client.namespaces().get("production")` |
+| `kubectl create namespace development` | `Namespace ns = Namespace.builder()<br>  .name("development")<br>  .build();<br>client.namespaces().create(ns);` |
+| `kubectl create namespace prod --labels=env=production` | `Namespace ns = Namespace.builder()<br>  .name("prod")<br>  .label("env", "production")<br>  .build();<br>client.namespaces().create(ns);` |
+| `kubectl delete namespace development` | `client.namespaces().delete("development")` |
+| `kubectl get namespace production -o json` | `final Namespace ns = client.namespaces().get("production");<br>String json = ns.toJson();` |
+
 ### Complete Example: Creating a Deployment
 
 **kubectl:**
@@ -934,11 +987,12 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] Job resource support
 - [x] StatefulSet resource support
 - [x] CronJob resource support
+- [x] Namespace resource support
 
 ### In Progress
 
 #### Phase 1: Core Resources (High Priority)
-- [ ] Namespace resource support
+- [x] Namespace resource support
 - [ ] ReplicaSet resource support
 - [ ] Ingress resource support (networking.k8s.io/v1)
 - [ ] PersistentVolume and PersistentVolumeClaim resources
