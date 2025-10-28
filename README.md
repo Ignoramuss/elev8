@@ -935,11 +935,81 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] StatefulSet resource support
 - [x] CronJob resource support
 
-### Planned
-- [ ] Watch/stream support for resource updates
+### In Progress
+
+#### Phase 1: Core Resources (High Priority)
 - [ ] Namespace resource support
-- [ ] Event streaming and logging
-- [ ] CRD support with code generation
-- [ ] GKE/AKS support for multi-cloud
-- [ ] Reactive API support (Project Reactor)
+- [ ] ReplicaSet resource support
+- [ ] Ingress resource support (networking.k8s.io/v1)
+- [ ] PersistentVolume and PersistentVolumeClaim resources
+- [ ] ServiceAccount resource support
+
+#### Phase 2: Security & RBAC
+- [ ] Role and RoleBinding resources (rbac.authorization.k8s.io/v1)
+- [ ] ClusterRole and ClusterRoleBinding resources
+- [ ] NetworkPolicy resource support (networking.k8s.io/v1)
+
+#### Phase 3: Scaling & Resource Management
+- [ ] HorizontalPodAutoscaler resource support (autoscaling/v2)
+- [ ] VerticalPodAutoscaler resource support (autoscaling.k8s.io/v1)
+- [ ] ResourceQuota resource support
+- [ ] LimitRange resource support
+- [ ] PodDisruptionBudget resource support (policy/v1)
+
+#### Phase 4: Storage & Persistence
+- [ ] StorageClass resource support (storage.k8s.io/v1)
+- [ ] VolumeSnapshot support (snapshot.storage.k8s.io/v1)
+- [ ] CSIDriver resource support
+
+#### Phase 5: Advanced Operations
+- [ ] Watch API implementation for resource updates
+- [ ] Resource change event streaming
+- [ ] Pod log streaming API
+- [ ] Exec into pods support
+- [ ] Port forwarding support
+- [ ] Patch operations (JSON Patch/Strategic Merge Patch)
+- [ ] Server-side Apply operations
+
+#### Phase 6: Events & Observability
+- [ ] Event resource support (v1)
+- [ ] Event watching and filtering
+- [ ] Resource status condition helpers
+- [ ] Metrics API support (metrics.k8s.io)
+
+#### Phase 7: Production Patterns & Performance
+- [ ] Informers pattern implementation
+- [ ] SharedInformers with client-side caching
+- [ ] Leader election support (coordination.k8s.io/v1)
+- [ ] Work queue implementation
+- [ ] Request retry with exponential backoff
+- [ ] Connection pooling optimizations
+- [ ] Rate limiting support
+
+#### Phase 8: Custom Resources
+- [ ] CustomResourceDefinition (CRD) resource support
+- [ ] Generic custom resource CRUD operations
+- [ ] Dynamic client for untyped resources
+- [ ] Code generation from CRD schemas
+
+#### Phase 9: Multi-Cloud Support
+- [ ] GKE authentication (GCP IAM/Workload Identity)
+- [ ] GKE cluster auto-discovery
+- [ ] GkeClient implementation
+- [ ] AKS authentication (Azure AD/Managed Identity)
+- [ ] AKS cluster auto-discovery
+- [ ] AksClient implementation
+- [ ] Multi-cloud abstraction layer
+
+#### Phase 10: Advanced Features
+- [ ] Reactive API support (Project Reactor/RxJava)
+- [ ] Field selectors for advanced filtering
+- [ ] Label selector query enhancements
+- [ ] Resource aggregation APIs
+- [ ] Admission webhooks support
+
+#### Phase 11: Release & Distribution
 - [ ] Maven Central publication
+- [ ] API stability guarantees
+- [ ] Semantic versioning strategy
+- [ ] Migration guides between versions
+- [ ] Performance benchmarks and documentation
