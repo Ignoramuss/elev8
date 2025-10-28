@@ -353,6 +353,87 @@ final List<DaemonSet> daemonSets = client.daemonSets().list("kube-system");
 client.daemonSets().delete("kube-system", "fluentd-elasticsearch");
 ```
 
+### Jobs
+
+```java
+import io.elev8.resources.job.Job;
+import io.elev8.resources.job.JobSpec;
+
+// Create a simple batch Job
+final Job batchJob = Job.builder()
+    .name("pi-calculation")
+    .namespace("default")
+    .spec(JobSpec.builder()
+        .completions(1)
+        .template(JobSpec.PodTemplateSpec.builder()
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("pi")
+                    .image("perl:5.34")
+                    .command(List.of("perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"))
+                    .build())
+                .restartPolicy("Never")
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.jobs().create(batchJob);
+
+// Create a parallel processing Job
+final Job parallelJob = Job.builder()
+    .name("data-processor")
+    .namespace("default")
+    .spec(JobSpec.builder()
+        .completions(10)
+        .parallelism(3)
+        .backoffLimit(4)
+        .template(JobSpec.PodTemplateSpec.builder()
+            .label("app", "processor")
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("processor")
+                    .image("data-processor:latest")
+                    .build())
+                .restartPolicy("OnFailure")
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.jobs().create(parallelJob);
+
+// Create a Job with timeout and TTL
+final Job timedJob = Job.builder()
+    .name("cleanup-job")
+    .namespace("default")
+    .spec(JobSpec.builder()
+        .activeDeadlineSeconds(300L)
+        .ttlSecondsAfterFinished(100)
+        .template(JobSpec.PodTemplateSpec.builder()
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("cleanup")
+                    .image("cleanup:latest")
+                    .build())
+                .restartPolicy("Never")
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.jobs().create(timedJob);
+
+// Get a Job
+final Job retrieved = client.jobs().get("default", "pi-calculation");
+
+// List Jobs in namespace
+final List<Job> jobs = client.jobs().list("default");
+
+// Delete a Job
+client.jobs().delete("default", "pi-calculation");
+```
+
 ### EKS Access Entries
 
 ```java
@@ -594,6 +675,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl delete daemonset fluentd -n kube-system` | `client.daemonSets().delete("kube-system", "fluentd")` |
 | `kubectl rollout status daemonset/fluentd -n kube-system` | `final DaemonSet ds = client.daemonSets().get("kube-system", "fluentd");<br>// Check ds.getStatus().getNumberReady() and ds.getStatus().getDesiredNumberScheduled()` |
 
+### Job Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get jobs -n default` | `client.jobs().list("default")` |
+| `kubectl get job my-job -n default` | `client.jobs().get("default", "my-job")` |
+| `kubectl create -f job.yaml` | `Job job = Job.builder()...build();<br>client.jobs().create(job);` |
+| `kubectl delete job my-job -n default` | `client.jobs().delete("default", "my-job")` |
+| `kubectl logs job/my-job -n default` | `final Job job = client.jobs().get("default", "my-job");<br>// Get pod logs using job.getStatus() to find pod names` |
+| `kubectl wait --for=condition=complete job/my-job` | `final Job job = client.jobs().get("default", "my-job");<br>// Poll job.getStatus().getSucceeded() until equals completions` |
+
 ### Complete Example: Creating a Deployment
 
 **kubectl:**
@@ -680,10 +772,10 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] Comprehensive unit test coverage
 - [x] ConfigMap and Secret resources
 - [x] DaemonSet resource support
+- [x] Job resource support
 
 ### Planned
 - [ ] StatefulSet resource support
-- [ ] Job resource support
 - [ ] CronJob resource support
 - [ ] Watch/stream support for resource updates
 - [ ] Namespace resource support
