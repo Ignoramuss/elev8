@@ -29,6 +29,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [Ingress](#ingress)
   - [CronJobs](#cronjobs)
   - [Namespaces](#namespaces)
+  - [ServiceAccounts](#serviceaccounts)
   - [EKS Access Entries](#eks-access-entries)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
@@ -52,6 +53,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [Ingress Operations](#ingress-operations)
   - [CronJob Operations](#cronjob-operations)
   - [Namespace Operations](#namespace-operations)
+  - [ServiceAccount Operations](#serviceaccount-operations)
 - [Contributing](#contributing)
 - [License](#license)
 - [Support](#support)
@@ -850,6 +852,75 @@ final Namespace retrieved = client.namespaces().get("production");
 client.namespaces().delete("development");
 ```
 
+### ServiceAccounts
+
+```java
+import io.elev8.resources.serviceaccount.ServiceAccount;
+import io.elev8.resources.serviceaccount.ServiceAccountSpec;
+import io.elev8.resources.LocalObjectReference;
+
+// Create a simple ServiceAccount
+final ServiceAccount serviceAccount = ServiceAccount.builder()
+    .name("my-service-account")
+    .namespace("default")
+    .build();
+
+client.serviceAccounts().create(serviceAccount);
+
+// Create a ServiceAccount with automount disabled
+final ServiceAccount noAutomount = ServiceAccount.builder()
+    .name("no-automount-sa")
+    .namespace("default")
+    .spec(ServiceAccountSpec.builder()
+        .automountServiceAccountToken(false)
+        .build())
+    .build();
+
+client.serviceAccounts().create(noAutomount);
+
+// Create a ServiceAccount with image pull secrets
+final ServiceAccount withImagePullSecrets = ServiceAccount.builder()
+    .name("docker-sa")
+    .namespace("default")
+    .label("app", "backend")
+    .spec(ServiceAccountSpec.builder()
+        .automountServiceAccountToken(true)
+        .imagePullSecret(LocalObjectReference.builder()
+            .name("docker-registry-secret")
+            .build())
+        .imagePullSecret(LocalObjectReference.builder()
+            .name("ghcr-secret")
+            .build())
+        .build())
+    .build();
+
+client.serviceAccounts().create(withImagePullSecrets);
+
+// Get a ServiceAccount
+final ServiceAccount retrieved = client.serviceAccounts().get("default", "my-service-account");
+
+// List ServiceAccounts in a namespace
+final List<ServiceAccount> serviceAccounts = client.serviceAccounts().list("default");
+
+// Delete a ServiceAccount
+client.serviceAccounts().delete("default", "my-service-account");
+```
+
+**kubectl equivalents:**
+```bash
+# Create ServiceAccount
+kubectl apply -f serviceaccount.yaml
+
+# Get ServiceAccount
+kubectl get serviceaccount my-service-account -n default
+
+# Describe ServiceAccount (shows secrets and tokens)
+kubectl describe serviceaccount my-service-account -n default
+
+# Delete ServiceAccount
+kubectl delete serviceaccount my-service-account -n default
+```
+
 ### EKS Access Entries
 
 ```java
@@ -1157,6 +1228,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl delete namespace development` | `client.namespaces().delete("development")` |
 | `kubectl get namespace production -o json` | `final Namespace ns = client.namespaces().get("production");<br>String json = ns.toJson();` |
 
+### ServiceAccount Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get serviceaccounts -n default` | `client.serviceAccounts().list("default")` |
+| `kubectl get serviceaccount my-service-account -n default` | `client.serviceAccounts().get("default", "my-service-account")` |
+| `kubectl create serviceaccount my-service-account -n default` | `ServiceAccount sa = ServiceAccount.builder()<br>  .name("my-service-account")<br>  .namespace("default")<br>  .build();<br>client.serviceAccounts().create(sa);` |
+| `kubectl delete serviceaccount my-service-account -n default` | `client.serviceAccounts().delete("default", "my-service-account")` |
+| `kubectl describe serviceaccount my-service-account -n default` | `final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br>// Check sa.getStatus().getSecrets()` |
+| `kubectl get serviceaccount my-service-account -o json` | `final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br>String json = sa.toJson();` |
+
 ### Complete Example: Creating a Deployment
 
 **kubectl:**
@@ -1255,8 +1337,8 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] Namespace resource support
 - [x] ReplicaSet resource support
 - [x] Ingress resource support (networking.k8s.io/v1)
+- [x] ServiceAccount resource support
 - [ ] PersistentVolume and PersistentVolumeClaim resources
-- [ ] ServiceAccount resource support
 
 #### Phase 2: Security & RBAC
 - [ ] Role and RoleBinding resources (rbac.authorization.k8s.io/v1)
