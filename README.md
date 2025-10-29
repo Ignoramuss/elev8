@@ -5,6 +5,24 @@
 
 A lightweight, cloud-native Kubernetes Java client that eliminates configuration complexity by providing native support for AWS IAM authentication (EKS), GCP authentication (GKE), and Azure authentication (AKS) - without requiring kubectl or complex kubeconfig management.
 
+## Table of Contents
+
+- [Why Elev8?](#why-elev8)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Authentication Modes Comparison](#authentication-modes-comparison)
+- [Project Structure](#project-structure)
+- [Building from Source](#building-from-source)
+- [Logging](#logging)
+- [Examples](#examples)
+- [Migration from fabric8](#migration-from-fabric8)
+- [kubectl Command Equivalents](#kubectl-command-equivalents)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+- [Roadmap](#roadmap)
+
 ## Why Elev8?
 
 Existing Kubernetes Java clients (fabric8, official client) struggle with cloud provider authentication:
