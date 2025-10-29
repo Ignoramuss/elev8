@@ -93,14 +93,10 @@ public class Namespace extends AbstractResource {
          */
         public Builder addFinalizer(final String finalizer) {
             if (this.spec == null) {
-                this.spec = NamespaceSpec.builder().build();
+                this.spec = NamespaceSpec.builder().finalizer(finalizer).build();
+            } else {
+                this.spec = this.spec.toBuilder().finalizer(finalizer).build();
             }
-            if (this.spec.getFinalizers() == null) {
-                this.spec = this.spec.toBuilder()
-                        .finalizers(new ArrayList<>())
-                        .build();
-            }
-            this.spec.getFinalizers().add(finalizer);
             return this;
         }
 

@@ -14,7 +14,7 @@ class NamespaceSpecTest {
         final NamespaceSpec spec = NamespaceSpec.builder().build();
 
         assertThat(spec).isNotNull();
-        assertThat(spec.getFinalizers()).isNull();
+        assertThat(spec.getFinalizers()).isEmpty();
     }
 
     @Test

@@ -162,7 +162,7 @@ class NamespaceTest {
                 .build();
 
         assertThat(namespace.getName()).isEqualTo("simple-namespace");
-        assertThat(namespace.getMetadata().getLabels()).isNull();
+        assertThat(namespace.getMetadata().getLabels()).isEmpty();
     }
 
     @Test
