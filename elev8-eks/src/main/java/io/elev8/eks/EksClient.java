@@ -17,6 +17,7 @@ import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.replicaset.ReplicaSetManager;
 import io.elev8.resources.secret.SecretManager;
 import io.elev8.resources.service.ServiceManager;
+import io.elev8.resources.serviceaccount.ServiceAccountManager;
 import io.elev8.resources.statefulset.StatefulSetManager;
 import lombok.Builder;
 import lombok.Getter;
@@ -55,6 +56,7 @@ public final class EksClient implements AutoCloseable {
     private final StatefulSetManager statefulSetManager;
     private final ReplicaSetManager replicaSetManager;
     private final IngressManager ingressManager;
+    private final ServiceAccountManager serviceAccountManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
     private final NamespaceManager namespaceManager;
@@ -157,6 +159,7 @@ public final class EksClient implements AutoCloseable {
         this.statefulSetManager = new StatefulSetManager(kubernetesClient);
         this.replicaSetManager = new ReplicaSetManager(kubernetesClient);
         this.ingressManager = new IngressManager(kubernetesClient);
+        this.serviceAccountManager = new ServiceAccountManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
         this.namespaceManager = new NamespaceManager(kubernetesClient);
@@ -289,6 +292,10 @@ public final class EksClient implements AutoCloseable {
 
     public IngressManager ingresses() {
         return ingressManager;
+    }
+
+    public ServiceAccountManager serviceAccounts() {
+        return serviceAccountManager;
     }
 
     public ConfigMapManager configMaps() {
