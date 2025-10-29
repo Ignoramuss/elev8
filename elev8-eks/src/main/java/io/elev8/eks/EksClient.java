@@ -13,6 +13,7 @@ import io.elev8.resources.deployment.DeploymentManager;
 import io.elev8.resources.job.JobManager;
 import io.elev8.resources.namespace.NamespaceManager;
 import io.elev8.resources.pod.PodManager;
+import io.elev8.resources.replicaset.ReplicaSetManager;
 import io.elev8.resources.secret.SecretManager;
 import io.elev8.resources.service.ServiceManager;
 import io.elev8.resources.statefulset.StatefulSetManager;
@@ -51,6 +52,7 @@ public final class EksClient implements AutoCloseable {
     private final JobManager jobManager;
     private final CronJobManager cronJobManager;
     private final StatefulSetManager statefulSetManager;
+    private final ReplicaSetManager replicaSetManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
     private final NamespaceManager namespaceManager;
@@ -151,6 +153,7 @@ public final class EksClient implements AutoCloseable {
         this.jobManager = new JobManager(kubernetesClient);
         this.cronJobManager = new CronJobManager(kubernetesClient);
         this.statefulSetManager = new StatefulSetManager(kubernetesClient);
+        this.replicaSetManager = new ReplicaSetManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
         this.namespaceManager = new NamespaceManager(kubernetesClient);
@@ -275,6 +278,10 @@ public final class EksClient implements AutoCloseable {
 
     public StatefulSetManager statefulSets() {
         return statefulSetManager;
+    }
+
+    public ReplicaSetManager replicaSets() {
+        return replicaSetManager;
     }
 
     public ConfigMapManager configMaps() {
