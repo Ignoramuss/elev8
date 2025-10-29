@@ -563,6 +563,125 @@ final List<ReplicaSet> replicaSets = client.replicaSets().list("default");
 client.replicaSets().delete("default", "nginx-replicaset");
 ```
 
+### Ingress
+
+```java
+import io.elev8.resources.ingress.Ingress;
+import io.elev8.resources.ingress.IngressSpec;
+import io.elev8.resources.ingress.IngressRule;
+import io.elev8.resources.ingress.HTTPIngressRuleValue;
+import io.elev8.resources.ingress.HTTPIngressPath;
+import io.elev8.resources.ingress.IngressBackend;
+import io.elev8.resources.ingress.IngressServiceBackend;
+import io.elev8.resources.ingress.ServiceBackendPort;
+import io.elev8.resources.ingress.IngressTLS;
+
+// Create a simple HTTP Ingress
+final Ingress simpleIngress = Ingress.builder()
+    .name("example-ingress")
+    .namespace("default")
+    .spec(IngressSpec.builder()
+        .ingressClassName("nginx")
+        .rule(IngressRule.builder()
+            .host("example.com")
+            .http(HTTPIngressRuleValue.builder()
+                .path(HTTPIngressPath.builder()
+                    .path("/")
+                    .pathType("Prefix")
+                    .backend(IngressBackend.builder()
+                        .service(IngressServiceBackend.builder()
+                            .name("web-service")
+                            .port(ServiceBackendPort.builder()
+                                .number(80)
+                                .build())
+                            .build())
+                        .build())
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.ingresses().create(simpleIngress);
+
+// Create an Ingress with multiple paths and TLS
+final Ingress tlsIngress = Ingress.builder()
+    .name("app-ingress")
+    .namespace("default")
+    .label("app", "web")
+    .spec(IngressSpec.builder()
+        .ingressClassName("nginx")
+        .tl(IngressTLS.builder()
+            .host("app.example.com")
+            .secretName("app-tls-secret")
+            .build())
+        .rule(IngressRule.builder()
+            .host("app.example.com")
+            .http(HTTPIngressRuleValue.builder()
+                .path(HTTPIngressPath.builder()
+                    .path("/api")
+                    .pathType("Prefix")
+                    .backend(IngressBackend.builder()
+                        .service(IngressServiceBackend.builder()
+                            .name("api-service")
+                            .port(ServiceBackendPort.builder()
+                                .number(8080)
+                                .build())
+                            .build())
+                        .build())
+                    .build())
+                .path(HTTPIngressPath.builder()
+                    .path("/web")
+                    .pathType("Prefix")
+                    .backend(IngressBackend.builder()
+                        .service(IngressServiceBackend.builder()
+                            .name("web-service")
+                            .port(ServiceBackendPort.builder()
+                                .number(80)
+                                .build())
+                            .build())
+                        .build())
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.ingresses().create(tlsIngress);
+
+// Get an Ingress
+final Ingress retrieved = client.ingresses().get("default", "example-ingress");
+
+// Check load balancer status
+if (retrieved.getStatus() != null && retrieved.getStatus().getLoadBalancer() != null) {
+    retrieved.getStatus().getLoadBalancer().getIngress().forEach(lb -> {
+        System.out.println("Load Balancer: " +
+            (lb.getHostname() != null ? lb.getHostname() : lb.getIp()));
+    });
+}
+
+// List Ingresses in namespace
+final List<Ingress> ingresses = client.ingresses().list("default");
+
+// Delete an Ingress
+client.ingresses().delete("default", "example-ingress");
+```
+
+**kubectl equivalents:**
+```bash
+# Create Ingress
+kubectl apply -f ingress.yaml
+
+# Get Ingress
+kubectl get ingress example-ingress
+
+# Describe Ingress (shows load balancer status)
+kubectl describe ingress example-ingress
+
+# Delete Ingress
+kubectl delete ingress example-ingress
+```
+
 ### CronJobs
 
 ```java
@@ -951,6 +1070,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl scale replicaset nginx-replicaset --replicas=5` | `final ReplicaSet rs = client.replicaSets().get("default", "nginx-replicaset");<br>rs.getSpec().setReplicas(5);<br>client.replicaSets().update(rs);` |
 | `kubectl get replicaset nginx-replicaset -o json` | `final ReplicaSet rs = client.replicaSets().get("default", "nginx-replicaset");<br>String json = rs.toJson();` |
 
+### Ingress Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get ingress -n default` | `client.ingresses().list("default")` |
+| `kubectl get ingress example-ingress -n default` | `client.ingresses().get("default", "example-ingress")` |
+| `kubectl create -f ingress.yaml` | `Ingress ing = Ingress.builder()...build();<br>client.ingresses().create(ing);` |
+| `kubectl delete ingress example-ingress -n default` | `client.ingresses().delete("default", "example-ingress")` |
+| `kubectl describe ingress example-ingress` | `final Ingress ing = client.ingresses().get("default", "example-ingress");<br>// Check ing.getStatus().getLoadBalancer()` |
+| `kubectl get ingress example-ingress -o json` | `final Ingress ing = client.ingresses().get("default", "example-ingress");<br>String json = ing.toJson();` |
+
 ### CronJob Operations
 
 | kubectl Command | Elev8 Equivalent |
@@ -1070,7 +1200,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 #### Phase 1: Core Resources (High Priority)
 - [x] Namespace resource support
 - [x] ReplicaSet resource support
-- [ ] Ingress resource support (networking.k8s.io/v1)
+- [x] Ingress resource support (networking.k8s.io/v1)
 - [ ] PersistentVolume and PersistentVolumeClaim resources
 - [ ] ServiceAccount resource support
 
