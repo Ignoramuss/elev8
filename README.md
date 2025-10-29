@@ -499,6 +499,70 @@ final List<StatefulSet> statefulSets = client.statefulSets().list("default");
 client.statefulSets().delete("default", "web");
 ```
 
+### ReplicaSets
+
+```java
+import io.elev8.resources.replicaset.ReplicaSet;
+import io.elev8.resources.replicaset.ReplicaSetSpec;
+import io.elev8.resources.replicaset.ReplicaSetPodTemplateSpec;
+
+// Create a simple ReplicaSet
+final ReplicaSet replicaSet = ReplicaSet.builder()
+    .name("nginx-replicaset")
+    .namespace("default")
+    .spec(ReplicaSetSpec.builder()
+        .replicas(3)
+        .selector("app", "nginx")
+        .template(ReplicaSetPodTemplateSpec.builder()
+            .label("app", "nginx")
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("nginx")
+                    .image("nginx:1.21")
+                    .addPort(80)
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.replicaSets().create(replicaSet);
+
+// Create a ReplicaSet with minReadySeconds
+final ReplicaSet frontendReplicaSet = ReplicaSet.builder()
+    .name("frontend")
+    .namespace("default")
+    .label("tier", "frontend")
+    .spec(ReplicaSetSpec.builder()
+        .replicas(5)
+        .selector("app", "frontend")
+        .selector("tier", "frontend")
+        .minReadySeconds(30)
+        .template(ReplicaSetPodTemplateSpec.builder()
+            .label("app", "frontend")
+            .label("tier", "frontend")
+            .spec(PodSpec.builder()
+                .container(Container.builder()
+                    .name("frontend")
+                    .image("frontend:v1")
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.replicaSets().create(frontendReplicaSet);
+
+// Get a ReplicaSet
+final ReplicaSet retrieved = client.replicaSets().get("default", "nginx-replicaset");
+
+// List ReplicaSets in namespace
+final List<ReplicaSet> replicaSets = client.replicaSets().list("default");
+
+// Delete a ReplicaSet
+client.replicaSets().delete("default", "nginx-replicaset");
+```
+
 ### CronJobs
 
 ```java
@@ -876,6 +940,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl scale statefulset web --replicas=5` | `final StatefulSet sts = client.statefulSets().get("default", "web");<br>sts.getSpec().setReplicas(5);<br>client.statefulSets().update(sts);` |
 | `kubectl rollout status statefulset/web -n default` | `final StatefulSet sts = client.statefulSets().get("default", "web");<br>// Check sts.getStatus().getReadyReplicas() and sts.getStatus().getReplicas()` |
 
+### ReplicaSet Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get replicasets -n default` | `client.replicaSets().list("default")` |
+| `kubectl get replicaset nginx-replicaset -n default` | `client.replicaSets().get("default", "nginx-replicaset")` |
+| `kubectl create -f replicaset.yaml` | `ReplicaSet rs = ReplicaSet.builder()...build();<br>client.replicaSets().create(rs);` |
+| `kubectl delete replicaset nginx-replicaset -n default` | `client.replicaSets().delete("default", "nginx-replicaset")` |
+| `kubectl scale replicaset nginx-replicaset --replicas=5` | `final ReplicaSet rs = client.replicaSets().get("default", "nginx-replicaset");<br>rs.getSpec().setReplicas(5);<br>client.replicaSets().update(rs);` |
+| `kubectl get replicaset nginx-replicaset -o json` | `final ReplicaSet rs = client.replicaSets().get("default", "nginx-replicaset");<br>String json = rs.toJson();` |
+
 ### CronJob Operations
 
 | kubectl Command | Elev8 Equivalent |
@@ -988,12 +1063,13 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] StatefulSet resource support
 - [x] CronJob resource support
 - [x] Namespace resource support
+- [x] ReplicaSet resource support
 
 ### In Progress
 
 #### Phase 1: Core Resources (High Priority)
 - [x] Namespace resource support
-- [ ] ReplicaSet resource support
+- [x] ReplicaSet resource support
 - [ ] Ingress resource support (networking.k8s.io/v1)
 - [ ] PersistentVolume and PersistentVolumeClaim resources
 - [ ] ServiceAccount resource support
