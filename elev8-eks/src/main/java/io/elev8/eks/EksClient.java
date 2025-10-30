@@ -17,6 +17,8 @@ import io.elev8.resources.persistentvolume.PersistentVolumeManager;
 import io.elev8.resources.persistentvolumeclaim.PersistentVolumeClaimManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.replicaset.ReplicaSetManager;
+import io.elev8.resources.role.RoleManager;
+import io.elev8.resources.rolebinding.RoleBindingManager;
 import io.elev8.resources.secret.SecretManager;
 import io.elev8.resources.service.ServiceManager;
 import io.elev8.resources.serviceaccount.ServiceAccountManager;
@@ -59,6 +61,8 @@ public final class EksClient implements AutoCloseable {
     private final ReplicaSetManager replicaSetManager;
     private final IngressManager ingressManager;
     private final ServiceAccountManager serviceAccountManager;
+    private final RoleManager roleManager;
+    private final RoleBindingManager roleBindingManager;
     private final PersistentVolumeManager persistentVolumeManager;
     private final PersistentVolumeClaimManager persistentVolumeClaimManager;
     private final ConfigMapManager configMapManager;
@@ -164,6 +168,8 @@ public final class EksClient implements AutoCloseable {
         this.replicaSetManager = new ReplicaSetManager(kubernetesClient);
         this.ingressManager = new IngressManager(kubernetesClient);
         this.serviceAccountManager = new ServiceAccountManager(kubernetesClient);
+        this.roleManager = new RoleManager(kubernetesClient);
+        this.roleBindingManager = new RoleBindingManager(kubernetesClient);
         this.persistentVolumeManager = new PersistentVolumeManager(kubernetesClient);
         this.persistentVolumeClaimManager = new PersistentVolumeClaimManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
@@ -302,6 +308,14 @@ public final class EksClient implements AutoCloseable {
 
     public ServiceAccountManager serviceAccounts() {
         return serviceAccountManager;
+    }
+
+    public RoleManager roles() {
+        return roleManager;
+    }
+
+    public RoleBindingManager roleBindings() {
+        return roleBindingManager;
     }
 
     public PersistentVolumeManager persistentVolumes() {
