@@ -31,6 +31,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [Namespaces](#namespaces)
   - [ServiceAccounts](#serviceaccounts)
   - [PersistentVolumes](#persistentvolumes)
+  - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
@@ -56,6 +57,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [Namespace Operations](#namespace-operations)
   - [ServiceAccount Operations](#serviceaccount-operations)
   - [PersistentVolume Operations](#persistentvolume-operations)
+  - [PersistentVolumeClaim Operations](#persistentvolumeclaim-operations)
 - [Contributing](#contributing)
 - [License](#license)
 - [Support](#support)
@@ -1013,6 +1015,104 @@ kubectl describe pv local-pv
 kubectl delete pv local-pv
 ```
 
+### PersistentVolumeClaims
+
+```java
+import io.elev8.resources.persistentvolumeclaim.PersistentVolumeClaim;
+import io.elev8.resources.persistentvolumeclaim.PersistentVolumeClaimSpec;
+import io.elev8.resources.ResourceRequirements;
+
+// Create a simple PersistentVolumeClaim
+final PersistentVolumeClaim pvc = PersistentVolumeClaim.builder()
+    .name("my-pvc")
+    .namespace("default")
+    .spec(PersistentVolumeClaimSpec.builder()
+        .accessMode("ReadWriteOnce")
+        .resources(ResourceRequirements.builder()
+            .request("storage", "10Gi")
+            .build())
+        .build())
+    .build();
+
+client.persistentVolumeClaims().create(pvc);
+
+// Create a PVC with a specific StorageClass
+final PersistentVolumeClaim ebsPVC = PersistentVolumeClaim.builder()
+    .name("ebs-claim")
+    .namespace("default")
+    .label("app", "database")
+    .spec(PersistentVolumeClaimSpec.builder()
+        .accessMode("ReadWriteOnce")
+        .storageClassName("gp2")
+        .resources(ResourceRequirements.builder()
+            .request("storage", "100Gi")
+            .build())
+        .build())
+    .build();
+
+client.persistentVolumeClaims().create(ebsPVC);
+
+// Create a shared PVC with multiple access modes
+final PersistentVolumeClaim sharedPVC = PersistentVolumeClaim.builder()
+    .name("shared-data")
+    .namespace("default")
+    .spec(PersistentVolumeClaimSpec.builder()
+        .accessMode("ReadWriteMany")
+        .storageClassName("nfs")
+        .resources(ResourceRequirements.builder()
+            .request("storage", "50Gi")
+            .build())
+        .build())
+    .build();
+
+client.persistentVolumeClaims().create(sharedPVC);
+
+// Create a block mode PVC
+final PersistentVolumeClaim blockPVC = PersistentVolumeClaim.builder()
+    .name("block-storage")
+    .namespace("default")
+    .spec(PersistentVolumeClaimSpec.builder()
+        .accessMode("ReadWriteOnce")
+        .volumeMode("Block")
+        .storageClassName("fast-ssd")
+        .resources(ResourceRequirements.builder()
+            .request("storage", "20Gi")
+            .build())
+        .build())
+    .build();
+
+client.persistentVolumeClaims().create(blockPVC);
+
+// Get a PersistentVolumeClaim
+final PersistentVolumeClaim retrieved = client.persistentVolumeClaims()
+    .get("default", "my-pvc");
+
+// List PersistentVolumeClaims in a namespace
+final List<PersistentVolumeClaim> pvcs = client.persistentVolumeClaims()
+    .list("default");
+
+// Delete a PersistentVolumeClaim
+client.persistentVolumeClaims().delete("default", "my-pvc");
+```
+
+**kubectl equivalents:**
+```bash
+# Create PersistentVolumeClaim
+kubectl apply -f persistentvolumeclaim.yaml
+
+# Get PersistentVolumeClaim
+kubectl get pvc my-pvc -n default
+
+# List all PersistentVolumeClaims
+kubectl get pvc -n default
+
+# Describe PersistentVolumeClaim (shows capacity, status, volume)
+kubectl describe pvc my-pvc -n default
+
+# Delete PersistentVolumeClaim
+kubectl delete pvc my-pvc -n default
+```
+
 ### EKS Access Entries
 
 ```java
@@ -1342,6 +1442,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl describe pv local-pv` | `final PersistentVolume pv = client.persistentVolumes().get("local-pv");<br>// Check pv.getSpec() and pv.getStatus()` |
 | `kubectl get pv local-pv -o json` | `final PersistentVolume pv = client.persistentVolumes().get("local-pv");<br>String json = pv.toJson();` |
 
+### PersistentVolumeClaim Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get pvc -n default` | `client.persistentVolumeClaims().list("default")` |
+| `kubectl get pvc my-pvc -n default` | `client.persistentVolumeClaims().get("default", "my-pvc")` |
+| `kubectl create -f persistentvolumeclaim.yaml` | `PersistentVolumeClaim pvc = PersistentVolumeClaim.builder()...build();<br>client.persistentVolumeClaims().create(pvc);` |
+| `kubectl delete pvc my-pvc -n default` | `client.persistentVolumeClaims().delete("default", "my-pvc")` |
+| `kubectl describe pvc my-pvc -n default` | `final PersistentVolumeClaim pvc = client.persistentVolumeClaims().get("default", "my-pvc");<br>// Check pvc.getSpec() and pvc.getStatus()` |
+| `kubectl get pvc my-pvc -o json` | `final PersistentVolumeClaim pvc = client.persistentVolumeClaims().get("default", "my-pvc");<br>String json = pvc.toJson();` |
+
 ### Complete Example: Creating a Deployment
 
 **kubectl:**
@@ -1441,7 +1552,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] ReplicaSet resource support
 - [x] Ingress resource support (networking.k8s.io/v1)
 - [x] ServiceAccount resource support
-- [ ] PersistentVolume and PersistentVolumeClaim resources
+- [x] PersistentVolume and PersistentVolumeClaim resources
 
 #### Phase 2: Security & RBAC
 - [ ] Role and RoleBinding resources (rbac.authorization.k8s.io/v1)
