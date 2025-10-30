@@ -14,6 +14,7 @@ import io.elev8.resources.ingress.IngressManager;
 import io.elev8.resources.job.JobManager;
 import io.elev8.resources.namespace.NamespaceManager;
 import io.elev8.resources.persistentvolume.PersistentVolumeManager;
+import io.elev8.resources.persistentvolumeclaim.PersistentVolumeClaimManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.replicaset.ReplicaSetManager;
 import io.elev8.resources.secret.SecretManager;
@@ -59,6 +60,7 @@ public final class EksClient implements AutoCloseable {
     private final IngressManager ingressManager;
     private final ServiceAccountManager serviceAccountManager;
     private final PersistentVolumeManager persistentVolumeManager;
+    private final PersistentVolumeClaimManager persistentVolumeClaimManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
     private final NamespaceManager namespaceManager;
@@ -163,6 +165,7 @@ public final class EksClient implements AutoCloseable {
         this.ingressManager = new IngressManager(kubernetesClient);
         this.serviceAccountManager = new ServiceAccountManager(kubernetesClient);
         this.persistentVolumeManager = new PersistentVolumeManager(kubernetesClient);
+        this.persistentVolumeClaimManager = new PersistentVolumeClaimManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
         this.namespaceManager = new NamespaceManager(kubernetesClient);
@@ -303,6 +306,10 @@ public final class EksClient implements AutoCloseable {
 
     public PersistentVolumeManager persistentVolumes() {
         return persistentVolumeManager;
+    }
+
+    public PersistentVolumeClaimManager persistentVolumeClaims() {
+        return persistentVolumeClaimManager;
     }
 
     public ConfigMapManager configMaps() {
