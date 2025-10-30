@@ -30,6 +30,8 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [CronJobs](#cronjobs)
   - [Namespaces](#namespaces)
   - [ServiceAccounts](#serviceaccounts)
+  - [Roles](#roles)
+  - [RoleBindings](#rolebindings)
   - [PersistentVolumes](#persistentvolumes)
   - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
@@ -56,6 +58,8 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [CronJob Operations](#cronjob-operations)
   - [Namespace Operations](#namespace-operations)
   - [ServiceAccount Operations](#serviceaccount-operations)
+  - [Role Operations](#role-operations)
+  - [RoleBinding Operations](#rolebinding-operations)
   - [PersistentVolume Operations](#persistentvolume-operations)
   - [PersistentVolumeClaim Operations](#persistentvolumeclaim-operations)
 - [Contributing](#contributing)
@@ -925,6 +929,262 @@ kubectl describe serviceaccount my-service-account -n default
 kubectl delete serviceaccount my-service-account -n default
 ```
 
+### Roles
+
+```java
+import io.elev8.resources.role.Role;
+import io.elev8.resources.role.RoleSpec;
+import io.elev8.resources.role.PolicyRule;
+
+// Create a Role for reading pods
+final Role podReader = Role.builder()
+    .name("pod-reader")
+    .namespace("default")
+    .spec(RoleSpec.builder()
+        .rule(PolicyRule.builder()
+            .apiGroup("")
+            .resource("pods")
+            .verb("get")
+            .verb("list")
+            .verb("watch")
+            .build())
+        .build())
+    .build();
+
+client.roles().create(podReader);
+
+// Create a Role with multiple resource permissions
+final Role developerRole = Role.builder()
+    .name("developer")
+    .namespace("default")
+    .label("team", "backend")
+    .spec(RoleSpec.builder()
+        .rule(PolicyRule.builder()
+            .apiGroup("")
+            .resource("pods")
+            .resource("services")
+            .verb("get")
+            .verb("list")
+            .verb("watch")
+            .build())
+        .rule(PolicyRule.builder()
+            .apiGroup("apps")
+            .resource("deployments")
+            .verb("get")
+            .verb("list")
+            .verb("watch")
+            .build())
+        .build())
+    .build();
+
+client.roles().create(developerRole);
+
+// Create a Role with specific resource names
+final Role secretReader = Role.builder()
+    .name("secret-reader")
+    .namespace("default")
+    .spec(RoleSpec.builder()
+        .rule(PolicyRule.builder()
+            .apiGroup("")
+            .resource("secrets")
+            .verb("get")
+            .resourceName("app-config")
+            .resourceName("database-credentials")
+            .build())
+        .build())
+    .build();
+
+client.roles().create(secretReader);
+
+// Create an admin Role with wildcard permissions
+final Role namespaceAdmin = Role.builder()
+    .name("namespace-admin")
+    .namespace("production")
+    .spec(RoleSpec.builder()
+        .rule(PolicyRule.builder()
+            .apiGroup("*")
+            .resource("*")
+            .verb("*")
+            .build())
+        .build())
+    .build();
+
+client.roles().create(namespaceAdmin);
+
+// Get a Role
+final Role retrieved = client.roles().get("default", "pod-reader");
+
+// List Roles in a namespace
+final List<Role> roles = client.roles().list("default");
+
+// Delete a Role
+client.roles().delete("default", "pod-reader");
+```
+
+**kubectl equivalents:**
+```bash
+# Create Role
+kubectl apply -f role.yaml
+
+# Get Role
+kubectl get role pod-reader -n default
+
+# Describe Role (shows policy rules)
+kubectl describe role pod-reader -n default
+
+# Delete Role
+kubectl delete role pod-reader -n default
+```
+
+### RoleBindings
+
+```java
+import io.elev8.resources.rolebinding.RoleBinding;
+import io.elev8.resources.rolebinding.RoleBindingSpec;
+import io.elev8.resources.rolebinding.Subject;
+import io.elev8.resources.rolebinding.RoleRef;
+
+// Bind a Role to a ServiceAccount
+final RoleBinding podReaderBinding = RoleBinding.builder()
+    .name("read-pods")
+    .namespace("default")
+    .spec(RoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("ServiceAccount")
+            .name("my-service-account")
+            .namespace("default")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("Role")
+            .name("pod-reader")
+            .build())
+        .build())
+    .build();
+
+client.roleBindings().create(podReaderBinding);
+
+// Bind a Role to a User
+final RoleBinding userBinding = RoleBinding.builder()
+    .name("developer-binding")
+    .namespace("default")
+    .spec(RoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("User")
+            .name("jane@example.com")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("Role")
+            .name("developer")
+            .build())
+        .build())
+    .build();
+
+client.roleBindings().create(userBinding);
+
+// Bind a Role to a Group
+final RoleBinding groupBinding = RoleBinding.builder()
+    .name("team-binding")
+    .namespace("production")
+    .spec(RoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("Group")
+            .name("developers")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("Role")
+            .name("namespace-admin")
+            .build())
+        .build())
+    .build();
+
+client.roleBindings().create(groupBinding);
+
+// Bind a ClusterRole to subjects in a namespace (grants namespace-scoped permissions)
+final RoleBinding viewBinding = RoleBinding.builder()
+    .name("view-binding")
+    .namespace("default")
+    .spec(RoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("ServiceAccount")
+            .name("viewer-sa")
+            .namespace("default")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("ClusterRole")
+            .name("view")
+            .build())
+        .build())
+    .build();
+
+client.roleBindings().create(viewBinding);
+
+// Bind to multiple subjects
+final RoleBinding multiSubjectBinding = RoleBinding.builder()
+    .name("multi-reader")
+    .namespace("default")
+    .spec(RoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("User")
+            .name("alice@example.com")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .subject(Subject.builder()
+            .kind("User")
+            .name("bob@example.com")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .subject(Subject.builder()
+            .kind("ServiceAccount")
+            .name("app-sa")
+            .namespace("default")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("Role")
+            .name("pod-reader")
+            .build())
+        .build())
+    .build();
+
+client.roleBindings().create(multiSubjectBinding);
+
+// Get a RoleBinding
+final RoleBinding retrieved = client.roleBindings().get("default", "read-pods");
+
+// List RoleBindings in a namespace
+final List<RoleBinding> roleBindings = client.roleBindings().list("default");
+
+// Delete a RoleBinding
+client.roleBindings().delete("default", "read-pods");
+```
+
+**kubectl equivalents:**
+```bash
+# Create RoleBinding
+kubectl apply -f rolebinding.yaml
+
+# Get RoleBinding
+kubectl get rolebinding read-pods -n default
+
+# Describe RoleBinding (shows subjects and role reference)
+kubectl describe rolebinding read-pods -n default
+
+# Delete RoleBinding
+kubectl delete rolebinding read-pods -n default
+
+# Create RoleBinding using kubectl create
+kubectl create rolebinding read-pods \
+  --role=pod-reader \
+  --serviceaccount=default:my-service-account \
+  -n default
+```
+
 ### PersistentVolumes
 
 ```java
@@ -1431,6 +1691,28 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl describe serviceaccount my-service-account -n default` | `final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br>// Check sa.getStatus().getSecrets()` |
 | `kubectl get serviceaccount my-service-account -o json` | `final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br>String json = sa.toJson();` |
 
+### Role Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get roles -n default` | `client.roles().list("default")` |
+| `kubectl get role pod-reader -n default` | `client.roles().get("default", "pod-reader")` |
+| `kubectl create role pod-reader --verb=get --verb=list --resource=pods -n default` | `Role role = Role.builder()<br>  .name("pod-reader")<br>  .namespace("default")<br>  .spec(RoleSpec.builder()<br>    .rule(PolicyRule.builder()<br>      .apiGroup("")<br>      .resource("pods")<br>      .verb("get")<br>      .verb("list")<br>      .build())<br>    .build())<br>  .build();<br>client.roles().create(role);` |
+| `kubectl delete role pod-reader -n default` | `client.roles().delete("default", "pod-reader")` |
+| `kubectl describe role pod-reader -n default` | `final Role role = client.roles().get("default", "pod-reader");<br>// Check role.getSpec().getRules()` |
+| `kubectl get role pod-reader -o json` | `final Role role = client.roles().get("default", "pod-reader");<br>String json = role.toJson();` |
+
+### RoleBinding Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get rolebindings -n default` | `client.roleBindings().list("default")` |
+| `kubectl get rolebinding read-pods -n default` | `client.roleBindings().get("default", "read-pods")` |
+| `kubectl create rolebinding read-pods --role=pod-reader --serviceaccount=default:my-sa -n default` | `RoleBinding rb = RoleBinding.builder()<br>  .name("read-pods")<br>  .namespace("default")<br>  .spec(RoleBindingSpec.builder()<br>    .subject(Subject.builder()<br>      .kind("ServiceAccount")<br>      .name("my-sa")<br>      .namespace("default")<br>      .build())<br>    .roleRef(RoleRef.builder()<br>      .apiGroup("rbac.authorization.k8s.io")<br>      .kind("Role")<br>      .name("pod-reader")<br>      .build())<br>    .build())<br>  .build();<br>client.roleBindings().create(rb);` |
+| `kubectl delete rolebinding read-pods -n default` | `client.roleBindings().delete("default", "read-pods")` |
+| `kubectl describe rolebinding read-pods -n default` | `final RoleBinding rb = client.roleBindings().get("default", "read-pods");<br>// Check rb.getSpec().getSubjects() and rb.getSpec().getRoleRef()` |
+| `kubectl get rolebinding read-pods -o json` | `final RoleBinding rb = client.roleBindings().get("default", "read-pods");<br>String json = rb.toJson();` |
+
 ### PersistentVolume Operations
 
 | kubectl Command | Elev8 Equivalent |
@@ -1555,7 +1837,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] PersistentVolume and PersistentVolumeClaim resources
 
 #### Phase 2: Security & RBAC
-- [ ] Role and RoleBinding resources (rbac.authorization.k8s.io/v1)
+- [x] Role and RoleBinding resources (rbac.authorization.k8s.io/v1)
 - [ ] ClusterRole and ClusterRoleBinding resources
 - [ ] NetworkPolicy resource support (networking.k8s.io/v1)
 
