@@ -1,7 +1,7 @@
 package io.elev8.resources.namespace;
 
 import io.elev8.core.client.KubernetesClient;
-import io.elev8.resources.AbstractResourceManager;
+import io.elev8.resources.AbstractClusterResourceManager;
 
 /**
  * Manager for Namespace resources.
@@ -10,7 +10,7 @@ import io.elev8.resources.AbstractResourceManager;
  * Note: Unlike other resources, Namespaces are cluster-scoped and do not belong to a namespace.
  * Therefore, operations on this manager do not require a namespace parameter.
  */
-public final class NamespaceManager extends AbstractResourceManager<Namespace> {
+public final class NamespaceManager extends AbstractClusterResourceManager<Namespace> {
 
     public NamespaceManager(final KubernetesClient client) {
         super(client, Namespace.class, "/api/v1");
