@@ -30,6 +30,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [CronJobs](#cronjobs)
   - [Namespaces](#namespaces)
   - [ServiceAccounts](#serviceaccounts)
+  - [PersistentVolumes](#persistentvolumes)
   - [EKS Access Entries](#eks-access-entries)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
@@ -54,6 +55,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [CronJob Operations](#cronjob-operations)
   - [Namespace Operations](#namespace-operations)
   - [ServiceAccount Operations](#serviceaccount-operations)
+  - [PersistentVolume Operations](#persistentvolume-operations)
 - [Contributing](#contributing)
 - [License](#license)
 - [Support](#support)
@@ -921,6 +923,96 @@ kubectl describe serviceaccount my-service-account -n default
 kubectl delete serviceaccount my-service-account -n default
 ```
 
+### PersistentVolumes
+
+```java
+import io.elev8.resources.persistentvolume.PersistentVolume;
+import io.elev8.resources.persistentvolume.PersistentVolumeSpec;
+import io.elev8.resources.persistentvolume.HostPathVolumeSource;
+import io.elev8.resources.persistentvolume.NFSVolumeSource;
+import io.elev8.resources.persistentvolume.AWSElasticBlockStoreVolumeSource;
+
+// Create a HostPath PersistentVolume
+final PersistentVolume hostPathPV = PersistentVolume.builder()
+    .name("local-pv")
+    .label("type", "local")
+    .spec(PersistentVolumeSpec.builder()
+        .storageClassName("manual")
+        .capacity("10Gi")
+        .accessMode("ReadWriteOnce")
+        .hostPath(HostPathVolumeSource.builder()
+            .path("/mnt/data")
+            .type("DirectoryOrCreate")
+            .build())
+        .build())
+    .build();
+
+client.persistentVolumes().create(hostPathPV);
+
+// Create an NFS PersistentVolume
+final PersistentVolume nfsPV = PersistentVolume.builder()
+    .name("nfs-pv")
+    .label("type", "nfs")
+    .spec(PersistentVolumeSpec.builder()
+        .storageClassName("nfs")
+        .capacity("50Gi")
+        .accessMode("ReadWriteMany")
+        .persistentVolumeReclaimPolicy("Retain")
+        .nfs(NFSVolumeSource.builder()
+            .server("nfs-server.example.com")
+            .path("/exports/data")
+            .readOnly(false)
+            .build())
+        .build())
+    .build();
+
+client.persistentVolumes().create(nfsPV);
+
+// Create an AWS EBS PersistentVolume
+final PersistentVolume ebsPV = PersistentVolume.builder()
+    .name("ebs-pv")
+    .label("type", "ebs")
+    .spec(PersistentVolumeSpec.builder()
+        .storageClassName("gp2")
+        .capacity("100Gi")
+        .accessMode("ReadWriteOnce")
+        .awsElasticBlockStore(AWSElasticBlockStoreVolumeSource.builder()
+            .volumeID("vol-0123456789abcdef0")
+            .fsType("ext4")
+            .build())
+        .build())
+    .build();
+
+client.persistentVolumes().create(ebsPV);
+
+// Get a PersistentVolume (note: no namespace needed, cluster-scoped)
+final PersistentVolume retrieved = client.persistentVolumes().get("local-pv");
+
+// List all PersistentVolumes
+final List<PersistentVolume> pvs = client.persistentVolumes().list();
+
+// Delete a PersistentVolume
+client.persistentVolumes().delete("local-pv");
+```
+
+**kubectl equivalents:**
+```bash
+# Create PersistentVolume
+kubectl apply -f persistentvolume.yaml
+
+# Get PersistentVolume (no namespace needed)
+kubectl get pv local-pv
+
+# List all PersistentVolumes
+kubectl get pv
+
+# Describe PersistentVolume (shows capacity, access modes, status)
+kubectl describe pv local-pv
+
+# Delete PersistentVolume
+kubectl delete pv local-pv
+```
+
 ### EKS Access Entries
 
 ```java
@@ -1238,6 +1330,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl delete serviceaccount my-service-account -n default` | `client.serviceAccounts().delete("default", "my-service-account")` |
 | `kubectl describe serviceaccount my-service-account -n default` | `final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br>// Check sa.getStatus().getSecrets()` |
 | `kubectl get serviceaccount my-service-account -o json` | `final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br>String json = sa.toJson();` |
+
+### PersistentVolume Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get pv` | `client.persistentVolumes().list()` |
+| `kubectl get pv local-pv` | `client.persistentVolumes().get("local-pv")` |
+| `kubectl create -f persistentvolume.yaml` | `PersistentVolume pv = PersistentVolume.builder()...build();<br>client.persistentVolumes().create(pv);` |
+| `kubectl delete pv local-pv` | `client.persistentVolumes().delete("local-pv")` |
+| `kubectl describe pv local-pv` | `final PersistentVolume pv = client.persistentVolumes().get("local-pv");<br>// Check pv.getSpec() and pv.getStatus()` |
+| `kubectl get pv local-pv -o json` | `final PersistentVolume pv = client.persistentVolumes().get("local-pv");<br>String json = pv.toJson();` |
 
 ### Complete Example: Creating a Deployment
 
