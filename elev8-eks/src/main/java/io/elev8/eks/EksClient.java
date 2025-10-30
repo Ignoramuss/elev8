@@ -17,6 +17,8 @@ import io.elev8.resources.persistentvolume.PersistentVolumeManager;
 import io.elev8.resources.persistentvolumeclaim.PersistentVolumeClaimManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.replicaset.ReplicaSetManager;
+import io.elev8.resources.clusterrole.ClusterRoleManager;
+import io.elev8.resources.clusterrolebinding.ClusterRoleBindingManager;
 import io.elev8.resources.role.RoleManager;
 import io.elev8.resources.rolebinding.RoleBindingManager;
 import io.elev8.resources.secret.SecretManager;
@@ -63,6 +65,8 @@ public final class EksClient implements AutoCloseable {
     private final ServiceAccountManager serviceAccountManager;
     private final RoleManager roleManager;
     private final RoleBindingManager roleBindingManager;
+    private final ClusterRoleManager clusterRoleManager;
+    private final ClusterRoleBindingManager clusterRoleBindingManager;
     private final PersistentVolumeManager persistentVolumeManager;
     private final PersistentVolumeClaimManager persistentVolumeClaimManager;
     private final ConfigMapManager configMapManager;
@@ -170,6 +174,8 @@ public final class EksClient implements AutoCloseable {
         this.serviceAccountManager = new ServiceAccountManager(kubernetesClient);
         this.roleManager = new RoleManager(kubernetesClient);
         this.roleBindingManager = new RoleBindingManager(kubernetesClient);
+        this.clusterRoleManager = new ClusterRoleManager(kubernetesClient);
+        this.clusterRoleBindingManager = new ClusterRoleBindingManager(kubernetesClient);
         this.persistentVolumeManager = new PersistentVolumeManager(kubernetesClient);
         this.persistentVolumeClaimManager = new PersistentVolumeClaimManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
@@ -316,6 +322,14 @@ public final class EksClient implements AutoCloseable {
 
     public RoleBindingManager roleBindings() {
         return roleBindingManager;
+    }
+
+    public ClusterRoleManager clusterRoles() {
+        return clusterRoleManager;
+    }
+
+    public ClusterRoleBindingManager clusterRoleBindings() {
+        return clusterRoleBindingManager;
     }
 
     public PersistentVolumeManager persistentVolumes() {
