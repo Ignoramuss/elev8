@@ -34,6 +34,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [RoleBindings](#rolebindings)
   - [ClusterRoles](#clusterroles)
   - [ClusterRoleBindings](#clusterrolebindings)
+  - [NetworkPolicies](#networkpolicies)
   - [PersistentVolumes](#persistentvolumes)
   - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
@@ -64,6 +65,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [RoleBinding Operations](#rolebinding-operations)
   - [ClusterRole Operations](#clusterrole-operations)
   - [ClusterRoleBinding Operations](#clusterrolebinding-operations)
+  - [NetworkPolicy Operations](#networkpolicy-operations)
   - [PersistentVolume Operations](#persistentvolume-operations)
   - [PersistentVolumeClaim Operations](#persistentvolumeclaim-operations)
 - [Contributing](#contributing)
@@ -1430,6 +1432,205 @@ kubectl create clusterrolebinding system-sa-binding \
   --serviceaccount=kube-system:system-service-account
 ```
 
+### NetworkPolicies
+
+```java
+import io.elev8.resources.networkpolicy.NetworkPolicy;
+import io.elev8.resources.networkpolicy.NetworkPolicySpec;
+import io.elev8.resources.networkpolicy.NetworkPolicyIngressRule;
+import io.elev8.resources.networkpolicy.NetworkPolicyEgressRule;
+import io.elev8.resources.networkpolicy.NetworkPolicyPeer;
+import io.elev8.resources.networkpolicy.NetworkPolicyPort;
+import io.elev8.resources.networkpolicy.IPBlock;
+import io.elev8.resources.LabelSelector;
+
+// Create a deny-all ingress policy (baseline security)
+final NetworkPolicy denyAll = NetworkPolicy.builder()
+    .name("deny-all-ingress")
+    .namespace("default")
+    .spec(NetworkPolicySpec.builder()
+        .podSelector(LabelSelector.builder().build())  // Empty selector = all pods
+        .policyType("Ingress")
+        .build())
+    .build();
+
+client.networkPolicies().create(denyAll);
+
+// Create a NetworkPolicy allowing database access from specific pods
+final NetworkPolicy allowDbAccess = NetworkPolicy.builder()
+    .name("allow-db-access")
+    .namespace("default")
+    .spec(NetworkPolicySpec.builder()
+        .podSelector(LabelSelector.builder()
+            .matchLabel("role", "db")
+            .build())
+        .policyType("Ingress")
+        .ingressRule(NetworkPolicyIngressRule.builder()
+            .from(NetworkPolicyPeer.builder()
+                .podSelector(LabelSelector.builder()
+                    .matchLabel("role", "frontend")
+                    .build())
+                .build())
+            .port(NetworkPolicyPort.builder()
+                .protocol("TCP")
+                .port(5432)
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.networkPolicies().create(allowDbAccess);
+
+// Create a NetworkPolicy with namespace selector
+final NetworkPolicy allowFromProd = NetworkPolicy.builder()
+    .name("allow-from-production")
+    .namespace("default")
+    .spec(NetworkPolicySpec.builder()
+        .podSelector(LabelSelector.builder()
+            .matchLabel("app", "backend")
+            .build())
+        .policyType("Ingress")
+        .ingressRule(NetworkPolicyIngressRule.builder()
+            .from(NetworkPolicyPeer.builder()
+                .namespaceSelector(LabelSelector.builder()
+                    .matchLabel("environment", "production")
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.networkPolicies().create(allowFromProd);
+
+// Create a NetworkPolicy with IP block (allow specific CIDR)
+final NetworkPolicy allowExternalCidr = NetworkPolicy.builder()
+    .name("allow-external")
+    .namespace("default")
+    .spec(NetworkPolicySpec.builder()
+        .podSelector(LabelSelector.builder()
+            .matchLabel("role", "api")
+            .build())
+        .policyType("Ingress")
+        .ingressRule(NetworkPolicyIngressRule.builder()
+            .from(NetworkPolicyPeer.builder()
+                .ipBlock(IPBlock.builder()
+                    .cidr("172.17.0.0/16")
+                    .except("172.17.1.0/24")
+                    .build())
+                .build())
+            .port(NetworkPolicyPort.builder()
+                .protocol("TCP")
+                .port(443)
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.networkPolicies().create(allowExternalCidr);
+
+// Create a NetworkPolicy with egress rules (restrict outbound traffic)
+final NetworkPolicy restrictEgress = NetworkPolicy.builder()
+    .name("restrict-egress")
+    .namespace("default")
+    .spec(NetworkPolicySpec.builder()
+        .podSelector(LabelSelector.builder()
+            .matchLabel("app", "web")
+            .build())
+        .policyType("Egress")
+        .egressRule(NetworkPolicyEgressRule.builder()
+            .to(NetworkPolicyPeer.builder()
+                .podSelector(LabelSelector.builder()
+                    .matchLabel("role", "db")
+                    .build())
+                .build())
+            .port(NetworkPolicyPort.builder()
+                .protocol("TCP")
+                .port(5432)
+                .build())
+            .build())
+        .egressRule(NetworkPolicyEgressRule.builder()
+            .to(NetworkPolicyPeer.builder()
+                .ipBlock(IPBlock.builder()
+                    .cidr("0.0.0.0/0")
+                    .except("169.254.169.254/32")  // Block EC2 metadata endpoint
+                    .build())
+                .build())
+            .port(NetworkPolicyPort.builder()
+                .protocol("TCP")
+                .port(443)
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.networkPolicies().create(restrictEgress);
+
+// Create a NetworkPolicy with both ingress and egress
+final NetworkPolicy fullPolicy = NetworkPolicy.builder()
+    .name("full-network-policy")
+    .namespace("default")
+    .label("tier", "security")
+    .spec(NetworkPolicySpec.builder()
+        .podSelector(LabelSelector.builder()
+            .matchLabel("app", "payment")
+            .build())
+        .policyType("Ingress")
+        .policyType("Egress")
+        .ingressRule(NetworkPolicyIngressRule.builder()
+            .from(NetworkPolicyPeer.builder()
+                .podSelector(LabelSelector.builder()
+                    .matchLabel("app", "frontend")
+                    .build())
+                .build())
+            .port(NetworkPolicyPort.builder()
+                .protocol("TCP")
+                .port(8080)
+                .build())
+            .build())
+        .egressRule(NetworkPolicyEgressRule.builder()
+            .to(NetworkPolicyPeer.builder()
+                .podSelector(LabelSelector.builder()
+                    .matchLabel("app", "database")
+                    .build())
+                .build())
+            .port(NetworkPolicyPort.builder()
+                .protocol("TCP")
+                .port(5432)
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.networkPolicies().create(fullPolicy);
+
+// Get a NetworkPolicy
+final NetworkPolicy retrieved = client.networkPolicies().get("default", "allow-db-access");
+
+// List NetworkPolicies in a namespace
+final List<NetworkPolicy> policies = client.networkPolicies().list("default");
+
+// Delete a NetworkPolicy
+client.networkPolicies().delete("default", "deny-all-ingress");
+```
+
+**kubectl equivalents:**
+```bash
+# Create NetworkPolicy
+kubectl apply -f networkpolicy.yaml
+
+# Get NetworkPolicy
+kubectl get networkpolicy allow-db-access -n default
+
+# Describe NetworkPolicy (shows ingress/egress rules)
+kubectl describe networkpolicy allow-db-access -n default
+
+# Delete NetworkPolicy
+kubectl delete networkpolicy allow-db-access -n default
+
+# List NetworkPolicies
+kubectl get networkpolicies -n default
+```
+
 ### PersistentVolumes
 
 ```java
@@ -1980,6 +2181,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl describe clusterrolebinding cluster-admin-binding` | `final ClusterRoleBinding rb = client.clusterRoleBindings().get("cluster-admin-binding");<br>// Check rb.getSpec().getSubjects() and rb.getSpec().getRoleRef()` |
 | `kubectl get clusterrolebinding cluster-admin-binding -o json` | `final ClusterRoleBinding rb = client.clusterRoleBindings().get("cluster-admin-binding");<br>String json = rb.toJson();` |
 
+### NetworkPolicy Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get networkpolicies -n default` | `client.networkPolicies().list("default")` |
+| `kubectl get networkpolicy allow-db-access -n default` | `client.networkPolicies().get("default", "allow-db-access")` |
+| `kubectl create -f networkpolicy.yaml` | `NetworkPolicy np = NetworkPolicy.builder()<br>  .name("allow-db-access")<br>  .namespace("default")<br>  .spec(NetworkPolicySpec.builder()<br>    .podSelector(LabelSelector.builder()<br>      .matchLabel("role", "db")<br>      .build())<br>    .policyType("Ingress")<br>    .ingressRule(NetworkPolicyIngressRule.builder()<br>      .from(NetworkPolicyPeer.builder()<br>        .podSelector(LabelSelector.builder()<br>          .matchLabel("role", "frontend")<br>          .build())<br>        .build())<br>      .build())<br>    .build())<br>  .build();<br>client.networkPolicies().create(np);` |
+| `kubectl delete networkpolicy allow-db-access -n default` | `client.networkPolicies().delete("default", "allow-db-access")` |
+| `kubectl describe networkpolicy allow-db-access -n default` | `final NetworkPolicy np = client.networkPolicies().get("default", "allow-db-access");<br>// Check np.getSpec().getIngress() and np.getSpec().getEgress()` |
+| `kubectl get networkpolicy allow-db-access -o json` | `final NetworkPolicy np = client.networkPolicies().get("default", "allow-db-access");<br>String json = np.toJson();` |
+
 ### PersistentVolume Operations
 
 | kubectl Command | Elev8 Equivalent |
@@ -2103,10 +2315,10 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] ServiceAccount resource support
 - [x] PersistentVolume and PersistentVolumeClaim resources
 
-#### Phase 2: Security & RBAC
+#### Phase 2: Security & RBAC ✅
 - [x] Role and RoleBinding resources (rbac.authorization.k8s.io/v1)
 - [x] ClusterRole and ClusterRoleBinding resources
-- [ ] NetworkPolicy resource support (networking.k8s.io/v1)
+- [x] NetworkPolicy resource support (networking.k8s.io/v1)
 
 #### Phase 3: Scaling & Resource Management
 - [ ] HorizontalPodAutoscaler resource support (autoscaling/v2)
