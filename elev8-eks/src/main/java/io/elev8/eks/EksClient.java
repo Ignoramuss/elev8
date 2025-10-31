@@ -10,6 +10,7 @@ import io.elev8.resources.configmap.ConfigMapManager;
 import io.elev8.resources.cronjob.CronJobManager;
 import io.elev8.resources.daemonset.DaemonSetManager;
 import io.elev8.resources.deployment.DeploymentManager;
+import io.elev8.resources.horizontalpodautoscaler.HorizontalPodAutoscalerManager;
 import io.elev8.resources.ingress.IngressManager;
 import io.elev8.resources.job.JobManager;
 import io.elev8.resources.namespace.NamespaceManager;
@@ -64,6 +65,7 @@ public final class EksClient implements AutoCloseable {
     private final ReplicaSetManager replicaSetManager;
     private final IngressManager ingressManager;
     private final NetworkPolicyManager networkPolicyManager;
+    private final HorizontalPodAutoscalerManager horizontalPodAutoscalerManager;
     private final ServiceAccountManager serviceAccountManager;
     private final RoleManager roleManager;
     private final RoleBindingManager roleBindingManager;
@@ -174,6 +176,7 @@ public final class EksClient implements AutoCloseable {
         this.replicaSetManager = new ReplicaSetManager(kubernetesClient);
         this.ingressManager = new IngressManager(kubernetesClient);
         this.networkPolicyManager = new NetworkPolicyManager(kubernetesClient);
+        this.horizontalPodAutoscalerManager = new HorizontalPodAutoscalerManager(kubernetesClient);
         this.serviceAccountManager = new ServiceAccountManager(kubernetesClient);
         this.roleManager = new RoleManager(kubernetesClient);
         this.roleBindingManager = new RoleBindingManager(kubernetesClient);
@@ -317,6 +320,10 @@ public final class EksClient implements AutoCloseable {
 
     public NetworkPolicyManager networkPolicies() {
         return networkPolicyManager;
+    }
+
+    public HorizontalPodAutoscalerManager horizontalPodAutoscalers() {
+        return horizontalPodAutoscalerManager;
     }
 
     public ServiceAccountManager serviceAccounts() {

@@ -35,6 +35,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [ClusterRoles](#clusterroles)
   - [ClusterRoleBindings](#clusterrolebindings)
   - [NetworkPolicies](#networkpolicies)
+  - [HorizontalPodAutoscalers](#horizontalpodautoscalers)
   - [PersistentVolumes](#persistentvolumes)
   - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
@@ -66,6 +67,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [ClusterRole Operations](#clusterrole-operations)
   - [ClusterRoleBinding Operations](#clusterrolebinding-operations)
   - [NetworkPolicy Operations](#networkpolicy-operations)
+  - [HorizontalPodAutoscaler Operations](#horizontalpodautoscaler-operations)
   - [PersistentVolume Operations](#persistentvolume-operations)
   - [PersistentVolumeClaim Operations](#persistentvolumeclaim-operations)
 - [Contributing](#contributing)
@@ -1631,6 +1633,107 @@ kubectl delete networkpolicy allow-db-access -n default
 kubectl get networkpolicies -n default
 ```
 
+### HorizontalPodAutoscalers
+
+```java
+import io.elev8.resources.horizontalpodautoscaler.*;
+
+// Simple CPU-based autoscaling
+final HorizontalPodAutoscaler cpuHpa = HorizontalPodAutoscaler.builder()
+    .name("php-apache-hpa")
+    .namespace("default")
+    .spec(HorizontalPodAutoscalerSpec.builder()
+        .scaleTargetRef(CrossVersionObjectReference.builder()
+            .apiVersion("apps/v1")
+            .kind("Deployment")
+            .name("php-apache")
+            .build())
+        .minReplicas(1)
+        .maxReplicas(10)
+        .metric(MetricSpec.builder()
+            .type("Resource")
+            .resource(ResourceMetricSource.builder()
+                .name("cpu")
+                .target(MetricTarget.builder()
+                    .type("Utilization")
+                    .averageUtilization(50)
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.horizontalPodAutoscalers().create(cpuHpa);
+
+// Multi-metric HPA (CPU + Memory)
+final HorizontalPodAutoscaler multiMetricHpa = HorizontalPodAutoscaler.builder()
+    .name("multi-metric-hpa")
+    .namespace("default")
+    .spec(HorizontalPodAutoscalerSpec.builder()
+        .scaleTargetRef(CrossVersionObjectReference.builder()
+            .apiVersion("apps/v1")
+            .kind("Deployment")
+            .name("my-app")
+            .build())
+        .minReplicas(2)
+        .maxReplicas(20)
+        .metric(MetricSpec.builder()
+            .type("Resource")
+            .resource(ResourceMetricSource.builder()
+                .name("cpu")
+                .target(MetricTarget.builder()
+                    .type("Utilization")
+                    .averageUtilization(70)
+                    .build())
+                .build())
+            .build())
+        .metric(MetricSpec.builder()
+            .type("Resource")
+            .resource(ResourceMetricSource.builder()
+                .name("memory")
+                .target(MetricTarget.builder()
+                    .type("Utilization")
+                    .averageUtilization(80)
+                    .build())
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.horizontalPodAutoscalers().create(multiMetricHpa);
+
+// Get and check status
+final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers()
+    .get("default", "php-apache-hpa");
+System.out.println("Current: " + hpa.getStatus().getCurrentReplicas());
+System.out.println("Desired: " + hpa.getStatus().getDesiredReplicas());
+
+// List HPAs
+final List<HorizontalPodAutoscaler> hpas =
+    client.horizontalPodAutoscalers().list("default");
+
+// Delete HPA
+client.horizontalPodAutoscalers().delete("default", "php-apache-hpa");
+```
+
+**kubectl equivalents:**
+```bash
+# Create HPA
+kubectl apply -f hpa.yaml
+
+# Create HPA for deployment (shorthand)
+kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10
+
+# Get HPA
+kubectl get hpa php-apache-hpa -n default
+
+# Describe HPA (shows current/desired replicas, metrics)
+kubectl describe hpa php-apache-hpa -n default
+
+# Delete HPA
+kubectl delete hpa php-apache-hpa -n default
+```
+
 ### PersistentVolumes
 
 ```java
@@ -2192,6 +2295,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl describe networkpolicy allow-db-access -n default` | `final NetworkPolicy np = client.networkPolicies().get("default", "allow-db-access");<br>// Check np.getSpec().getIngress() and np.getSpec().getEgress()` |
 | `kubectl get networkpolicy allow-db-access -o json` | `final NetworkPolicy np = client.networkPolicies().get("default", "allow-db-access");<br>String json = np.toJson();` |
 
+### HorizontalPodAutoscaler Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get hpa -n default` | `client.horizontalPodAutoscalers().list("default")` |
+| `kubectl get hpa php-apache -n default` | `client.horizontalPodAutoscalers().get("default", "php-apache")` |
+| `kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10` | `HorizontalPodAutoscaler hpa = HorizontalPodAutoscaler.builder()<br>  .name("php-apache")<br>  .namespace("default")<br>  .spec(HorizontalPodAutoscalerSpec.builder()<br>    .scaleTargetRef(CrossVersionObjectReference.builder()<br>      .apiVersion("apps/v1")<br>      .kind("Deployment")<br>      .name("php-apache")<br>      .build())<br>    .minReplicas(1)<br>    .maxReplicas(10)<br>    .metric(MetricSpec.builder()<br>      .type("Resource")<br>      .resource(ResourceMetricSource.builder()<br>        .name("cpu")<br>        .target(MetricTarget.builder()<br>          .type("Utilization")<br>          .averageUtilization(50)<br>          .build())<br>        .build())<br>      .build())<br>    .build())<br>  .build();<br>client.horizontalPodAutoscalers().create(hpa);` |
+| `kubectl delete hpa php-apache -n default` | `client.horizontalPodAutoscalers().delete("default", "php-apache")` |
+| `kubectl describe hpa php-apache -n default` | `final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers().get("default", "php-apache");<br>// Check hpa.getStatus().getCurrentReplicas(), hpa.getStatus().getDesiredReplicas()` |
+| `kubectl get hpa php-apache -o json` | `final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers().get("default", "php-apache");<br>String json = hpa.toJson();` |
+
 ### PersistentVolume Operations
 
 | kubectl Command | Elev8 Equivalent |
@@ -2321,7 +2435,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] NetworkPolicy resource support (networking.k8s.io/v1)
 
 #### Phase 3: Scaling & Resource Management
-- [ ] HorizontalPodAutoscaler resource support (autoscaling/v2)
+- [x] HorizontalPodAutoscaler resource support (autoscaling/v2)
 - [ ] VerticalPodAutoscaler resource support (autoscaling.k8s.io/v1)
 - [ ] ResourceQuota resource support
 - [ ] LimitRange resource support
