@@ -32,6 +32,8 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [ServiceAccounts](#serviceaccounts)
   - [Roles](#roles)
   - [RoleBindings](#rolebindings)
+  - [ClusterRoles](#clusterroles)
+  - [ClusterRoleBindings](#clusterrolebindings)
   - [PersistentVolumes](#persistentvolumes)
   - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
@@ -60,6 +62,8 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [ServiceAccount Operations](#serviceaccount-operations)
   - [Role Operations](#role-operations)
   - [RoleBinding Operations](#rolebinding-operations)
+  - [ClusterRole Operations](#clusterrole-operations)
+  - [ClusterRoleBinding Operations](#clusterrolebinding-operations)
   - [PersistentVolume Operations](#persistentvolume-operations)
   - [PersistentVolumeClaim Operations](#persistentvolumeclaim-operations)
 - [Contributing](#contributing)
@@ -1185,6 +1189,247 @@ kubectl create rolebinding read-pods \
   -n default
 ```
 
+### ClusterRoles
+
+```java
+import io.elev8.resources.clusterrole.ClusterRole;
+import io.elev8.resources.role.RoleSpec;
+import io.elev8.resources.role.PolicyRule;
+
+// Create a ClusterRole for reading pods cluster-wide
+final ClusterRole podReader = ClusterRole.builder()
+    .name("pod-reader")
+    .spec(RoleSpec.builder()
+        .rule(PolicyRule.builder()
+            .apiGroup("")
+            .resource("pods")
+            .verb("get")
+            .verb("list")
+            .verb("watch")
+            .build())
+        .build())
+    .build();
+
+client.clusterRoles().create(podReader);
+
+// Create a ClusterRole with multiple resource permissions
+final ClusterRole adminRole = ClusterRole.builder()
+    .name("resource-admin")
+    .label("type", "admin")
+    .spec(RoleSpec.builder()
+        .rule(PolicyRule.builder()
+            .apiGroup("")
+            .resource("pods")
+            .resource("services")
+            .resource("configmaps")
+            .verb("get")
+            .verb("list")
+            .verb("watch")
+            .verb("create")
+            .verb("update")
+            .verb("delete")
+            .build())
+        .rule(PolicyRule.builder()
+            .apiGroup("apps")
+            .resource("deployments")
+            .resource("statefulsets")
+            .verb("*")
+            .build())
+        .build())
+    .build();
+
+client.clusterRoles().create(adminRole);
+
+// Create a ClusterRole with specific resource names
+final ClusterRole secretReader = ClusterRole.builder()
+    .name("specific-secret-reader")
+    .spec(RoleSpec.builder()
+        .rule(PolicyRule.builder()
+            .apiGroup("")
+            .resource("secrets")
+            .verb("get")
+            .resourceName("important-secret")
+            .resourceName("database-credentials")
+            .build())
+        .build())
+    .build();
+
+client.clusterRoles().create(secretReader);
+
+// Create a cluster-admin ClusterRole with wildcard permissions
+final ClusterRole clusterAdmin = ClusterRole.builder()
+    .name("cluster-admin")
+    .spec(RoleSpec.builder()
+        .rule(PolicyRule.builder()
+            .apiGroup("*")
+            .resource("*")
+            .verb("*")
+            .build())
+        .build())
+    .build();
+
+client.clusterRoles().create(clusterAdmin);
+
+// Get a ClusterRole (no namespace needed - cluster-scoped)
+final ClusterRole retrieved = client.clusterRoles().get("pod-reader");
+
+// List all ClusterRoles
+final List<ClusterRole> clusterRoles = client.clusterRoles().list();
+
+// Delete a ClusterRole
+client.clusterRoles().delete("pod-reader");
+```
+
+**kubectl equivalents:**
+```bash
+# Create ClusterRole
+kubectl apply -f clusterrole.yaml
+
+# Get ClusterRole (no namespace needed)
+kubectl get clusterrole pod-reader
+
+# Describe ClusterRole (shows policy rules)
+kubectl describe clusterrole pod-reader
+
+# Delete ClusterRole
+kubectl delete clusterrole pod-reader
+
+# Create ClusterRole using kubectl create
+kubectl create clusterrole pod-reader \
+  --verb=get,list,watch \
+  --resource=pods
+```
+
+### ClusterRoleBindings
+
+```java
+import io.elev8.resources.clusterrolebinding.ClusterRoleBinding;
+import io.elev8.resources.clusterrolebinding.ClusterRoleBindingSpec;
+import io.elev8.resources.rolebinding.Subject;
+import io.elev8.resources.rolebinding.RoleRef;
+
+// Bind a ClusterRole to a user cluster-wide
+final ClusterRoleBinding adminBinding = ClusterRoleBinding.builder()
+    .name("cluster-admin-binding")
+    .spec(ClusterRoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("User")
+            .name("admin@example.com")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("ClusterRole")
+            .name("cluster-admin")
+            .build())
+        .build())
+    .build();
+
+client.clusterRoleBindings().create(adminBinding);
+
+// Bind a ClusterRole to a ServiceAccount cluster-wide
+final ClusterRoleBinding saBinding = ClusterRoleBinding.builder()
+    .name("system-sa-binding")
+    .spec(ClusterRoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("ServiceAccount")
+            .name("system-service-account")
+            .namespace("kube-system")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("ClusterRole")
+            .name("cluster-admin")
+            .build())
+        .build())
+    .build();
+
+client.clusterRoleBindings().create(saBinding);
+
+// Bind a ClusterRole to a Group
+final ClusterRoleBinding groupBinding = ClusterRoleBinding.builder()
+    .name("developers-view")
+    .label("team", "developers")
+    .spec(ClusterRoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("Group")
+            .name("developers")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("ClusterRole")
+            .name("view")
+            .build())
+        .build())
+    .build();
+
+client.clusterRoleBindings().create(groupBinding);
+
+// Bind to multiple subjects cluster-wide
+final ClusterRoleBinding multiBinding = ClusterRoleBinding.builder()
+    .name("multi-admin-binding")
+    .spec(ClusterRoleBindingSpec.builder()
+        .subject(Subject.builder()
+            .kind("User")
+            .name("alice@example.com")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .subject(Subject.builder()
+            .kind("User")
+            .name("bob@example.com")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .subject(Subject.builder()
+            .kind("Group")
+            .name("system:masters")
+            .apiGroup("rbac.authorization.k8s.io")
+            .build())
+        .roleRef(RoleRef.builder()
+            .apiGroup("rbac.authorization.k8s.io")
+            .kind("ClusterRole")
+            .name("cluster-admin")
+            .build())
+        .build())
+    .build();
+
+client.clusterRoleBindings().create(multiBinding);
+
+// Get a ClusterRoleBinding (no namespace needed - cluster-scoped)
+final ClusterRoleBinding retrieved = client.clusterRoleBindings().get("cluster-admin-binding");
+
+// List all ClusterRoleBindings
+final List<ClusterRoleBinding> bindings = client.clusterRoleBindings().list();
+
+// Delete a ClusterRoleBinding
+client.clusterRoleBindings().delete("cluster-admin-binding");
+```
+
+**kubectl equivalents:**
+```bash
+# Create ClusterRoleBinding
+kubectl apply -f clusterrolebinding.yaml
+
+# Get ClusterRoleBinding (no namespace needed)
+kubectl get clusterrolebinding cluster-admin-binding
+
+# Describe ClusterRoleBinding (shows subjects and role reference)
+kubectl describe clusterrolebinding cluster-admin-binding
+
+# Delete ClusterRoleBinding
+kubectl delete clusterrolebinding cluster-admin-binding
+
+# Create ClusterRoleBinding using kubectl create
+kubectl create clusterrolebinding cluster-admin-binding \
+  --clusterrole=cluster-admin \
+  --user=admin@example.com
+
+# Create ClusterRoleBinding for a ServiceAccount
+kubectl create clusterrolebinding system-sa-binding \
+  --clusterrole=cluster-admin \
+  --serviceaccount=kube-system:system-service-account
+```
+
 ### PersistentVolumes
 
 ```java
@@ -1713,6 +1958,28 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl describe rolebinding read-pods -n default` | `final RoleBinding rb = client.roleBindings().get("default", "read-pods");<br>// Check rb.getSpec().getSubjects() and rb.getSpec().getRoleRef()` |
 | `kubectl get rolebinding read-pods -o json` | `final RoleBinding rb = client.roleBindings().get("default", "read-pods");<br>String json = rb.toJson();` |
 
+### ClusterRole Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get clusterroles` | `client.clusterRoles().list()` |
+| `kubectl get clusterrole pod-reader` | `client.clusterRoles().get("pod-reader")` |
+| `kubectl create clusterrole pod-reader --verb=get --verb=list --resource=pods` | `ClusterRole role = ClusterRole.builder()<br>  .name("pod-reader")<br>  .spec(RoleSpec.builder()<br>    .rule(PolicyRule.builder()<br>      .apiGroup("")<br>      .resource("pods")<br>      .verb("get")<br>      .verb("list")<br>      .build())<br>    .build())<br>  .build();<br>client.clusterRoles().create(role);` |
+| `kubectl delete clusterrole pod-reader` | `client.clusterRoles().delete("pod-reader")` |
+| `kubectl describe clusterrole pod-reader` | `final ClusterRole role = client.clusterRoles().get("pod-reader");<br>// Check role.getSpec().getRules()` |
+| `kubectl get clusterrole pod-reader -o json` | `final ClusterRole role = client.clusterRoles().get("pod-reader");<br>String json = role.toJson();` |
+
+### ClusterRoleBinding Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get clusterrolebindings` | `client.clusterRoleBindings().list()` |
+| `kubectl get clusterrolebinding cluster-admin-binding` | `client.clusterRoleBindings().get("cluster-admin-binding")` |
+| `kubectl create clusterrolebinding admin-binding --clusterrole=cluster-admin --user=admin@example.com` | `ClusterRoleBinding rb = ClusterRoleBinding.builder()<br>  .name("admin-binding")<br>  .spec(ClusterRoleBindingSpec.builder()<br>    .subject(Subject.builder()<br>      .kind("User")<br>      .name("admin@example.com")<br>      .apiGroup("rbac.authorization.k8s.io")<br>      .build())<br>    .roleRef(RoleRef.builder()<br>      .apiGroup("rbac.authorization.k8s.io")<br>      .kind("ClusterRole")<br>      .name("cluster-admin")<br>      .build())<br>    .build())<br>  .build();<br>client.clusterRoleBindings().create(rb);` |
+| `kubectl delete clusterrolebinding cluster-admin-binding` | `client.clusterRoleBindings().delete("cluster-admin-binding")` |
+| `kubectl describe clusterrolebinding cluster-admin-binding` | `final ClusterRoleBinding rb = client.clusterRoleBindings().get("cluster-admin-binding");<br>// Check rb.getSpec().getSubjects() and rb.getSpec().getRoleRef()` |
+| `kubectl get clusterrolebinding cluster-admin-binding -o json` | `final ClusterRoleBinding rb = client.clusterRoleBindings().get("cluster-admin-binding");<br>String json = rb.toJson();` |
+
 ### PersistentVolume Operations
 
 | kubectl Command | Elev8 Equivalent |
@@ -1838,7 +2105,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 
 #### Phase 2: Security & RBAC
 - [x] Role and RoleBinding resources (rbac.authorization.k8s.io/v1)
-- [ ] ClusterRole and ClusterRoleBinding resources
+- [x] ClusterRole and ClusterRoleBinding resources
 - [ ] NetworkPolicy resource support (networking.k8s.io/v1)
 
 #### Phase 3: Scaling & Resource Management
