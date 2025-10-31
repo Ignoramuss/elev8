@@ -13,6 +13,7 @@ import io.elev8.resources.deployment.DeploymentManager;
 import io.elev8.resources.horizontalpodautoscaler.HorizontalPodAutoscalerManager;
 import io.elev8.resources.ingress.IngressManager;
 import io.elev8.resources.job.JobManager;
+import io.elev8.resources.verticalpodautoscaler.VerticalPodAutoscalerManager;
 import io.elev8.resources.namespace.NamespaceManager;
 import io.elev8.resources.networkpolicy.NetworkPolicyManager;
 import io.elev8.resources.persistentvolume.PersistentVolumeManager;
@@ -66,6 +67,7 @@ public final class EksClient implements AutoCloseable {
     private final IngressManager ingressManager;
     private final NetworkPolicyManager networkPolicyManager;
     private final HorizontalPodAutoscalerManager horizontalPodAutoscalerManager;
+    private final VerticalPodAutoscalerManager verticalPodAutoscalerManager;
     private final ServiceAccountManager serviceAccountManager;
     private final RoleManager roleManager;
     private final RoleBindingManager roleBindingManager;
@@ -177,6 +179,7 @@ public final class EksClient implements AutoCloseable {
         this.ingressManager = new IngressManager(kubernetesClient);
         this.networkPolicyManager = new NetworkPolicyManager(kubernetesClient);
         this.horizontalPodAutoscalerManager = new HorizontalPodAutoscalerManager(kubernetesClient);
+        this.verticalPodAutoscalerManager = new VerticalPodAutoscalerManager(kubernetesClient);
         this.serviceAccountManager = new ServiceAccountManager(kubernetesClient);
         this.roleManager = new RoleManager(kubernetesClient);
         this.roleBindingManager = new RoleBindingManager(kubernetesClient);
@@ -324,6 +327,10 @@ public final class EksClient implements AutoCloseable {
 
     public HorizontalPodAutoscalerManager horizontalPodAutoscalers() {
         return horizontalPodAutoscalerManager;
+    }
+
+    public VerticalPodAutoscalerManager verticalPodAutoscalers() {
+        return verticalPodAutoscalerManager;
     }
 
     public ServiceAccountManager serviceAccounts() {

@@ -36,6 +36,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [ClusterRoleBindings](#clusterrolebindings)
   - [NetworkPolicies](#networkpolicies)
   - [HorizontalPodAutoscalers](#horizontalpodautoscalers)
+  - [VerticalPodAutoscalers](#verticalpodautoscalers)
   - [PersistentVolumes](#persistentvolumes)
   - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
@@ -68,6 +69,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [ClusterRoleBinding Operations](#clusterrolebinding-operations)
   - [NetworkPolicy Operations](#networkpolicy-operations)
   - [HorizontalPodAutoscaler Operations](#horizontalpodautoscaler-operations)
+  - [VerticalPodAutoscaler Operations](#verticalpodautoscaler-operations)
   - [PersistentVolume Operations](#persistentvolume-operations)
   - [PersistentVolumeClaim Operations](#persistentvolumeclaim-operations)
 - [Contributing](#contributing)
@@ -1734,6 +1736,99 @@ kubectl describe hpa php-apache-hpa -n default
 kubectl delete hpa php-apache-hpa -n default
 ```
 
+### VerticalPodAutoscalers
+
+**NOTE**: VPA is a Custom Resource Definition (CRD) and must be installed in your cluster before use.
+See [Kubernetes VPA Installation](https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler#installation).
+
+```java
+import io.elev8.resources.verticalpodautoscaler.*;
+import io.elev8.resources.horizontalpodautoscaler.CrossVersionObjectReference;
+
+// Create VPA with recommendation-only mode (safe for production)
+final VerticalPodAutoscaler vpaOff = VerticalPodAutoscaler.builder()
+    .name("my-app-vpa")
+    .namespace("default")
+    .spec(VerticalPodAutoscalerSpec.builder()
+        .targetRef(CrossVersionObjectReference.builder()
+            .apiVersion("apps/v1")
+            .kind("Deployment")
+            .name("my-app")
+            .build())
+        .updatePolicy(VPAUpdatePolicy.builder()
+            .updateMode("Off")  // Only provide recommendations, don't update pods
+            .build())
+        .resourcePolicy(VPAResourcePolicy.builder()
+            .containerPolicy(VPAContainerResourcePolicy.builder()
+                .containerName("*")  // Apply to all containers
+                .minAllowed(Map.of("cpu", "100m", "memory", "128Mi"))
+                .maxAllowed(Map.of("cpu", "2", "memory", "2Gi"))
+                .build())
+            .build())
+        .build())
+    .build();
+
+client.verticalPodAutoscalers().create(vpaOff);
+
+// Create VPA with auto-update mode (updates pods automatically)
+final VerticalPodAutoscaler vpaAuto = VerticalPodAutoscaler.builder()
+    .name("auto-vpa")
+    .namespace("default")
+    .spec(VerticalPodAutoscalerSpec.builder()
+        .targetRef(CrossVersionObjectReference.builder()
+            .apiVersion("apps/v1")
+            .kind("Deployment")
+            .name("web-app")
+            .build())
+        .updatePolicy(VPAUpdatePolicy.builder()
+            .updateMode("Auto")  // Automatically update pods (causes restarts)
+            .minReplicas(2)  // Ensure at least 2 replicas during updates
+            .build())
+        .build())
+    .build();
+
+client.verticalPodAutoscalers().create(vpaAuto);
+
+// Get VPA and check recommendations
+final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers()
+    .get("default", "my-app-vpa");
+
+if (vpa.getStatus() != null && vpa.getStatus().getRecommendation() != null) {
+    vpa.getStatus().getRecommendation().getContainerRecommendations()
+        .forEach(rec -> {
+            System.out.println("Container: " + rec.getContainerName());
+            System.out.println("Target CPU: " + rec.getTarget().get("cpu"));
+            System.out.println("Target Memory: " + rec.getTarget().get("memory"));
+            System.out.println("Lower Bound CPU: " + rec.getLowerBound().get("cpu"));
+            System.out.println("Upper Bound CPU: " + rec.getUpperBound().get("cpu"));
+        });
+}
+
+// List VPAs
+final List<VerticalPodAutoscaler> vpas = client.verticalPodAutoscalers().list("default");
+
+// Delete VPA
+client.verticalPodAutoscalers().delete("default", "my-app-vpa");
+```
+
+**kubectl equivalents:**
+```bash
+# Install VPA CRD (required first-time setup)
+kubectl apply -f https://github.com/kubernetes/autoscaler/releases/latest/download/vertical-pod-autoscaler.yaml
+
+# Create VPA
+kubectl apply -f vpa.yaml
+
+# Get VPA
+kubectl get vpa my-app-vpa -n default
+
+# Describe VPA (shows recommendations)
+kubectl describe vpa my-app-vpa -n default
+
+# Delete VPA
+kubectl delete vpa my-app-vpa -n default
+```
+
 ### PersistentVolumes
 
 ```java
@@ -2306,6 +2401,19 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl describe hpa php-apache -n default` | `final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers().get("default", "php-apache");<br>// Check hpa.getStatus().getCurrentReplicas(), hpa.getStatus().getDesiredReplicas()` |
 | `kubectl get hpa php-apache -o json` | `final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers().get("default", "php-apache");<br>String json = hpa.toJson();` |
 
+### VerticalPodAutoscaler Operations
+
+**NOTE**: VPA is a CRD and requires cluster installation before use.
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get vpa -n default` | `client.verticalPodAutoscalers().list("default")` |
+| `kubectl get vpa my-app-vpa -n default` | `client.verticalPodAutoscalers().get("default", "my-app-vpa")` |
+| `kubectl apply -f vpa.yaml` | `VerticalPodAutoscaler vpa = VerticalPodAutoscaler.builder()<br>  .name("my-app-vpa")<br>  .namespace("default")<br>  .spec(VerticalPodAutoscalerSpec.builder()<br>    .targetRef(CrossVersionObjectReference.builder()<br>      .apiVersion("apps/v1")<br>      .kind("Deployment")<br>      .name("my-app")<br>      .build())<br>    .updatePolicy(VPAUpdatePolicy.builder()<br>      .updateMode("Off")<br>      .build())<br>    .build())<br>  .build();<br>client.verticalPodAutoscalers().create(vpa);` |
+| `kubectl delete vpa my-app-vpa -n default` | `client.verticalPodAutoscalers().delete("default", "my-app-vpa")` |
+| `kubectl describe vpa my-app-vpa -n default` | `final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers().get("default", "my-app-vpa");<br>// Check vpa.getStatus().getRecommendation()` |
+| `kubectl get vpa my-app-vpa -o json` | `final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers().get("default", "my-app-vpa");<br>String json = vpa.toJson();` |
+
 ### PersistentVolume Operations
 
 | kubectl Command | Elev8 Equivalent |
@@ -2436,7 +2544,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 
 #### Phase 3: Scaling & Resource Management
 - [x] HorizontalPodAutoscaler resource support (autoscaling/v2)
-- [ ] VerticalPodAutoscaler resource support (autoscaling.k8s.io/v1)
+- [x] VerticalPodAutoscaler resource support (autoscaling.k8s.io/v1)
 - [ ] ResourceQuota resource support
 - [ ] LimitRange resource support
 - [ ] PodDisruptionBudget resource support (policy/v1)
