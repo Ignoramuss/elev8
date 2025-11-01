@@ -2545,8 +2545,8 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 #### Phase 3: Scaling & Resource Management
 - [x] HorizontalPodAutoscaler resource support (autoscaling/v2)
 - [x] VerticalPodAutoscaler resource support (autoscaling.k8s.io/v1)
-- [ ] ResourceQuota resource support
-- [ ] LimitRange resource support
+- [x] ResourceQuota resource support
+- [x] LimitRange resource support
 - [ ] PodDisruptionBudget resource support (policy/v1)
 
 #### Phase 4: Storage & Persistence
