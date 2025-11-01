@@ -13,6 +13,7 @@ import io.elev8.resources.deployment.DeploymentManager;
 import io.elev8.resources.horizontalpodautoscaler.HorizontalPodAutoscalerManager;
 import io.elev8.resources.ingress.IngressManager;
 import io.elev8.resources.job.JobManager;
+import io.elev8.resources.limitrange.LimitRangeManager;
 import io.elev8.resources.verticalpodautoscaler.VerticalPodAutoscalerManager;
 import io.elev8.resources.namespace.NamespaceManager;
 import io.elev8.resources.networkpolicy.NetworkPolicyManager;
@@ -21,6 +22,7 @@ import io.elev8.resources.persistentvolumeclaim.PersistentVolumeClaimManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.poddisruptionbudget.PodDisruptionBudgetManager;
 import io.elev8.resources.replicaset.ReplicaSetManager;
+import io.elev8.resources.resourcequota.ResourceQuotaManager;
 import io.elev8.resources.clusterrole.ClusterRoleManager;
 import io.elev8.resources.clusterrolebinding.ClusterRoleBindingManager;
 import io.elev8.resources.role.RoleManager;
@@ -69,6 +71,7 @@ public final class EksClient implements AutoCloseable {
     private final NetworkPolicyManager networkPolicyManager;
     private final HorizontalPodAutoscalerManager horizontalPodAutoscalerManager;
     private final VerticalPodAutoscalerManager verticalPodAutoscalerManager;
+    private final LimitRangeManager limitRangeManager;
     private final PodDisruptionBudgetManager podDisruptionBudgetManager;
     private final ServiceAccountManager serviceAccountManager;
     private final RoleManager roleManager;
@@ -79,6 +82,7 @@ public final class EksClient implements AutoCloseable {
     private final PersistentVolumeClaimManager persistentVolumeClaimManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
+    private final ResourceQuotaManager resourceQuotaManager;
     private final NamespaceManager namespaceManager;
     private final AccessEntryManager accessEntryManager;
     private final StsClient stsClient;
@@ -182,6 +186,7 @@ public final class EksClient implements AutoCloseable {
         this.networkPolicyManager = new NetworkPolicyManager(kubernetesClient);
         this.horizontalPodAutoscalerManager = new HorizontalPodAutoscalerManager(kubernetesClient);
         this.verticalPodAutoscalerManager = new VerticalPodAutoscalerManager(kubernetesClient);
+        this.limitRangeManager = new LimitRangeManager(kubernetesClient);
         this.podDisruptionBudgetManager = new PodDisruptionBudgetManager(kubernetesClient);
         this.serviceAccountManager = new ServiceAccountManager(kubernetesClient);
         this.roleManager = new RoleManager(kubernetesClient);
@@ -192,6 +197,7 @@ public final class EksClient implements AutoCloseable {
         this.persistentVolumeClaimManager = new PersistentVolumeClaimManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
+        this.resourceQuotaManager = new ResourceQuotaManager(kubernetesClient);
         this.namespaceManager = new NamespaceManager(kubernetesClient);
         this.accessEntryManager = AccessEntryManager.builder()
                 .clusterName(clusterName)
@@ -336,6 +342,10 @@ public final class EksClient implements AutoCloseable {
         return verticalPodAutoscalerManager;
     }
 
+    public LimitRangeManager limitRanges() {
+        return limitRangeManager;
+    }
+
     public PodDisruptionBudgetManager podDisruptionBudgets() {
         return podDisruptionBudgetManager;
     }
@@ -374,6 +384,10 @@ public final class EksClient implements AutoCloseable {
 
     public SecretManager secrets() {
         return secretManager;
+    }
+
+    public ResourceQuotaManager resourceQuotas() {
+        return resourceQuotaManager;
     }
 
     public NamespaceManager namespaces() {
