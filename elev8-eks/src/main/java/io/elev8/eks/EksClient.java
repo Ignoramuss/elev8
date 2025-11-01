@@ -20,6 +20,7 @@ import io.elev8.resources.persistentvolume.PersistentVolumeManager;
 import io.elev8.resources.persistentvolumeclaim.PersistentVolumeClaimManager;
 import io.elev8.resources.pod.PodManager;
 import io.elev8.resources.replicaset.ReplicaSetManager;
+import io.elev8.resources.resourcequota.ResourceQuotaManager;
 import io.elev8.resources.clusterrole.ClusterRoleManager;
 import io.elev8.resources.clusterrolebinding.ClusterRoleBindingManager;
 import io.elev8.resources.role.RoleManager;
@@ -77,6 +78,7 @@ public final class EksClient implements AutoCloseable {
     private final PersistentVolumeClaimManager persistentVolumeClaimManager;
     private final ConfigMapManager configMapManager;
     private final SecretManager secretManager;
+    private final ResourceQuotaManager resourceQuotaManager;
     private final NamespaceManager namespaceManager;
     private final AccessEntryManager accessEntryManager;
     private final StsClient stsClient;
@@ -189,6 +191,7 @@ public final class EksClient implements AutoCloseable {
         this.persistentVolumeClaimManager = new PersistentVolumeClaimManager(kubernetesClient);
         this.configMapManager = new ConfigMapManager(kubernetesClient);
         this.secretManager = new SecretManager(kubernetesClient);
+        this.resourceQuotaManager = new ResourceQuotaManager(kubernetesClient);
         this.namespaceManager = new NamespaceManager(kubernetesClient);
         this.accessEntryManager = AccessEntryManager.builder()
                 .clusterName(clusterName)
@@ -367,6 +370,10 @@ public final class EksClient implements AutoCloseable {
 
     public SecretManager secrets() {
         return secretManager;
+    }
+
+    public ResourceQuotaManager resourceQuotas() {
+        return resourceQuotaManager;
     }
 
     public NamespaceManager namespaces() {
