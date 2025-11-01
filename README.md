@@ -37,6 +37,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [NetworkPolicies](#networkpolicies)
   - [HorizontalPodAutoscalers](#horizontalpodautoscalers)
   - [VerticalPodAutoscalers](#verticalpodautoscalers)
+  - [ResourceQuotas](#resourcequotas)
   - [PersistentVolumes](#persistentvolumes)
   - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
@@ -70,6 +71,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [NetworkPolicy Operations](#networkpolicy-operations)
   - [HorizontalPodAutoscaler Operations](#horizontalpodautoscaler-operations)
   - [VerticalPodAutoscaler Operations](#verticalpodautoscaler-operations)
+  - [ResourceQuota Operations](#resourcequota-operations)
   - [PersistentVolume Operations](#persistentvolume-operations)
   - [PersistentVolumeClaim Operations](#persistentvolumeclaim-operations)
 - [Contributing](#contributing)
@@ -1829,6 +1831,81 @@ kubectl describe vpa my-app-vpa -n default
 kubectl delete vpa my-app-vpa -n default
 ```
 
+### ResourceQuotas
+
+```java
+import io.elev8.resources.resourcequota.*;
+
+// Create ResourceQuota with compute limits
+final ResourceQuota computeQuota = ResourceQuota.builder()
+    .name("compute-quota")
+    .namespace("my-namespace")
+    .spec(ResourceQuotaSpec.builder()
+        .hardLimit("requests.cpu", "10")
+        .hardLimit("requests.memory", "20Gi")
+        .hardLimit("limits.cpu", "20")
+        .hardLimit("limits.memory", "40Gi")
+        .hardLimit("pods", "50")
+        .build())
+    .build();
+
+client.resourceQuotas().create(computeQuota);
+
+// Create ResourceQuota with object count limits
+final ResourceQuota objectQuota = ResourceQuota.builder()
+    .name("object-quota")
+    .namespace("my-namespace")
+    .spec(ResourceQuotaSpec.builder()
+        .hardLimit("pods", "100")
+        .hardLimit("services", "20")
+        .hardLimit("secrets", "30")
+        .hardLimit("configmaps", "25")
+        .hardLimit("persistentvolumeclaims", "15")
+        .build())
+    .build();
+
+client.resourceQuotas().create(objectQuota);
+
+// Create ResourceQuota with scopes
+final ResourceQuota scopedQuota = ResourceQuota.builder()
+    .name("terminating-quota")
+    .namespace("my-namespace")
+    .spec(ResourceQuotaSpec.builder()
+        .hardLimit("pods", "10")
+        .scope("Terminating")  // Only count terminating pods
+        .build())
+    .build();
+
+client.resourceQuotas().create(scopedQuota);
+
+// Get quota and check usage
+final ResourceQuota quota = client.resourceQuotas()
+    .get("my-namespace", "compute-quota");
+System.out.println("CPU Used: " + quota.getStatus().getUsed().get("requests.cpu"));
+System.out.println("CPU Limit: " + quota.getStatus().getHard().get("requests.cpu"));
+
+// List quotas
+final List<ResourceQuota> quotas = client.resourceQuotas().list("my-namespace");
+
+// Delete quota
+client.resourceQuotas().delete("my-namespace", "compute-quota");
+```
+
+**kubectl equivalents:**
+```bash
+# Create ResourceQuota
+kubectl apply -f resourcequota.yaml
+
+# Get ResourceQuota
+kubectl get resourcequota compute-quota -n my-namespace
+
+# Describe ResourceQuota (shows used vs hard limits)
+kubectl describe resourcequota compute-quota -n my-namespace
+
+# Delete ResourceQuota
+kubectl delete resourcequota compute-quota -n my-namespace
+```
+
 ### PersistentVolumes
 
 ```java
@@ -2413,6 +2490,17 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl delete vpa my-app-vpa -n default` | `client.verticalPodAutoscalers().delete("default", "my-app-vpa")` |
 | `kubectl describe vpa my-app-vpa -n default` | `final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers().get("default", "my-app-vpa");<br>// Check vpa.getStatus().getRecommendation()` |
 | `kubectl get vpa my-app-vpa -o json` | `final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers().get("default", "my-app-vpa");<br>String json = vpa.toJson();` |
+
+### ResourceQuota Operations
+
+| kubectl Command | Elev8 Equivalent |
+|----------------|------------------|
+| `kubectl get resourcequota -n my-ns` | `client.resourceQuotas().list("my-ns")` |
+| `kubectl get resourcequota compute-quota -n my-ns` | `client.resourceQuotas().get("my-ns", "compute-quota")` |
+| `kubectl create -f quota.yaml` | `ResourceQuota quota = ResourceQuota.builder()<br>  .name("compute-quota")<br>  .namespace("my-ns")<br>  .spec(ResourceQuotaSpec.builder()<br>    .hardLimit("requests.cpu", "10")<br>    .hardLimit("requests.memory", "20Gi")<br>    .hardLimit("pods", "50")<br>    .build())<br>  .build();<br>client.resourceQuotas().create(quota);` |
+| `kubectl delete resourcequota compute-quota -n my-ns` | `client.resourceQuotas().delete("my-ns", "compute-quota")` |
+| `kubectl describe resourcequota compute-quota -n my-ns` | `final ResourceQuota quota = client.resourceQuotas().get("my-ns", "compute-quota");<br>// Check quota.getStatus().getUsed() vs quota.getStatus().getHard()` |
+| `kubectl get resourcequota compute-quota -o json` | `final ResourceQuota quota = client.resourceQuotas().get("my-ns", "compute-quota");<br>String json = quota.toJson();` |
 
 ### PersistentVolume Operations
 
