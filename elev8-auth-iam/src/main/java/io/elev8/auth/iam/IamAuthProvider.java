@@ -7,13 +7,12 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,13 +25,17 @@ import java.util.Base64;
 @Slf4j
 public final class IamAuthProvider implements AuthProvider {
 
-    private static final String TOKEN_PREFIX = "k8s-aws-v1.";
     private static final Duration TOKEN_EXPIRATION = Duration.ofMinutes(14);
-    private static final int PRESIGNED_URL_EXPIRATION_SECONDS = 60;
+    private static final int DEFAULT_PRESIGNED_URL_EXPIRATION_SECONDS = 60;
+    private static final String DEFAULT_STS_SERVICE_NAME = "sts";
+    private static final String DEFAULT_TOKEN_PREFIX = "k8s-aws-v1.";
 
     private final String clusterName;
     private final Region region;
     private final AwsCredentialsProvider credentialsProvider;
+    private final int presignedUrlExpirationSeconds;
+    private final String stsServiceName;
+    private final String tokenPrefix;
     private final Aws4Signer signer;
 
     private String cachedToken;
@@ -43,6 +46,12 @@ public final class IamAuthProvider implements AuthProvider {
         this.region = builder.region != null ? builder.region : Region.US_EAST_1;
         this.credentialsProvider = builder.credentialsProvider != null ?
                 builder.credentialsProvider : DefaultCredentialsProvider.create();
+        this.presignedUrlExpirationSeconds = builder.presignedUrlExpirationSeconds != null ?
+                builder.presignedUrlExpirationSeconds : DEFAULT_PRESIGNED_URL_EXPIRATION_SECONDS;
+        this.stsServiceName = builder.stsServiceName != null ?
+                builder.stsServiceName : DEFAULT_STS_SERVICE_NAME;
+        this.tokenPrefix = builder.tokenPrefix != null ?
+                builder.tokenPrefix : DEFAULT_TOKEN_PREFIX;
         this.signer = Aws4Signer.create();
     }
 
@@ -77,20 +86,21 @@ public final class IamAuthProvider implements AuthProvider {
                     .putHeader("x-k8s-aws-id", clusterName)
                     .build();
 
-            final Aws4SignerParams signerParams = Aws4SignerParams.builder()
+            final Aws4PresignerParams presignerParams = Aws4PresignerParams.builder()
                     .awsCredentials(credentials)
                     .signingRegion(region)
-                    .signingName("sts")
+                    .signingName(stsServiceName)
+                    .expirationTime(Instant.now().plusSeconds(presignedUrlExpirationSeconds))
                     .build();
 
-            final SdkHttpFullRequest signedRequest = signer.sign(httpRequest, signerParams);
+            final SdkHttpFullRequest presignedRequest = signer.presign(httpRequest, presignerParams);
 
-            final String presignedUrl = buildPresignedUrl(signedRequest);
+            final String presignedUrl = presignedRequest.getUri().toString();
 
             final String encodedUrl = Base64.getUrlEncoder().withoutPadding()
                     .encodeToString(presignedUrl.getBytes(StandardCharsets.UTF_8));
 
-            cachedToken = TOKEN_PREFIX + encodedUrl;
+            cachedToken = tokenPrefix + encodedUrl;
             tokenExpiration = Instant.now().plus(TOKEN_EXPIRATION);
 
             log.debug("Successfully generated IAM token, expires at: {}", tokenExpiration);
@@ -98,55 +108,6 @@ public final class IamAuthProvider implements AuthProvider {
         } catch (Exception e) {
             throw new AuthenticationException("Failed to generate IAM authentication token", e);
         }
-    }
-
-    private String buildPresignedUrl(SdkHttpFullRequest request) {
-        StringBuilder url = new StringBuilder();
-        url.append(request.protocol()).append("://");
-        url.append(request.host());
-
-        if (request.port() > 0 && request.port() != 443) {
-            url.append(":").append(request.port());
-        }
-
-        url.append(request.encodedPath());
-
-        // Add query parameters
-        if (!request.rawQueryParameters().isEmpty()) {
-            url.append("?");
-            boolean first = true;
-            for (var entry : request.rawQueryParameters().entrySet()) {
-                for (String value : entry.getValue()) {
-                    if (!first) {
-                        url.append("&");
-                    }
-                    url.append(entry.getKey()).append("=").append(value);
-                    first = false;
-                }
-            }
-        }
-
-        // Add headers as query parameters (for x-k8s-aws-id)
-        for (var entry : request.headers().entrySet()) {
-            if (entry.getKey().equalsIgnoreCase("x-k8s-aws-id")) {
-                for (String value : entry.getValue()) {
-                    url.append(url.indexOf("?") > 0 ? "&" : "?");
-                    url.append(entry.getKey()).append("=").append(encodeURIComponent(value));
-                }
-            }
-        }
-
-        return url.toString();
-    }
-
-    private String encodeURIComponent(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8)
-                .replace("+", "%20")
-                .replace("%21", "!")
-                .replace("%27", "'")
-                .replace("%28", "(")
-                .replace("%29", ")")
-                .replace("%7E", "~");
     }
 
     public static Builder builder() {
@@ -157,6 +118,9 @@ public final class IamAuthProvider implements AuthProvider {
         private String clusterName;
         private Region region;
         private AwsCredentialsProvider credentialsProvider;
+        private Integer presignedUrlExpirationSeconds;
+        private String stsServiceName;
+        private String tokenPrefix;
 
         public Builder clusterName(final String clusterName) {
             this.clusterName = clusterName;
@@ -175,6 +139,21 @@ public final class IamAuthProvider implements AuthProvider {
 
         public Builder credentialsProvider(final AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
+            return this;
+        }
+
+        public Builder presignedUrlExpirationSeconds(final int presignedUrlExpirationSeconds) {
+            this.presignedUrlExpirationSeconds = presignedUrlExpirationSeconds;
+            return this;
+        }
+
+        public Builder stsServiceName(final String stsServiceName) {
+            this.stsServiceName = stsServiceName;
+            return this;
+        }
+
+        public Builder tokenPrefix(final String tokenPrefix) {
+            this.tokenPrefix = tokenPrefix;
             return this;
         }
 
