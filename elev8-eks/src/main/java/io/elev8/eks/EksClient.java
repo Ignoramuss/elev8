@@ -20,6 +20,7 @@ import io.elev8.resources.networkpolicy.NetworkPolicyManager;
 import io.elev8.resources.persistentvolume.PersistentVolumeManager;
 import io.elev8.resources.persistentvolumeclaim.PersistentVolumeClaimManager;
 import io.elev8.resources.pod.PodManager;
+import io.elev8.resources.poddisruptionbudget.PodDisruptionBudgetManager;
 import io.elev8.resources.replicaset.ReplicaSetManager;
 import io.elev8.resources.resourcequota.ResourceQuotaManager;
 import io.elev8.resources.clusterrole.ClusterRoleManager;
@@ -71,6 +72,7 @@ public final class EksClient implements AutoCloseable {
     private final HorizontalPodAutoscalerManager horizontalPodAutoscalerManager;
     private final VerticalPodAutoscalerManager verticalPodAutoscalerManager;
     private final LimitRangeManager limitRangeManager;
+    private final PodDisruptionBudgetManager podDisruptionBudgetManager;
     private final ServiceAccountManager serviceAccountManager;
     private final RoleManager roleManager;
     private final RoleBindingManager roleBindingManager;
@@ -185,6 +187,7 @@ public final class EksClient implements AutoCloseable {
         this.horizontalPodAutoscalerManager = new HorizontalPodAutoscalerManager(kubernetesClient);
         this.verticalPodAutoscalerManager = new VerticalPodAutoscalerManager(kubernetesClient);
         this.limitRangeManager = new LimitRangeManager(kubernetesClient);
+        this.podDisruptionBudgetManager = new PodDisruptionBudgetManager(kubernetesClient);
         this.serviceAccountManager = new ServiceAccountManager(kubernetesClient);
         this.roleManager = new RoleManager(kubernetesClient);
         this.roleBindingManager = new RoleBindingManager(kubernetesClient);
@@ -341,6 +344,10 @@ public final class EksClient implements AutoCloseable {
 
     public LimitRangeManager limitRanges() {
         return limitRangeManager;
+    }
+
+    public PodDisruptionBudgetManager podDisruptionBudgets() {
+        return podDisruptionBudgetManager;
     }
 
     public ServiceAccountManager serviceAccounts() {
