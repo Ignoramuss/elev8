@@ -2542,12 +2542,12 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] ClusterRole and ClusterRoleBinding resources
 - [x] NetworkPolicy resource support (networking.k8s.io/v1)
 
-#### Phase 3: Scaling & Resource Management
+#### Phase 3: Scaling & Resource Management ✅
 - [x] HorizontalPodAutoscaler resource support (autoscaling/v2)
 - [x] VerticalPodAutoscaler resource support (autoscaling.k8s.io/v1)
-- [ ] ResourceQuota resource support
-- [ ] LimitRange resource support
-- [ ] PodDisruptionBudget resource support (policy/v1)
+- [x] ResourceQuota resource support
+- [x] LimitRange resource support
+- [x] PodDisruptionBudget resource support (policy/v1)
 
 #### Phase 4: Storage & Persistence
 - [ ] StorageClass resource support (storage.k8s.io/v1)
