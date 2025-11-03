@@ -2638,8 +2638,11 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] PodDisruptionBudget resource support (policy/v1)
 
 #### Phase 4: Storage & Persistence
-- [ ] StorageClass resource support (storage.k8s.io/v1)
-- [ ] VolumeSnapshot support (snapshot.storage.k8s.io/v1)
+- [x] StorageClass resource support (storage.k8s.io/v1)
+- [x] VolumeSnapshot support (snapshot.storage.k8s.io/v1)
+  - [x] VolumeSnapshotClass (cluster-scoped)
+  - [x] VolumeSnapshot (namespace-scoped)
+  - [x] VolumeSnapshotContent (cluster-scoped)
 - [ ] CSIDriver resource support
 
 #### Phase 5: Advanced Operations
