@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
 import javax.net.ssl.*;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -57,6 +59,49 @@ public final class OkHttpClientImpl implements HttpClient {
     public HttpResponse delete(final String url, final Map<String, String> headers) throws HttpException {
         final Request request = buildRequest(url, headers, null, "DELETE");
         return execute(request);
+    }
+
+    @Override
+    public void stream(final String url, final Map<String, String> headers, final StreamHandler handler)
+            throws HttpException {
+        final Request request = buildRequest(url, headers, null, "GET");
+
+        try {
+            final Call call = okHttpClient.newCall(request);
+            final Response response = call.execute();
+
+            if (!response.isSuccessful()) {
+                final String errorBody = response.body() != null ? response.body().string() : "";
+                response.close();
+                throw new HttpException("Watch request failed with status " + response.code() + ": " + errorBody);
+            }
+
+            final ResponseBody body = response.body();
+            if (body == null) {
+                response.close();
+                throw new HttpException("Watch request returned empty response body");
+            }
+
+            new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(body.byteStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
+                        if (!line.trim().isEmpty()) {
+                            handler.onLine(line);
+                        }
+                    }
+                    handler.onClose();
+                } catch (Exception e) {
+                    log.error("Error during watch streaming", e);
+                    handler.onError(e);
+                } finally {
+                    response.close();
+                }
+            }, "watch-stream-thread").start();
+
+        } catch (IOException e) {
+            throw new HttpException("Failed to initiate watch stream: " + e.getMessage(), e);
+        }
     }
 
     @Override

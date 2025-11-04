@@ -21,6 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive examples for all authentication modes
 - GitHub Actions CI/CD pipeline
 - Open source project setup (LICENSE, README, CONTRIBUTING)
+- **Watch API** for real-time resource change monitoring (Phase 5)
+  - `WatchEvent<T>` class for wrapping watch events (ADDED, MODIFIED, DELETED, BOOKMARK, ERROR)
+  - `Watcher<T>` callback interface for consuming watch events
+  - `WatchOptions` for configuring watch behavior (resource version, timeouts, selectors)
+  - HTTP streaming support in `OkHttpClientImpl`
+  - Watch methods in `AbstractResourceManager` and `AbstractClusterResourceManager`
+  - Support for namespace-scoped and cluster-scoped watch operations
+  - Label selector and field selector filtering
+  - Bookmark support for efficient watch resumption
+  - Comprehensive unit test coverage for watch functionality
 
 ### Changed
 

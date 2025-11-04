@@ -5,6 +5,7 @@ import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpException;
 import io.elev8.core.http.HttpResponse;
 import io.elev8.core.http.OkHttpClientImpl;
+import io.elev8.core.watch.WatchOptions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,6 +83,64 @@ public final class KubernetesClient implements AutoCloseable {
      */
     public HttpResponse delete(final String path) throws KubernetesClientException {
         return execute("DELETE", path, null);
+    }
+
+    /**
+     * Execute a watch request to the Kubernetes API.
+     * Watch requests stream resource changes as they occur.
+     *
+     * @param path the API path
+     * @param options watch options for configuring the watch behavior
+     * @param handler the stream handler to process watch events
+     * @throws KubernetesClientException if the request fails
+     */
+    public void watch(final String path, final WatchOptions options, final HttpClient.StreamHandler handler)
+            throws KubernetesClientException {
+        try {
+            if (config.getAuthProvider().needsRefresh()) {
+                log.debug("Refreshing authentication token for watch");
+                config.getAuthProvider().refresh();
+            }
+
+            final String url = buildWatchUrl(path, options);
+
+            final Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", config.getAuthProvider().getAuthHeader());
+            headers.put("Accept", "application/json");
+
+            httpClient.stream(url, headers, handler);
+
+        } catch (AuthenticationException e) {
+            throw new KubernetesClientException("Failed to authenticate for watch operation", e);
+        } catch (HttpException e) {
+            throw new KubernetesClientException("Watch request failed: " + e.getMessage(), e);
+        }
+    }
+
+    private String buildWatchUrl(final String path, final WatchOptions options) {
+        final StringBuilder url = new StringBuilder(config.getApiServerUrl());
+        url.append(path);
+        url.append("?watch=true");
+
+        if (options != null) {
+            if (options.getResourceVersion() != null) {
+                url.append("&resourceVersion=").append(options.getResourceVersion());
+            }
+            if (options.getTimeoutSeconds() != null) {
+                url.append("&timeoutSeconds=").append(options.getTimeoutSeconds());
+            }
+            if (options.getAllowWatchBookmarks() != null && options.getAllowWatchBookmarks()) {
+                url.append("&allowWatchBookmarks=true");
+            }
+            if (options.getLabelSelector() != null) {
+                url.append("&labelSelector=").append(options.getLabelSelector());
+            }
+            if (options.getFieldSelector() != null) {
+                url.append("&fieldSelector=").append(options.getFieldSelector());
+            }
+        }
+
+        return url.toString();
     }
 
     private HttpResponse execute(final String method, final String path, final String body) throws KubernetesClientException {

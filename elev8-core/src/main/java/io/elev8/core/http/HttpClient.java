@@ -61,7 +61,42 @@ public interface HttpClient {
     HttpResponse delete(String url, Map<String, String> headers) throws HttpException;
 
     /**
+     * Execute a streaming GET request for watch operations.
+     * The response body will be streamed line by line to the handler.
+     *
+     * @param url the URL to request
+     * @param headers request headers
+     * @param handler callback to process each line of the response
+     * @throws HttpException if the request fails
+     */
+    void stream(String url, Map<String, String> headers, StreamHandler handler) throws HttpException;
+
+    /**
      * Close the HTTP client and release resources.
      */
     void close();
+
+    /**
+     * Handler interface for processing streaming HTTP responses.
+     */
+    interface StreamHandler {
+        /**
+         * Called for each line received in the streaming response.
+         *
+         * @param line the response line
+         */
+        void onLine(String line);
+
+        /**
+         * Called when an error occurs during streaming.
+         *
+         * @param exception the error that occurred
+         */
+        void onError(Exception exception);
+
+        /**
+         * Called when the stream is closed.
+         */
+        void onClose();
+    }
 }

@@ -41,6 +41,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [PersistentVolumes](#persistentvolumes)
   - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
+  - [Watch API](#watch-api)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
 - [Building from Source](#building-from-source)
@@ -2119,6 +2120,63 @@ final List<AccessEntry> entries = manager.list();
 manager.migrateFromConfigMap();
 ```
 
+### Watch API
+
+Watch resources in real-time for changes:
+
+```java
+import io.elev8.core.watch.WatchEvent;
+import io.elev8.core.watch.WatchOptions;
+import io.elev8.core.watch.Watcher;
+
+// Watch pods in a namespace
+final WatchOptions options = WatchOptions.defaults();
+
+client.pods().watch("default", options, new Watcher<Pod>() {
+    @Override
+    public void onEvent(final WatchEvent<Pod> event) {
+        System.out.println("Event: " + event.getType());
+        System.out.println("Pod: " + event.getObject().getName());
+
+        if (event.isAdded()) {
+            // Handle pod added
+        } else if (event.isModified()) {
+            // Handle pod modified
+        } else if (event.isDeleted()) {
+            // Handle pod deleted
+        }
+    }
+
+    @Override
+    public void onError(final Exception exception) {
+        System.err.println("Watch error: " + exception.getMessage());
+    }
+
+    @Override
+    public void onClose() {
+        System.out.println("Watch closed");
+    }
+});
+
+// Watch with label selector
+final WatchOptions labelOptions = WatchOptions.withLabelSelector("app=myapp");
+client.pods().watch("default", labelOptions, watcher);
+
+// Watch with field selector
+final WatchOptions fieldOptions = WatchOptions.withFieldSelector("status.phase=Running");
+client.pods().watch("default", fieldOptions, watcher);
+
+// Watch all namespaces
+client.pods().watchAllNamespaces(options, watcher);
+
+// Resume watch from a specific resource version
+final WatchOptions resumeOptions = WatchOptions.from("12345");
+client.pods().watch("default", resumeOptions, watcher);
+
+// Watch cluster-scoped resources
+client.namespaces().watch(options, watcher);
+```
+
 ## Authentication Modes Comparison
 
 | Feature | IAM Auth | OIDC/IRSA | Access Entries | Token |
@@ -2646,7 +2704,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] CSIDriver resource support (storage.k8s.io/v1)
 
 #### Phase 5: Advanced Operations
-- [ ] Watch API implementation for resource updates
+- [x] Watch API implementation for resource updates
 - [ ] Resource change event streaming
 - [ ] Pod log streaming API
 - [ ] Exec into pods support
