@@ -44,6 +44,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integration with existing HTTP streaming infrastructure
   - Convenience methods in `PodManager` for single and multi-container pods
   - Comprehensive unit test coverage for log streaming functionality
+- **Patch Operations** for efficient partial resource updates (Phase 5)
+  - `PatchType` enum for three patch strategies (JSON_PATCH, MERGE_PATCH, STRATEGIC_MERGE_PATCH)
+  - `PatchOptions` class with fluent builder for patch configuration
+  - Support for JSON Patch (RFC 6902) with precise operation-based updates
+  - Support for JSON Merge Patch (RFC 7396) with simple partial object updates
+  - Support for Strategic Merge Patch (Kubernetes-specific) with smart array merging
+  - Proper Content-Type headers for each patch type
+  - Dry-run support for testing patches before applying
+  - Field manager support for Server-side Apply compatibility
+  - Force option for taking ownership of conflicting fields
+  - Enhanced `KubernetesClient.patch()` method with PatchOptions support
+  - Patch methods in `AbstractResourceManager` and `AbstractClusterResourceManager`
+  - Support for both namespace-scoped and cluster-scoped resources
+  - Comprehensive unit test coverage for patch functionality
 
 ### Changed
 

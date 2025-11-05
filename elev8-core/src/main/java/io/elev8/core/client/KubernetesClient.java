@@ -6,6 +6,7 @@ import io.elev8.core.http.HttpException;
 import io.elev8.core.http.HttpResponse;
 import io.elev8.core.http.OkHttpClientImpl;
 import io.elev8.core.logs.LogOptions;
+import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.WatchOptions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +74,54 @@ public final class KubernetesClient implements AutoCloseable {
      */
     public HttpResponse patch(final String path, final String body) throws KubernetesClientException {
         return execute("PATCH", path, body);
+    }
+
+    /**
+     * Execute a PATCH request to the Kubernetes API with patch options.
+     * Supports JSON Patch (RFC 6902), JSON Merge Patch (RFC 7396),
+     * and Strategic Merge Patch (Kubernetes-specific).
+     *
+     * @param path the API path
+     * @param options patch options for configuring the patch type and behavior
+     * @param body the patch body (format depends on patch type)
+     * @return the HTTP response
+     * @throws KubernetesClientException if the request fails
+     */
+    public HttpResponse patch(final String path, final PatchOptions options, final String body)
+            throws KubernetesClientException {
+        try {
+            if (config.getAuthProvider().needsRefresh()) {
+                log.debug("Refreshing authentication token for patch");
+                config.getAuthProvider().refresh();
+            }
+
+            final String url = buildPatchUrl(path, options);
+
+            final Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", config.getAuthProvider().getAuthHeader());
+            headers.put("Accept", "application/json");
+
+            if (body != null && options != null && options.getPatchType() != null) {
+                headers.put("Content-Type", options.getPatchType().getContentType());
+            } else if (body != null) {
+                headers.put("Content-Type", "application/strategic-merge-patch+json");
+            }
+
+            final HttpResponse response = httpClient.patch(url, headers, body);
+
+            if (response.isUnauthorized() || response.isForbidden()) {
+                throw new KubernetesClientException(
+                        "Authentication failed: " + response.getStatusCode() + " - " + response.getBody(),
+                        response.getStatusCode());
+            }
+
+            return response;
+
+        } catch (AuthenticationException e) {
+            throw new KubernetesClientException("Failed to authenticate for patch operation", e);
+        } catch (HttpException e) {
+            throw new KubernetesClientException("Patch request failed: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -213,6 +262,30 @@ public final class KubernetesClient implements AutoCloseable {
             }
             if (options.getLimitBytes() != null) {
                 url.append(firstParam ? "?" : "&").append("limitBytes=").append(options.getLimitBytes());
+                firstParam = false;
+            }
+        }
+
+        return url.toString();
+    }
+
+    private String buildPatchUrl(final String path, final PatchOptions options) {
+        final StringBuilder url = new StringBuilder(config.getApiServerUrl());
+        url.append(path);
+
+        boolean firstParam = true;
+
+        if (options != null) {
+            if (options.getDryRun() != null && options.getDryRun()) {
+                url.append(firstParam ? "?" : "&").append("dryRun=All");
+                firstParam = false;
+            }
+            if (options.getFieldManager() != null) {
+                url.append(firstParam ? "?" : "&").append("fieldManager=").append(options.getFieldManager());
+                firstParam = false;
+            }
+            if (options.getForce() != null && options.getForce()) {
+                url.append(firstParam ? "?" : "&").append("force=true");
                 firstParam = false;
             }
         }
