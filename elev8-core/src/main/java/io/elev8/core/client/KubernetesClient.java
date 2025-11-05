@@ -5,6 +5,7 @@ import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpException;
 import io.elev8.core.http.HttpResponse;
 import io.elev8.core.http.OkHttpClientImpl;
+import io.elev8.core.logs.LogOptions;
 import io.elev8.core.watch.WatchOptions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -117,6 +118,38 @@ public final class KubernetesClient implements AutoCloseable {
         }
     }
 
+    /**
+     * Execute a log streaming request to the Kubernetes API.
+     * Log requests stream pod container logs as they are written.
+     *
+     * @param path the API path to the pod logs endpoint
+     * @param options log options for configuring the log behavior
+     * @param handler the stream handler to process log lines
+     * @throws KubernetesClientException if the request fails
+     */
+    public void logs(final String path, final LogOptions options, final HttpClient.StreamHandler handler)
+            throws KubernetesClientException {
+        try {
+            if (config.getAuthProvider().needsRefresh()) {
+                log.debug("Refreshing authentication token for log streaming");
+                config.getAuthProvider().refresh();
+            }
+
+            final String url = buildLogsUrl(path, options);
+
+            final Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", config.getAuthProvider().getAuthHeader());
+            headers.put("Accept", "text/plain");
+
+            httpClient.stream(url, headers, handler);
+
+        } catch (AuthenticationException e) {
+            throw new KubernetesClientException("Failed to authenticate for log streaming operation", e);
+        } catch (HttpException e) {
+            throw new KubernetesClientException("Log streaming request failed: " + e.getMessage(), e);
+        }
+    }
+
     private String buildWatchUrl(final String path, final WatchOptions options) {
         final StringBuilder url = new StringBuilder(config.getApiServerUrl());
         url.append(path);
@@ -137,6 +170,50 @@ public final class KubernetesClient implements AutoCloseable {
             }
             if (options.getFieldSelector() != null) {
                 url.append("&fieldSelector=").append(options.getFieldSelector());
+            }
+        }
+
+        return url.toString();
+    }
+
+    private String buildLogsUrl(final String path, final LogOptions options) {
+        final StringBuilder url = new StringBuilder(config.getApiServerUrl());
+        url.append(path);
+
+        boolean firstParam = true;
+
+        if (options != null) {
+            if (options.getFollow() != null && options.getFollow()) {
+                url.append(firstParam ? "?" : "&").append("follow=true");
+                firstParam = false;
+            }
+            if (options.getTailLines() != null) {
+                url.append(firstParam ? "?" : "&").append("tailLines=").append(options.getTailLines());
+                firstParam = false;
+            }
+            if (options.getTimestamps() != null && options.getTimestamps()) {
+                url.append(firstParam ? "?" : "&").append("timestamps=true");
+                firstParam = false;
+            }
+            if (options.getSinceSeconds() != null) {
+                url.append(firstParam ? "?" : "&").append("sinceSeconds=").append(options.getSinceSeconds());
+                firstParam = false;
+            }
+            if (options.getSinceTime() != null) {
+                url.append(firstParam ? "?" : "&").append("sinceTime=").append(options.getSinceTime());
+                firstParam = false;
+            }
+            if (options.getContainer() != null) {
+                url.append(firstParam ? "?" : "&").append("container=").append(options.getContainer());
+                firstParam = false;
+            }
+            if (options.getPrevious() != null && options.getPrevious()) {
+                url.append(firstParam ? "?" : "&").append("previous=true");
+                firstParam = false;
+            }
+            if (options.getLimitBytes() != null) {
+                url.append(firstParam ? "?" : "&").append("limitBytes=").append(options.getLimitBytes());
+                firstParam = false;
             }
         }
 

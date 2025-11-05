@@ -42,6 +42,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [PersistentVolumeClaims](#persistentvolumeclaims)
   - [EKS Access Entries](#eks-access-entries)
   - [Watch API](#watch-api)
+  - [Pod Log Streaming](#pod-log-streaming)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
 - [Building from Source](#building-from-source)
@@ -2177,6 +2178,69 @@ client.pods().watch("default", resumeOptions, watcher);
 client.namespaces().watch(options, watcher);
 ```
 
+### Pod Log Streaming
+
+Stream logs from pod containers in real-time:
+
+```java
+import io.elev8.core.logs.LogOptions;
+import io.elev8.core.logs.LogWatch;
+
+// Stream logs with default options
+final LogOptions options = LogOptions.defaults();
+
+client.pods().logs("default", "my-pod", options, new LogWatch() {
+    @Override
+    public void onLog(final String line) {
+        System.out.println(line);
+    }
+
+    @Override
+    public void onError(final Exception exception) {
+        System.err.println("Log streaming error: " + exception.getMessage());
+    }
+
+    @Override
+    public void onClose() {
+        System.out.println("Log stream closed");
+    }
+});
+
+// Follow logs (tail -f behavior)
+final LogOptions followOptions = LogOptions.follow();
+client.pods().logs("default", "my-pod", followOptions, logWatch);
+
+// Tail last 100 lines
+final LogOptions tailOptions = LogOptions.tail(100);
+client.pods().logs("default", "my-pod", tailOptions, logWatch);
+
+// Follow with timestamps
+final LogOptions timestampOptions = LogOptions.followWithTimestamps();
+client.pods().logs("default", "my-pod", timestampOptions, logWatch);
+
+// Logs from specific container (multi-container pods)
+final LogOptions containerOptions = LogOptions.forContainer("nginx");
+client.pods().logs("default", "my-pod", containerOptions, logWatch);
+
+// Or use convenience method
+client.pods().logs("default", "my-pod", "nginx", options, logWatch);
+
+// Logs from previous terminated container
+final LogOptions previousOptions = LogOptions.previous();
+client.pods().logs("default", "my-pod", previousOptions, logWatch);
+
+// Advanced options
+final LogOptions advancedOptions = LogOptions.builder()
+        .follow(true)
+        .tailLines(50)
+        .timestamps(true)
+        .sinceSeconds(3600)  // Last hour
+        .container("app")
+        .build();
+
+client.pods().logs("default", "my-pod", advancedOptions, logWatch);
+```
+
 ## Authentication Modes Comparison
 
 | Feature | IAM Auth | OIDC/IRSA | Access Entries | Token |
@@ -2706,7 +2770,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 #### Phase 5: Advanced Operations
 - [x] Watch API implementation for resource updates
 - [ ] Resource change event streaming
-- [ ] Pod log streaming API
+- [x] Pod log streaming API
 - [ ] Exec into pods support
 - [ ] Port forwarding support
 - [ ] Patch operations (JSON Patch/Strategic Merge Patch)

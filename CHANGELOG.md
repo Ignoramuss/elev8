@@ -31,6 +31,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Label selector and field selector filtering
   - Bookmark support for efficient watch resumption
   - Comprehensive unit test coverage for watch functionality
+- **Pod Log Streaming API** for real-time container log monitoring (Phase 5)
+  - `LogOptions` class with fluent builder for log configuration
+  - `LogWatch` callback interface for consuming log streams
+  - Support for follow mode (tail -f behavior)
+  - Tail lines option for viewing last N lines
+  - Timestamp support in log output
+  - Container-specific logs for multi-container pods
+  - Previous container logs for debugging crashes
+  - Time-based filtering (sinceSeconds, sinceTime)
+  - Byte limit support for log retrieval
+  - Integration with existing HTTP streaming infrastructure
+  - Convenience methods in `PodManager` for single and multi-container pods
+  - Comprehensive unit test coverage for log streaming functionality
 
 ### Changed
 
