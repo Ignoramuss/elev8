@@ -3,7 +3,11 @@ package io.elev8.resources;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
+import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpResponse;
+import io.elev8.core.watch.WatchEvent;
+import io.elev8.core.watch.WatchOptions;
+import io.elev8.core.watch.Watcher;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -153,6 +157,45 @@ public abstract class AbstractClusterResourceManager<T extends KubernetesResourc
     @Override
     public String getApiPath() {
         return apiPath;
+    }
+
+    @Override
+    public void watch(final WatchOptions options, final Watcher<T> watcher) throws ResourceException {
+        try {
+            final String path = buildClusterPath();
+            log.debug("Watching cluster resources at path: {}", path);
+
+            final HttpClient.StreamHandler handler = new HttpClient.StreamHandler() {
+                @Override
+                public void onLine(final String line) {
+                    try {
+                        final WatchEvent<T> event = AbstractResource.getObjectMapper().readValue(
+                                line,
+                                AbstractResource.getObjectMapper().getTypeFactory()
+                                        .constructParametricType(WatchEvent.class, resourceClass));
+                        watcher.onEvent(event);
+                    } catch (Exception e) {
+                        log.error("Failed to parse watch event", e);
+                        watcher.onError(e);
+                    }
+                }
+
+                @Override
+                public void onError(final Exception exception) {
+                    watcher.onError(exception);
+                }
+
+                @Override
+                public void onClose() {
+                    watcher.onClose();
+                }
+            };
+
+            client.watch(path, options, handler);
+
+        } catch (KubernetesClientException e) {
+            throw new ResourceException("Failed to watch cluster resources", e);
+        }
     }
 
     /**

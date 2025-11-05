@@ -1,5 +1,8 @@
 package io.elev8.resources;
 
+import io.elev8.core.watch.WatchOptions;
+import io.elev8.core.watch.Watcher;
+
 import java.util.List;
 
 /**
@@ -60,4 +63,14 @@ public interface ClusterResourceManager<T extends KubernetesResource> {
      * @return the API path
      */
     String getApiPath();
+
+    /**
+     * Watch cluster-scoped resources for changes.
+     * The watcher will receive events as resources are added, modified, or deleted.
+     *
+     * @param options watch options for configuring the watch behavior
+     * @param watcher the callback to handle watch events
+     * @throws ResourceException if the watch operation fails
+     */
+    void watch(WatchOptions options, Watcher<T> watcher) throws ResourceException;
 }
