@@ -1,5 +1,6 @@
 package io.elev8.resources;
 
+import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.WatchOptions;
 import io.elev8.core.watch.Watcher;
 
@@ -65,6 +66,20 @@ public interface ResourceManager<T extends KubernetesResource> {
      * @throws ResourceException if the operation fails
      */
     void delete(String namespace, String name) throws ResourceException;
+
+    /**
+     * Patch an existing resource with partial updates.
+     * Supports JSON Patch (RFC 6902), JSON Merge Patch (RFC 7396),
+     * and Strategic Merge Patch (Kubernetes-specific).
+     *
+     * @param namespace the namespace
+     * @param name the resource name
+     * @param options patch options specifying patch type and behavior
+     * @param patchBody the patch content (format depends on patch type)
+     * @return the patched resource
+     * @throws ResourceException if the operation fails
+     */
+    T patch(String namespace, String name, PatchOptions options, String patchBody) throws ResourceException;
 
     /**
      * Get the API path for this resource type.

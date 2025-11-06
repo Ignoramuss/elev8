@@ -5,6 +5,7 @@ import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpResponse;
+import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.WatchEvent;
 import io.elev8.core.watch.WatchOptions;
 import io.elev8.core.watch.Watcher;
@@ -151,6 +152,29 @@ public abstract class AbstractClusterResourceManager<T extends KubernetesResourc
 
         } catch (KubernetesClientException e) {
             throw new ResourceException("Failed to delete resource", e);
+        }
+    }
+
+    @Override
+    public T patch(final String name, final PatchOptions options, final String patchBody)
+            throws ResourceException {
+        try {
+            final String path = buildResourcePath(name);
+            log.debug("Patching cluster resource at path: {} with patch type: {}",
+                    path, options != null ? options.getPatchType() : "default");
+
+            final HttpResponse response = client.patch(path, options, patchBody);
+
+            if (!response.isSuccessful()) {
+                throw new ResourceException(
+                        "Failed to patch resource: " + response.getBody(),
+                        response.getStatusCode());
+            }
+
+            return AbstractResource.fromJson(response.getBody(), resourceClass);
+
+        } catch (KubernetesClientException e) {
+            throw new ResourceException("Failed to patch cluster resource", e);
         }
     }
 

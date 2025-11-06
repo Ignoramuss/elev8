@@ -43,6 +43,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [EKS Access Entries](#eks-access-entries)
   - [Watch API](#watch-api)
   - [Pod Log Streaming](#pod-log-streaming)
+  - [Patch Operations](#patch-operations)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
 - [Building from Source](#building-from-source)
@@ -2241,6 +2242,68 @@ final LogOptions advancedOptions = LogOptions.builder()
 client.pods().logs("default", "my-pod", advancedOptions, logWatch);
 ```
 
+### Patch Operations
+
+Efficiently update resources with partial changes using JSON Patch, JSON Merge Patch, or Strategic Merge Patch:
+
+```java
+import io.elev8.core.patch.PatchOptions;
+import io.elev8.core.patch.PatchType;
+
+// Strategic Merge Patch (Kubernetes-specific, default)
+final String strategicPatch = "{\"spec\": {\"replicas\": 5}}";
+final Deployment patched = client.deployments().patch(
+    "default",
+    "my-app",
+    PatchOptions.strategicMergePatch(),
+    strategicPatch
+);
+
+// JSON Merge Patch (RFC 7396 - simplest)
+final String mergePatch = "{\"metadata\": {\"labels\": {\"env\": \"prod\"}}}";
+client.deployments().patch(
+    "default",
+    "my-app",
+    PatchOptions.mergePatch(),
+    mergePatch
+);
+
+// JSON Patch (RFC 6902 - most precise)
+final String jsonPatch = "[" +
+    "{\"op\": \"replace\", \"path\": \"/spec/replicas\", \"value\": 5}," +
+    "{\"op\": \"add\", \"path\": \"/metadata/labels/env\", \"value\": \"prod\"}" +
+"]";
+client.deployments().patch(
+    "default",
+    "my-app",
+    PatchOptions.jsonPatch(),
+    jsonPatch
+);
+
+// Patch with dry-run (test without applying)
+final PatchOptions dryRunOptions = PatchOptions.dryRun(PatchType.STRATEGIC_MERGE_PATCH);
+client.deployments().patch("default", "my-app", dryRunOptions, patch);
+
+// Patch with field manager (for Server-side Apply compatibility)
+final PatchOptions fieldManagerOptions = PatchOptions.builder()
+        .patchType(PatchType.STRATEGIC_MERGE_PATCH)
+        .fieldManager("elev8-client")
+        .build();
+client.deployments().patch("default", "my-app", fieldManagerOptions, patch);
+
+// Force patch (take ownership of conflicting fields)
+final PatchOptions forceOptions = PatchOptions.builder()
+        .patchType(PatchType.STRATEGIC_MERGE_PATCH)
+        .fieldManager("elev8-client")
+        .force(true)
+        .build();
+client.deployments().patch("default", "my-app", forceOptions, patch);
+
+// Patch cluster-scoped resources
+final String namespacePatch = "{\"metadata\": {\"labels\": {\"team\": \"platform\"}}}";
+client.namespaces().patch("production", PatchOptions.defaults(), namespacePatch);
+```
+
 ## Authentication Modes Comparison
 
 | Feature | IAM Auth | OIDC/IRSA | Access Entries | Token |
@@ -2773,7 +2836,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] Pod log streaming API
 - [ ] Exec into pods support
 - [ ] Port forwarding support
-- [ ] Patch operations (JSON Patch/Strategic Merge Patch)
+- [x] Patch operations (JSON Patch/Strategic Merge Patch)
 - [ ] Server-side Apply operations
 
 #### Phase 6: Events & Observability
