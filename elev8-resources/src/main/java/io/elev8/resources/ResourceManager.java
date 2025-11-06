@@ -1,5 +1,6 @@
 package io.elev8.resources;
 
+import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.WatchOptions;
 import io.elev8.core.watch.Watcher;
@@ -80,6 +81,20 @@ public interface ResourceManager<T extends KubernetesResource> {
      * @throws ResourceException if the operation fails
      */
     T patch(String namespace, String name, PatchOptions options, String patchBody) throws ResourceException;
+
+    /**
+     * Apply a resource configuration declaratively using Server-side Apply.
+     * Server-side Apply tracks field-level ownership and handles conflicts automatically.
+     * This is the recommended approach for declarative resource management.
+     *
+     * @param namespace the namespace
+     * @param name the resource name
+     * @param options apply options with required fieldManager
+     * @param manifest the resource manifest (JSON or YAML format)
+     * @return the applied resource
+     * @throws ResourceException if the operation fails
+     */
+    T apply(String namespace, String name, ApplyOptions options, String manifest) throws ResourceException;
 
     /**
      * Get the API path for this resource type.

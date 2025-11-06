@@ -33,7 +33,18 @@ public enum PatchType {
      * Content-Type: application/strategic-merge-patch+json
      * Note: Not supported for custom resources.
      */
-    STRATEGIC_MERGE_PATCH("application/strategic-merge-patch+json");
+    STRATEGIC_MERGE_PATCH("application/strategic-merge-patch+json"),
+
+    /**
+     * Server-side Apply - Declarative resource management with field ownership.
+     * Kubernetes GA since v1.22, recommended for declarative resource management.
+     * Tracks field-level ownership via fieldManager parameter.
+     * Solves "last write wins" problem with conflict detection and resolution.
+     * Accepts both JSON and YAML formats.
+     * Content-Type: application/apply-patch+yaml
+     * Note: Requires fieldManager parameter.
+     */
+    APPLY_PATCH("application/apply-patch+yaml");
 
     private final String contentType;
 

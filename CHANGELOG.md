@@ -58,6 +58,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Patch methods in `AbstractResourceManager` and `AbstractClusterResourceManager`
   - Support for both namespace-scoped and cluster-scoped resources
   - Comprehensive unit test coverage for patch functionality
+- **Server-side Apply** for declarative resource management with field ownership (Phase 5)
+  - `ApplyOptions` class with required fieldManager validation
+  - APPLY_PATCH type added to `PatchType` enum (application/apply-patch+yaml)
+  - Field-level ownership tracking for conflict prevention
+  - Support for declarative resource management (GitOps patterns)
+  - Factory methods for common use cases (of, dryRun, force)
+  - Required fieldManager parameter ensures proper field ownership
+  - Dry-run support for testing manifests before applying
+  - Force option for taking ownership of conflicting fields
+  - Automatic validation of required parameters
+  - Conversion to PatchOptions for seamless integration
+  - Apply methods in `AbstractResourceManager` and `AbstractClusterResourceManager`
+  - Support for both namespace-scoped and cluster-scoped resources
+  - Support for JSON and YAML manifest formats
+  - Comprehensive unit test coverage for Server-side Apply functionality
+  - Completes modern resource management toolkit
 
 ### Changed
 
