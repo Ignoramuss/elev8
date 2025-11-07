@@ -44,6 +44,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [Watch API](#watch-api)
   - [Pod Log Streaming](#pod-log-streaming)
   - [Patch Operations](#patch-operations)
+  - [Server-side Apply](#server-side-apply)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
 - [Building from Source](#building-from-source)
@@ -2304,6 +2305,88 @@ final String namespacePatch = "{\"metadata\": {\"labels\": {\"team\": \"platform
 client.namespaces().patch("production", PatchOptions.defaults(), namespacePatch);
 ```
 
+### Server-side Apply
+
+Declaratively manage resources with field-level ownership tracking (recommended approach for GitOps):
+
+```java
+import io.elev8.core.patch.ApplyOptions;
+
+// Server-side Apply with field manager (required)
+final ApplyOptions options = ApplyOptions.of("elev8-client");
+
+final String deploymentManifest = """
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "my-app",
+    "namespace": "default"
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {"app": "my-app"}
+    },
+    "template": {
+      "metadata": {"labels": {"app": "my-app"}},
+      "spec": {
+        "containers": [{
+          "name": "app",
+          "image": "nginx:latest"
+        }]
+      }
+    }
+  }
+}
+""";
+
+final Deployment applied = client.deployments().apply(
+    "default",
+    "my-app",
+    options,
+    deploymentManifest
+);
+
+// Dry-run to test before applying
+final ApplyOptions dryRunOptions = ApplyOptions.dryRun("elev8-client");
+client.deployments().apply("default", "my-app", dryRunOptions, manifest);
+
+// Force apply (take ownership of conflicting fields)
+final ApplyOptions forceOptions = ApplyOptions.force("elev8-client");
+client.deployments().apply("default", "my-app", forceOptions, manifest);
+
+// Builder pattern for advanced options
+final ApplyOptions advancedOptions = ApplyOptions.builder()
+        .fieldManager("my-operator")
+        .force(false)
+        .dryRun(false)
+        .build();
+
+client.deployments().apply("default", "my-app", advancedOptions, manifest);
+
+// Apply cluster-scoped resources
+final String namespaceManifest = """
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "name": "production",
+    "labels": {"environment": "prod"}
+  }
+}
+""";
+
+client.namespaces().apply("production", options, namespaceManifest);
+```
+
+**Benefits of Server-side Apply:**
+- Field-level ownership tracking prevents conflicts
+- Declarative management (specify desired state, not operations)
+- Multiple controllers can manage different fields safely
+- Automatic conflict detection and resolution
+- Recommended for GitOps and infrastructure-as-code
+
 ## Authentication Modes Comparison
 
 | Feature | IAM Auth | OIDC/IRSA | Access Entries | Token |
@@ -2837,7 +2920,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [ ] Exec into pods support
 - [ ] Port forwarding support
 - [x] Patch operations (JSON Patch/Strategic Merge Patch)
-- [ ] Server-side Apply operations
+- [x] Server-side Apply operations
 
 #### Phase 6: Events & Observability
 - [ ] Event resource support (v1)

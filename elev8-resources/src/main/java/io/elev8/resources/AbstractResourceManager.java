@@ -5,6 +5,7 @@ import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpResponse;
+import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.WatchEvent;
 import io.elev8.core.watch.WatchOptions;
@@ -200,6 +201,36 @@ public abstract class AbstractResourceManager<T extends KubernetesResource> impl
 
         } catch (KubernetesClientException e) {
             throw new ResourceException("Failed to patch resource", e);
+        }
+    }
+
+    @Override
+    public T apply(final String namespace, final String name, final ApplyOptions options, final String manifest)
+            throws ResourceException {
+        if (options == null) {
+            throw new ResourceException("ApplyOptions are required for Server-side Apply");
+        }
+
+        options.validate();
+
+        try {
+            final String path = buildResourcePath(namespace, name);
+            log.debug("Applying resource at path: {} with field manager: {}",
+                    path, options.getFieldManager());
+
+            final PatchOptions patchOptions = options.toPatchOptions();
+            final HttpResponse response = client.patch(path, patchOptions, manifest);
+
+            if (!response.isSuccessful()) {
+                throw new ResourceException(
+                        "Failed to apply resource: " + response.getBody(),
+                        response.getStatusCode());
+            }
+
+            return AbstractResource.fromJson(response.getBody(), resourceClass);
+
+        } catch (KubernetesClientException e) {
+            throw new ResourceException("Failed to apply resource", e);
         }
     }
 
