@@ -45,7 +45,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [Pod Log Streaming](#pod-log-streaming)
   - [Patch Operations](#patch-operations)
   - [Server-side Apply](#server-side-apply)
-  - [Exec into Pods (Foundation)](#exec-into-pods-foundation)
+  - [Exec into Pods](#exec-into-pods)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
 - [Building from Source](#building-from-source)
@@ -2388,9 +2388,9 @@ client.namespaces().apply("production", options, namespaceManifest);
 - Automatic conflict detection and resolution
 - Recommended for GitOps and infrastructure-as-code
 
-### Exec into Pods (Foundation)
+### Exec into Pods
 
-Execute commands inside running containers (WebSocket infrastructure foundation):
+Execute commands inside running containers with bidirectional streaming via WebSocket:
 
 ```java
 import io.elev8.core.exec.ExecOptions;
@@ -2441,14 +2441,19 @@ final ExecOptions advanced = ExecOptions.builder()
 client.pods().exec("default", "my-pod", advanced, execWatch);
 ```
 
-**Note:** This release establishes the complete API structure and WebSocket infrastructure foundation. Full WebSocket-based bidirectional streaming implementation is in progress.
+**Features:**
+- Full WebSocket-based bidirectional streaming (STDIN/STDOUT/STDERR)
+- Channel multiplexing via Kubernetes exec protocol (v4.channel.k8s.io)
+- Exit code extraction and error handling
+- Interactive TTY support
+- Multi-container pod support
+- Complete unit test coverage
 
-**Infrastructure provided:**
-- WebSocketClient interface and OkHttpWebSocketClient implementation
-- Channel multiplexing protocol (ChannelMessage for STDIN/STDOUT/STDERR)
-- ExecOptions configuration with validation
-- ExecWatch callback interface
-- Complete unit test coverage for all components
+**Technical Details:**
+- Uses OkHttp WebSocket client with proper connection management
+- Implements Kubernetes channel multiplexing protocol
+- Automatic exit code parsing from ERROR channel
+- Resource cleanup via AutoCloseable pattern
 
 ## Authentication Modes Comparison
 

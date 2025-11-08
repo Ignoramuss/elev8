@@ -1,6 +1,8 @@
 package io.elev8.core.client;
 
 import io.elev8.core.auth.AuthenticationException;
+import io.elev8.core.exec.ExecOptions;
+import io.elev8.core.exec.ExecWebSocketAdapter;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpException;
 import io.elev8.core.http.HttpResponse;
@@ -8,11 +10,19 @@ import io.elev8.core.http.OkHttpClientImpl;
 import io.elev8.core.logs.LogOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.WatchOptions;
+import io.elev8.core.websocket.OkHttpWebSocketClient;
+import io.elev8.core.websocket.WebSocketClient;
+import io.elev8.core.websocket.WebSocketException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Core Kubernetes client for making API requests.
@@ -199,6 +209,50 @@ public final class KubernetesClient implements AutoCloseable {
         }
     }
 
+    /**
+     * Execute a pod exec request via WebSocket.
+     * Exec requests enable command execution inside pod containers with bidirectional streaming.
+     *
+     * @param path the API path to the pod exec endpoint
+     * @param options exec options for configuring the command execution
+     * @param adapter the adapter to bridge WebSocket events to ExecWatch callbacks
+     * @return the WebSocket client for the connection
+     * @throws KubernetesClientException if the request fails
+     */
+    public WebSocketClient exec(final String path, final ExecOptions options, final ExecWebSocketAdapter adapter)
+            throws KubernetesClientException {
+        try {
+            if (config.getAuthProvider().needsRefresh()) {
+                log.debug("Refreshing authentication token for exec operation");
+                config.getAuthProvider().refresh();
+            }
+
+            final String url = buildExecUrl(path, options);
+
+            final Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", config.getAuthProvider().getAuthHeader());
+
+            final OkHttpClient wsOkHttpClient = new OkHttpClient.Builder()
+                    .readTimeout(0, TimeUnit.MILLISECONDS)
+                    .pingInterval(30, TimeUnit.SECONDS)
+                    .connectTimeout(config.getConnectTimeout())
+                    .build();
+
+            final WebSocketClient wsClient = OkHttpWebSocketClient.create(wsOkHttpClient);
+            adapter.setWebSocketClient(wsClient);
+
+            final String[] protocols = new String[]{"v4.channel.k8s.io"};
+            wsClient.connect(url, headers, protocols, adapter);
+
+            return wsClient;
+
+        } catch (AuthenticationException e) {
+            throw new KubernetesClientException("Failed to authenticate for exec operation", e);
+        } catch (WebSocketException e) {
+            throw new KubernetesClientException("Exec WebSocket connection failed: " + e.getMessage(), e);
+        }
+    }
+
     private String buildWatchUrl(final String path, final WatchOptions options) {
         final StringBuilder url = new StringBuilder(config.getApiServerUrl());
         url.append(path);
@@ -267,6 +321,49 @@ public final class KubernetesClient implements AutoCloseable {
         }
 
         return url.toString();
+    }
+
+    private String buildExecUrl(final String path, final ExecOptions options) {
+        final String httpUrl = config.getApiServerUrl() + path;
+
+        final String wsUrl = httpUrl.replaceFirst("^https://", "wss://")
+                .replaceFirst("^http://", "ws://");
+
+        final StringBuilder url = new StringBuilder(wsUrl);
+
+        if (options != null && options.getCommand() != null) {
+            for (final String cmd : options.getCommand()) {
+                url.append(url.indexOf("?") == -1 ? "?" : "&")
+                        .append("command=")
+                        .append(urlEncode(cmd));
+            }
+
+            if (options.getStdin() != null) {
+                url.append("&stdin=").append(options.getStdin());
+            }
+            if (options.getStdout() != null) {
+                url.append("&stdout=").append(options.getStdout());
+            }
+            if (options.getStderr() != null) {
+                url.append("&stderr=").append(options.getStderr());
+            }
+            if (options.getTty() != null) {
+                url.append("&tty=").append(options.getTty());
+            }
+            if (options.getContainer() != null) {
+                url.append("&container=").append(urlEncode(options.getContainer()));
+            }
+        }
+
+        return url.toString();
+    }
+
+    private String urlEncode(final String value) {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF-8 encoding not supported", e);
+        }
     }
 
     private String buildPatchUrl(final String path, final PatchOptions options) {
