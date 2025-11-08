@@ -74,6 +74,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Support for JSON and YAML manifest formats
   - Comprehensive unit test coverage for Server-side Apply functionality
   - Completes modern resource management toolkit
+- **Exec into Pods Infrastructure** - WebSocket foundation for interactive container operations (Phase 5)
+  - WebSocket client abstraction (`WebSocketClient` interface)
+  - `OkHttpWebSocketClient` implementation using OkHttp's built-in WebSocket support
+  - `WebSocketListener` callback interface for WebSocket events
+  - `WebSocketException` for WebSocket-specific error handling
+  - Channel multiplexing protocol support via `ChannelMessage` class
+  - Support for Kubernetes exec protocol (STDIN/STDOUT/STDERR/ERROR/RESIZE channels)
+  - `ExecOptions` configuration class with fluent builder pattern
+  - `ExecWatch` callback interface for consuming exec streams
+  - Factory methods for common exec scenarios (simple command, interactive shell, container-specific)
+  - Complete API structure for exec operations in `PodManager`
+  - Binary message framing and channel demultiplexing
+  - Support for TTY and non-TTY modes
+  - Multi-container pod support with container parameter
+  - Comprehensive unit test coverage for all WebSocket and exec components
+  - Foundation for WebSocket-based features (Port Forward, Attach)
 
 ### Changed
 

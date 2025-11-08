@@ -2,6 +2,8 @@ package io.elev8.resources.pod;
 
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
+import io.elev8.core.exec.ExecOptions;
+import io.elev8.core.exec.ExecWatch;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.logs.LogOptions;
 import io.elev8.core.logs.LogWatch;
@@ -87,5 +89,50 @@ public final class PodManager extends AbstractResourceManager<Pod> {
                 .build();
 
         logs(namespace, podName, containerOptions, logWatch);
+    }
+
+    /**
+     * Execute a command in a pod's container.
+     * Note: This is a foundational API implementation. Full WebSocket-based
+     * bidirectional streaming will be completed in subsequent iterations.
+     *
+     * @param namespace the namespace of the pod
+     * @param podName the name of the pod
+     * @param options exec options for configuring the command execution
+     * @param execWatch the callback to handle exec streams
+     * @throws ResourceException if the exec operation fails
+     */
+    public void exec(final String namespace, final String podName, final ExecOptions options, final ExecWatch execWatch)
+            throws ResourceException {
+        if (options == null) {
+            throw new ResourceException("ExecOptions are required for exec operations");
+        }
+
+        options.validate();
+
+        log.debug("Exec into pod: {}/{} with command: {}",
+                namespace, podName, String.join(" ", options.getCommand()));
+
+        throw new ResourceException(
+                "Exec functionality requires WebSocket infrastructure - implementation in progress. " +
+                "API structure is defined and ready for WebSocket integration."
+        );
+    }
+
+    /**
+     * Execute a command in a specific container of a pod.
+     * Convenience method for multi-container pods.
+     *
+     * @param namespace the namespace of the pod
+     * @param podName the name of the pod
+     * @param containerName the name of the container
+     * @param command the command to execute
+     * @param execWatch the callback to handle exec streams
+     * @throws ResourceException if the exec operation fails
+     */
+    public void exec(final String namespace, final String podName, final String containerName,
+                    final String[] command, final ExecWatch execWatch) throws ResourceException {
+        final ExecOptions options = ExecOptions.inContainer(command, containerName);
+        exec(namespace, podName, options, execWatch);
     }
 }
