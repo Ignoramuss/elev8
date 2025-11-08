@@ -45,6 +45,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [Pod Log Streaming](#pod-log-streaming)
   - [Patch Operations](#patch-operations)
   - [Server-side Apply](#server-side-apply)
+  - [Exec into Pods (Foundation)](#exec-into-pods-foundation)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
 - [Building from Source](#building-from-source)
@@ -2387,6 +2388,68 @@ client.namespaces().apply("production", options, namespaceManifest);
 - Automatic conflict detection and resolution
 - Recommended for GitOps and infrastructure-as-code
 
+### Exec into Pods (Foundation)
+
+Execute commands inside running containers (WebSocket infrastructure foundation):
+
+```java
+import io.elev8.core.exec.ExecOptions;
+import io.elev8.core.exec.ExecWatch;
+
+// Execute a simple command
+final ExecOptions options = ExecOptions.of(new String[]{"/bin/sh", "-c", "ls -la"});
+
+client.pods().exec("default", "my-pod", options, new ExecWatch() {
+    @Override
+    public void onStdout(String data) {
+        System.out.print(data);
+    }
+
+    @Override
+    public void onStderr(String data) {
+        System.err.print(data);
+    }
+
+    @Override
+    public void onError(String error) {
+        System.err.println("Error: " + error);
+    }
+
+    @Override
+    public void onClose(int exitCode) {
+        System.out.println("Exit code: " + exitCode);
+    }
+});
+
+// Interactive shell with TTY
+final ExecOptions interactive = ExecOptions.interactive(new String[]{"/bin/bash"});
+client.pods().exec("default", "my-pod", interactive, execWatch);
+
+// Execute in specific container (multi-container pods)
+client.pods().exec("default", "my-pod", "nginx", new String[]{"nginx", "-t"}, execWatch);
+
+// Advanced options
+final ExecOptions advanced = ExecOptions.builder()
+        .command(new String[]{"python", "script.py"})
+        .stdin(true)
+        .stdout(true)
+        .stderr(true)
+        .tty(false)
+        .container("app")
+        .build();
+
+client.pods().exec("default", "my-pod", advanced, execWatch);
+```
+
+**Note:** This release establishes the complete API structure and WebSocket infrastructure foundation. Full WebSocket-based bidirectional streaming implementation is in progress.
+
+**Infrastructure provided:**
+- WebSocketClient interface and OkHttpWebSocketClient implementation
+- Channel multiplexing protocol (ChannelMessage for STDIN/STDOUT/STDERR)
+- ExecOptions configuration with validation
+- ExecWatch callback interface
+- Complete unit test coverage for all components
+
 ## Authentication Modes Comparison
 
 | Feature | IAM Auth | OIDC/IRSA | Access Entries | Token |
@@ -2917,7 +2980,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 - [x] Watch API implementation for resource updates
 - [ ] Resource change event streaming
 - [x] Pod log streaming API
-- [ ] Exec into pods support
+- [x] Exec into pods support (foundation - WebSocket infrastructure established)
 - [ ] Port forwarding support
 - [x] Patch operations (JSON Patch/Strategic Merge Patch)
 - [x] Server-side Apply operations
