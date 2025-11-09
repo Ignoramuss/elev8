@@ -4,6 +4,7 @@ import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.exec.ExecOptions;
 import io.elev8.core.exec.ExecWatch;
+import io.elev8.core.exec.ExecWebSocketAdapter;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.logs.LogOptions;
 import io.elev8.core.logs.LogWatch;
@@ -113,10 +114,16 @@ public final class PodManager extends AbstractResourceManager<Pod> {
         log.debug("Exec into pod: {}/{} with command: {}",
                 namespace, podName, String.join(" ", options.getCommand()));
 
-        throw new ResourceException(
-                "Exec functionality requires WebSocket infrastructure - implementation in progress. " +
-                "API structure is defined and ready for WebSocket integration."
-        );
+        try {
+            final String path = buildNamespacePath(namespace) + "/" + podName + "/exec";
+            log.debug("Executing command in pod at path: {}", path);
+
+            final ExecWebSocketAdapter adapter = new ExecWebSocketAdapter(execWatch, options);
+            client.exec(path, options, adapter);
+
+        } catch (KubernetesClientException e) {
+            throw new ResourceException("Failed to exec into pod", e);
+        }
     }
 
     /**

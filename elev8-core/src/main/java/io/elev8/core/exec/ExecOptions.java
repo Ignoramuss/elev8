@@ -8,7 +8,7 @@ import lombok.Getter;
  * These options control how commands are executed inside containers.
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class ExecOptions {
     /**
      * The command to execute in the container.
