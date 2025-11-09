@@ -9,6 +9,8 @@ import io.elev8.core.http.HttpResponse;
 import io.elev8.core.http.OkHttpClientImpl;
 import io.elev8.core.logs.LogOptions;
 import io.elev8.core.patch.PatchOptions;
+import io.elev8.core.portforward.PortForwardOptions;
+import io.elev8.core.portforward.PortForwardWebSocketAdapter;
 import io.elev8.core.watch.WatchOptions;
 import io.elev8.core.websocket.OkHttpWebSocketClient;
 import io.elev8.core.websocket.WebSocketClient;
@@ -253,6 +255,51 @@ public final class KubernetesClient implements AutoCloseable {
         }
     }
 
+    /**
+     * Execute a pod port forward request via WebSocket.
+     * Port forwarding enables tunneling of network traffic from local ports to pod ports.
+     *
+     * @param path the API path to the pod portforward endpoint
+     * @param options port forward options for configuring the ports to forward
+     * @param adapter the adapter to bridge WebSocket events to PortForwardWatch callbacks
+     * @return the WebSocket client for the connection
+     * @throws KubernetesClientException if the request fails
+     */
+    public WebSocketClient portForward(final String path, final PortForwardOptions options,
+                                       final PortForwardWebSocketAdapter adapter)
+            throws KubernetesClientException {
+        try {
+            if (config.getAuthProvider().needsRefresh()) {
+                log.debug("Refreshing authentication token for port forward operation");
+                config.getAuthProvider().refresh();
+            }
+
+            final String url = buildPortForwardUrl(path, options);
+
+            final Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", config.getAuthProvider().getAuthHeader());
+
+            final OkHttpClient wsOkHttpClient = new OkHttpClient.Builder()
+                    .readTimeout(0, TimeUnit.MILLISECONDS)
+                    .pingInterval(30, TimeUnit.SECONDS)
+                    .connectTimeout(config.getConnectTimeout())
+                    .build();
+
+            final WebSocketClient wsClient = OkHttpWebSocketClient.create(wsOkHttpClient);
+            adapter.setWebSocketClient(wsClient);
+
+            final String[] protocols = new String[]{"v4.channel.k8s.io"};
+            wsClient.connect(url, headers, protocols, adapter);
+
+            return wsClient;
+
+        } catch (AuthenticationException e) {
+            throw new KubernetesClientException("Failed to authenticate for port forward operation", e);
+        } catch (WebSocketException e) {
+            throw new KubernetesClientException("Port forward WebSocket connection failed: " + e.getMessage(), e);
+        }
+    }
+
     private String buildWatchUrl(final String path, final WatchOptions options) {
         final StringBuilder url = new StringBuilder(config.getApiServerUrl());
         url.append(path);
@@ -350,6 +397,29 @@ public final class KubernetesClient implements AutoCloseable {
             if (options.getTty() != null) {
                 url.append("&tty=").append(options.getTty());
             }
+            if (options.getContainer() != null) {
+                url.append("&container=").append(urlEncode(options.getContainer()));
+            }
+        }
+
+        return url.toString();
+    }
+
+    private String buildPortForwardUrl(final String path, final PortForwardOptions options) {
+        final String httpUrl = config.getApiServerUrl() + path;
+
+        final String wsUrl = httpUrl.replaceFirst("^https://", "wss://")
+                .replaceFirst("^http://", "ws://");
+
+        final StringBuilder url = new StringBuilder(wsUrl);
+
+        if (options != null && options.getPorts() != null) {
+            for (final int port : options.getPorts()) {
+                url.append(url.indexOf("?") == -1 ? "?" : "&")
+                        .append("ports=")
+                        .append(port);
+            }
+
             if (options.getContainer() != null) {
                 url.append("&container=").append(urlEncode(options.getContainer()));
             }

@@ -46,6 +46,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
   - [Patch Operations](#patch-operations)
   - [Server-side Apply](#server-side-apply)
   - [Exec into Pods](#exec-into-pods)
+  - [Port Forwarding](#port-forwarding)
 - [Authentication Modes Comparison](#authentication-modes-comparison)
 - [Project Structure](#project-structure)
 - [Building from Source](#building-from-source)
@@ -2453,6 +2454,70 @@ client.pods().exec("default", "my-pod", advanced, execWatch);
 - Uses OkHttp WebSocket client with proper connection management
 - Implements Kubernetes channel multiplexing protocol
 - Automatic exit code parsing from ERROR channel
+- Resource cleanup via AutoCloseable pattern
+
+### Port Forwarding
+
+Forward network traffic from local ports to pod ports via WebSocket:
+
+```java
+import io.elev8.core.portforward.PortForwardOptions;
+import io.elev8.core.portforward.PortForwardWatch;
+
+// Forward a single port
+client.pods().portForward("default", "my-pod", 8080, new PortForwardWatch() {
+    @Override
+    public void onData(int port, byte[] data) {
+        // Handle data received from the pod
+        System.out.println("Received " + data.length + " bytes from port " + port);
+    }
+
+    @Override
+    public void onError(int port, String error) {
+        System.err.println("Error on port " + port + ": " + error);
+    }
+
+    @Override
+    public void onClose() {
+        System.out.println("Port forward session closed");
+    }
+});
+
+// Forward multiple ports
+final PortForwardOptions options = PortForwardOptions.of(8080, 9090, 3000);
+
+client.pods().portForward("default", "my-pod", options, new PortForwardWatch() {
+    @Override
+    public void onData(int port, byte[] data) {
+        System.out.println("Port " + port + ": " + new String(data));
+    }
+
+    // Write data to a forwarded port
+    public void sendRequest(int port) {
+        final byte[] request = "GET / HTTP/1.1\r\n\r\n".getBytes();
+        writeData(port, request);
+    }
+});
+
+// Forward ports in specific container (multi-container pods)
+final PortForwardOptions containerOptions =
+    PortForwardOptions.withContainer(new int[]{8080}, "nginx");
+
+client.pods().portForward("default", "my-pod", containerOptions, portForwardWatch);
+```
+
+**Features:**
+- WebSocket-based bidirectional streaming for network traffic
+- Channel multiplexing via Kubernetes port-forward protocol (v4.channel.k8s.io)
+- Support for multiple ports in single connection
+- Multi-container pod support
+- Binary data handling for any protocol (HTTP, TCP, etc.)
+- Complete unit test coverage
+
+**Technical Details:**
+- Uses OkHttp WebSocket client with proper connection management
+- Implements Kubernetes channel multiplexing protocol
+- Channel pairs per port (even=data, odd=error)
 - Resource cleanup via AutoCloseable pattern
 
 ## Authentication Modes Comparison

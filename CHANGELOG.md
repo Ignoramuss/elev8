@@ -98,6 +98,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Proper resource cleanup via AutoCloseable pattern
   - Comprehensive unit test coverage (46 tests total including WebSocket, exec, and adapter tests)
   - Foundation for WebSocket-based features (Port Forward, Attach)
+- **Port Forwarding** - WebSocket-based network traffic tunneling to pod ports (Phase 5)
+  - Full bidirectional WebSocket streaming for network traffic
+  - `PortForwardOptions` configuration class with fluent builder pattern
+  - Support for single and multiple ports in one connection
+  - `PortForwardWatch` callback interface for consuming port forward streams
+  - `PortForwardWebSocketAdapter` bridging WebSocket events to PortForwardWatch callbacks
+  - Channel multiplexing protocol via Kubernetes port-forward protocol (v4.channel.k8s.io)
+  - Channel pairs per port (even channels=data, odd channels=errors)
+  - Factory methods for common scenarios (single port, multiple ports, container-specific)
+  - Complete WebSocket URL construction with ports query parameters
+  - Full `KubernetesClient.portForward()` implementation with authentication and connection management
+  - Functional `PodManager.portForward()` implementation for port forwarding
+  - Convenience method for single port forwarding
+  - Binary data handling for any protocol (HTTP, TCP, etc.)
+  - Port validation (1-65535 range)
+  - Multi-container pod support with container parameter
+  - Proper resource cleanup via AutoCloseable pattern
+  - Comprehensive unit test coverage (40 tests: PortForwardOptions: 21, PortForwardWebSocketAdapter: 19)
+  - Reuses existing WebSocket infrastructure from Exec feature
+  - All 700 tests passing across project (up from 659)
 
 ### Changed
 
