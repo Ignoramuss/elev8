@@ -8,6 +8,9 @@ import io.elev8.core.exec.ExecWebSocketAdapter;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.logs.LogOptions;
 import io.elev8.core.logs.LogWatch;
+import io.elev8.core.portforward.PortForwardOptions;
+import io.elev8.core.portforward.PortForwardWatch;
+import io.elev8.core.portforward.PortForwardWebSocketAdapter;
 import io.elev8.resources.AbstractResourceManager;
 import io.elev8.resources.ResourceException;
 import lombok.extern.slf4j.Slf4j;
@@ -141,5 +144,54 @@ public final class PodManager extends AbstractResourceManager<Pod> {
                     final String[] command, final ExecWatch execWatch) throws ResourceException {
         final ExecOptions options = ExecOptions.inContainer(command, containerName);
         exec(namespace, podName, options, execWatch);
+    }
+
+    /**
+     * Forward network traffic from local ports to pod ports.
+     * Enables tunneling of network connections to services running in containers.
+     *
+     * @param namespace the namespace of the pod
+     * @param podName the name of the pod
+     * @param options port forward options for configuring the ports to forward
+     * @param portForwardWatch the callback to handle port forward streams
+     * @throws ResourceException if the port forward operation fails
+     */
+    public void portForward(final String namespace, final String podName, final PortForwardOptions options,
+                           final PortForwardWatch portForwardWatch) throws ResourceException {
+        if (options == null) {
+            throw new ResourceException("PortForwardOptions are required for port forward operations");
+        }
+
+        options.validate();
+
+        log.debug("Port forwarding to pod: {}/{} on ports: {}",
+                namespace, podName, java.util.Arrays.toString(options.getPorts()));
+
+        try {
+            final String path = buildNamespacePath(namespace) + "/" + podName + "/portforward";
+            log.debug("Port forwarding to pod at path: {}", path);
+
+            final PortForwardWebSocketAdapter adapter = new PortForwardWebSocketAdapter(portForwardWatch, options);
+            client.portForward(path, options, adapter);
+
+        } catch (KubernetesClientException e) {
+            throw new ResourceException("Failed to forward ports to pod", e);
+        }
+    }
+
+    /**
+     * Forward a single port to a pod.
+     * Convenience method for single port forwarding.
+     *
+     * @param namespace the namespace of the pod
+     * @param podName the name of the pod
+     * @param port the port to forward
+     * @param portForwardWatch the callback to handle port forward streams
+     * @throws ResourceException if the port forward operation fails
+     */
+    public void portForward(final String namespace, final String podName, final int port,
+                           final PortForwardWatch portForwardWatch) throws ResourceException {
+        final PortForwardOptions options = PortForwardOptions.single(port);
+        portForward(namespace, podName, options, portForwardWatch);
     }
 }
