@@ -83,9 +83,7 @@ A lightweight, cloud-native Kubernetes Java client that eliminates configuration
 - [Contributing](#contributing)
 - [License](#license)
 - [Support](#support)
-- [Roadmap](#roadmap)
-  - [Completed](#completed)
-  - [In Progress](#in-progress)
+- [Roadmap](ROADMAP.md)
 
 ## Why Elev8?
 
@@ -98,12 +96,12 @@ Existing Kubernetes Java clients (fabric8, official client) struggle with cloud 
 
 Elev8 solves these problems with:
 
-✅ Zero kubeconfig configuration needed
-✅ Native cloud provider API support (EKS Access Entries, GKE, AKS)
-✅ Automatic IAM token generation and refresh
-✅ Minimal dependencies
-✅ Cloud-first design with multi-cloud support (EKS/GKE/AKS)
-✅ Clear documentation for cloud provider scenarios
+- Zero kubeconfig configuration needed
+- Native cloud provider API support (EKS Access Entries, GKE, AKS)
+- Automatic IAM token generation and refresh
+- Minimal dependencies
+- Cloud-first design with multi-cloud support (EKS/GKE/AKS)
+- Clear documentation for cloud provider scenarios
 
 ## Features
 
@@ -2678,10 +2676,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 | `kubectl get pods -n default` | `client.pods().list("default")` |
 | `kubectl get pods --all-namespaces` | `client.pods().listAllNamespaces()` |
 | `kubectl get pod my-pod -n default` | `client.pods().get("default", "my-pod")` |
-| `kubectl get pod my-pod -n default -o json` | `final Pod pod = client.pods().get("default", "my-pod");<br>String json = pod.toJson();` |
-| `kubectl create -f pod.yaml` | `Pod pod = Pod.builder()...build();<br>client.pods().create(pod);` |
+| `kubectl get pod my-pod -n default -o json` | <pre><code>final Pod pod = client.pods().get("default", "my-pod");<br/>String json = pod.toJson();</code></pre> |
+| `kubectl create -f pod.yaml` | <pre><code>Pod pod = Pod.builder()...build();<br/>client.pods().create(pod);</code></pre> |
 | `kubectl delete pod my-pod -n default` | `client.pods().delete("default", "my-pod")` |
-| `kubectl describe pod my-pod` | `final Pod pod = client.pods().get("default", "my-pod");<br>// Access pod.getStatus(), pod.getSpec()` |
+| `kubectl describe pod my-pod` | <pre><code>final Pod pod = client.pods().get("default", "my-pod");<br/>// Access pod.getStatus(), pod.getSpec()</code></pre> |
 
 ### Service Operations
 
@@ -2689,9 +2687,9 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get services -n default` | `client.services().list("default")` |
 | `kubectl get svc my-service -n default` | `client.services().get("default", "my-service")` |
-| `kubectl create -f service.yaml` | `Service svc = Service.builder()...build();<br>client.services().create(svc);` |
+| `kubectl create -f service.yaml` | <pre><code>Service svc = Service.builder()...build();<br/>client.services().create(svc);</code></pre> |
 | `kubectl delete service my-service` | `client.services().delete("default", "my-service")` |
-| `kubectl expose deployment my-deploy --port=80` | `Service svc = Service.builder()<br>  .name("my-deploy")<br>  .spec(ServiceSpec.builder()<br>    .addSelector("app", "my-deploy")<br>    .addPort(80, 8080)<br>    .build())<br>  .build();<br>client.services().create(svc);` |
+| `kubectl expose deployment my-deploy --port=80` | <pre><code>Service svc = Service.builder()<br/>  .name("my-deploy")<br/>  .spec(ServiceSpec.builder()<br/>    .addSelector("app", "my-deploy")<br/>    .addPort(80, 8080)<br/>    .build())<br/>  .build();<br/>client.services().create(svc);</code></pre> |
 
 ### Deployment Operations
 
@@ -2699,11 +2697,11 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get deployments -n default` | `client.deployments().list("default")` |
 | `kubectl get deployment my-deploy -n default` | `client.deployments().get("default", "my-deploy")` |
-| `kubectl create -f deployment.yaml` | `Deployment deploy = Deployment.builder()...build();<br>client.deployments().create(deploy);` |
-| `kubectl apply -f deployment.yaml` | `Deployment deploy = ...; // modified deployment<br>client.deployments().update(deploy);` |
+| `kubectl create -f deployment.yaml` | <pre><code>Deployment deploy = Deployment.builder()...build();<br/>client.deployments().create(deploy);</code></pre> |
+| `kubectl apply -f deployment.yaml` | <pre><code>Deployment deploy = ...; // modified deployment<br/>client.deployments().update(deploy);</code></pre> |
 | `kubectl delete deployment my-deploy` | `client.deployments().delete("default", "my-deploy")` |
-| `kubectl scale deployment my-deploy --replicas=5` | `final Deployment d = client.deployments().get("default", "my-deploy");<br>d.getSpec().setReplicas(5);<br>client.deployments().update(d);` |
-| `kubectl rollout restart deployment/my-deploy` | `final Deployment d = client.deployments().get("default", "my-deploy");<br>// Add/update annotation to trigger restart<br>d.getMetadata().getAnnotations().put("kubectl.kubernetes.io/restartedAt", Instant.now().toString());<br>client.deployments().update(d);` |
+| `kubectl scale deployment my-deploy --replicas=5` | <pre><code>final Deployment d = client.deployments().get("default", "my-deploy");<br/>d.getSpec().setReplicas(5);<br/>client.deployments().update(d);</code></pre> |
+| `kubectl rollout restart deployment/my-deploy` | <pre><code>final Deployment d = client.deployments().get("default", "my-deploy");<br/>// Add/update annotation to trigger restart<br/>d.getMetadata().getAnnotations().put("kubectl.kubernetes.io/restartedAt", Instant.now().toString());<br/>client.deployments().update(d);</code></pre> |
 
 ### ConfigMap Operations
 
@@ -2711,9 +2709,9 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get configmaps -n default` | `client.configMaps().list("default")` |
 | `kubectl get configmap my-config -n default` | `client.configMaps().get("default", "my-config")` |
-| `kubectl create configmap my-config --from-literal=key=value` | `ConfigMap cm = ConfigMap.builder()<br>  .name("my-config")<br>  .namespace("default")<br>  .addData("key", "value")<br>  .build();<br>client.configMaps().create(cm);` |
+| `kubectl create configmap my-config --from-literal=key=value` | <pre><code>ConfigMap cm = ConfigMap.builder()<br/>  .name("my-config")<br/>  .namespace("default")<br/>  .addData("key", "value")<br/>  .build();<br/>client.configMaps().create(cm);</code></pre> |
 | `kubectl delete configmap my-config` | `client.configMaps().delete("default", "my-config")` |
-| `kubectl create configmap app-config --from-literal=env=prod` | `ConfigMap cm = ConfigMap.builder()<br>  .name("app-config")<br>  .namespace("default")<br>  .addData("env", "prod")<br>  .build();<br>client.configMaps().create(cm);` |
+| `kubectl create configmap app-config --from-literal=env=prod` | <pre><code>ConfigMap cm = ConfigMap.builder()<br/>  .name("app-config")<br/>  .namespace("default")<br/>  .addData("env", "prod")<br/>  .build();<br/>client.configMaps().create(cm);</code></pre> |
 
 ### Secret Operations
 
@@ -2721,9 +2719,9 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get secrets -n default` | `client.secrets().list("default")` |
 | `kubectl get secret my-secret -n default` | `client.secrets().get("default", "my-secret")` |
-| `kubectl create secret generic my-secret --from-literal=password=abc123` | `Secret s = Secret.builder()<br>  .name("my-secret")<br>  .namespace("default")<br>  .addStringData("password", "abc123")<br>  .build();<br>client.secrets().create(s);` |
-| `kubectl create secret docker-registry regcred --docker-server=<server> --docker-username=<user> --docker-password=<pwd>` | `Secret s = Secret.builder()<br>  .name("regcred")<br>  .namespace("default")<br>  .dockerConfigJson("base64-encoded-config")<br>  .build();<br>client.secrets().create(s);` |
-| `kubectl create secret tls tls-secret --cert=path/to/cert --key=path/to/key` | `Secret s = Secret.builder()<br>  .name("tls-secret")<br>  .namespace("default")<br>  .tls("base64-cert", "base64-key")<br>  .build();<br>client.secrets().create(s);` |
+| `kubectl create secret generic my-secret --from-literal=password=abc123` | <pre><code>Secret s = Secret.builder()<br/>  .name("my-secret")<br/>  .namespace("default")<br/>  .addStringData("password", "abc123")<br/>  .build();<br/>client.secrets().create(s);</code></pre> |
+| `kubectl create secret docker-registry regcred --docker-server=<server> --docker-username=<user> --docker-password=<pwd>` | <pre><code>Secret s = Secret.builder()<br/>  .name("regcred")<br/>  .namespace("default")<br/>  .dockerConfigJson("base64-encoded-config")<br/>  .build();<br/>client.secrets().create(s);</code></pre> |
+| `kubectl create secret tls tls-secret --cert=path/to/cert --key=path/to/key` | <pre><code>Secret s = Secret.builder()<br/>  .name("tls-secret")<br/>  .namespace("default")<br/>  .tls("base64-cert", "base64-key")<br/>  .build();<br/>client.secrets().create(s);</code></pre> |
 | `kubectl delete secret my-secret` | `client.secrets().delete("default", "my-secret")` |
 
 ### DaemonSet Operations
@@ -2732,9 +2730,9 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get daemonsets -n kube-system` | `client.daemonSets().list("kube-system")` |
 | `kubectl get daemonset fluentd -n kube-system` | `client.daemonSets().get("kube-system", "fluentd")` |
-| `kubectl create -f daemonset.yaml` | `DaemonSet ds = DaemonSet.builder()...build();<br>client.daemonSets().create(ds);` |
+| `kubectl create -f daemonset.yaml` | <pre><code>DaemonSet ds = DaemonSet.builder()...build();<br/>client.daemonSets().create(ds);</code></pre> |
 | `kubectl delete daemonset fluentd -n kube-system` | `client.daemonSets().delete("kube-system", "fluentd")` |
-| `kubectl rollout status daemonset/fluentd -n kube-system` | `final DaemonSet ds = client.daemonSets().get("kube-system", "fluentd");<br>// Check ds.getStatus().getNumberReady() and ds.getStatus().getDesiredNumberScheduled()` |
+| `kubectl rollout status daemonset/fluentd -n kube-system` | <pre><code>final DaemonSet ds = client.daemonSets().get("kube-system", "fluentd");<br/>// Check ds.getStatus().getNumberReady() and ds.getStatus().getDesiredNumberScheduled()</code></pre> |
 
 ### Job Operations
 
@@ -2742,10 +2740,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get jobs -n default` | `client.jobs().list("default")` |
 | `kubectl get job my-job -n default` | `client.jobs().get("default", "my-job")` |
-| `kubectl create -f job.yaml` | `Job job = Job.builder()...build();<br>client.jobs().create(job);` |
+| `kubectl create -f job.yaml` | <pre><code>Job job = Job.builder()...build();<br/>client.jobs().create(job);</code></pre> |
 | `kubectl delete job my-job -n default` | `client.jobs().delete("default", "my-job")` |
-| `kubectl logs job/my-job -n default` | `final Job job = client.jobs().get("default", "my-job");<br>// Get pod logs using job.getStatus() to find pod names` |
-| `kubectl wait --for=condition=complete job/my-job` | `final Job job = client.jobs().get("default", "my-job");<br>// Poll job.getStatus().getSucceeded() until equals completions` |
+| `kubectl logs job/my-job -n default` | <pre><code>final Job job = client.jobs().get("default", "my-job");<br/>// Get pod logs using job.getStatus() to find pod names</code></pre> |
+| `kubectl wait --for=condition=complete job/my-job` | <pre><code>final Job job = client.jobs().get("default", "my-job");<br/>// Poll job.getStatus().getSucceeded() until equals completions</code></pre> |
 
 ### StatefulSet Operations
 
@@ -2753,10 +2751,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get statefulsets -n default` | `client.statefulSets().list("default")` |
 | `kubectl get statefulset web -n default` | `client.statefulSets().get("default", "web")` |
-| `kubectl create -f statefulset.yaml` | `StatefulSet sts = StatefulSet.builder()...build();<br>client.statefulSets().create(sts);` |
+| `kubectl create -f statefulset.yaml` | <pre><code>StatefulSet sts = StatefulSet.builder()...build();<br/>client.statefulSets().create(sts);</code></pre> |
 | `kubectl delete statefulset web -n default` | `client.statefulSets().delete("default", "web")` |
-| `kubectl scale statefulset web --replicas=5` | `final StatefulSet sts = client.statefulSets().get("default", "web");<br>sts.getSpec().setReplicas(5);<br>client.statefulSets().update(sts);` |
-| `kubectl rollout status statefulset/web -n default` | `final StatefulSet sts = client.statefulSets().get("default", "web");<br>// Check sts.getStatus().getReadyReplicas() and sts.getStatus().getReplicas()` |
+| `kubectl scale statefulset web --replicas=5` | <pre><code>final StatefulSet sts = client.statefulSets().get("default", "web");<br/>sts.getSpec().setReplicas(5);<br/>client.statefulSets().update(sts);</code></pre> |
+| `kubectl rollout status statefulset/web -n default` | <pre><code>final StatefulSet sts = client.statefulSets().get("default", "web");<br/>// Check sts.getStatus().getReadyReplicas() and sts.getStatus().getReplicas()</code></pre> |
 
 ### ReplicaSet Operations
 
@@ -2764,10 +2762,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get replicasets -n default` | `client.replicaSets().list("default")` |
 | `kubectl get replicaset nginx-replicaset -n default` | `client.replicaSets().get("default", "nginx-replicaset")` |
-| `kubectl create -f replicaset.yaml` | `ReplicaSet rs = ReplicaSet.builder()...build();<br>client.replicaSets().create(rs);` |
+| `kubectl create -f replicaset.yaml` | <pre><code>ReplicaSet rs = ReplicaSet.builder()...build();<br/>client.replicaSets().create(rs);</code></pre> |
 | `kubectl delete replicaset nginx-replicaset -n default` | `client.replicaSets().delete("default", "nginx-replicaset")` |
-| `kubectl scale replicaset nginx-replicaset --replicas=5` | `final ReplicaSet rs = client.replicaSets().get("default", "nginx-replicaset");<br>rs.getSpec().setReplicas(5);<br>client.replicaSets().update(rs);` |
-| `kubectl get replicaset nginx-replicaset -o json` | `final ReplicaSet rs = client.replicaSets().get("default", "nginx-replicaset");<br>String json = rs.toJson();` |
+| `kubectl scale replicaset nginx-replicaset --replicas=5` | <pre><code>final ReplicaSet rs = client.replicaSets().get("default", "nginx-replicaset");<br/>rs.getSpec().setReplicas(5);<br/>client.replicaSets().update(rs);</code></pre> |
+| `kubectl get replicaset nginx-replicaset -o json` | <pre><code>final ReplicaSet rs = client.replicaSets().get("default", "nginx-replicaset");<br/>String json = rs.toJson();</code></pre> |
 
 ### Ingress Operations
 
@@ -2775,10 +2773,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get ingress -n default` | `client.ingresses().list("default")` |
 | `kubectl get ingress example-ingress -n default` | `client.ingresses().get("default", "example-ingress")` |
-| `kubectl create -f ingress.yaml` | `Ingress ing = Ingress.builder()...build();<br>client.ingresses().create(ing);` |
+| `kubectl create -f ingress.yaml` | <pre><code>Ingress ing = Ingress.builder()...build();<br/>client.ingresses().create(ing);</code></pre> |
 | `kubectl delete ingress example-ingress -n default` | `client.ingresses().delete("default", "example-ingress")` |
-| `kubectl describe ingress example-ingress` | `final Ingress ing = client.ingresses().get("default", "example-ingress");<br>// Check ing.getStatus().getLoadBalancer()` |
-| `kubectl get ingress example-ingress -o json` | `final Ingress ing = client.ingresses().get("default", "example-ingress");<br>String json = ing.toJson();` |
+| `kubectl describe ingress example-ingress` | <pre><code>final Ingress ing = client.ingresses().get("default", "example-ingress");<br/>// Check ing.getStatus().getLoadBalancer()</code></pre> |
+| `kubectl get ingress example-ingress -o json` | <pre><code>final Ingress ing = client.ingresses().get("default", "example-ingress");<br/>String json = ing.toJson();</code></pre> |
 
 ### CronJob Operations
 
@@ -2786,10 +2784,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get cronjobs -n default` | `client.cronJobs().list("default")` |
 | `kubectl get cronjob hello -n default` | `client.cronJobs().get("default", "hello")` |
-| `kubectl create -f cronjob.yaml` | `CronJob cj = CronJob.builder()...build();<br>client.cronJobs().create(cj);` |
+| `kubectl create -f cronjob.yaml` | <pre><code>CronJob cj = CronJob.builder()...build();<br/>client.cronJobs().create(cj);</code></pre> |
 | `kubectl delete cronjob hello -n default` | `client.cronJobs().delete("default", "hello")` |
-| `kubectl patch cronjob hello -p '{"spec":{"suspend":true}}'` | `final CronJob cj = client.cronJobs().get("default", "hello");<br>cj.getSpec().setSuspend(true);<br>client.cronJobs().update(cj);` |
-| `kubectl get cronjob hello -o json` | `final CronJob cj = client.cronJobs().get("default", "hello");<br>String json = cj.toJson();` |
+| `kubectl patch cronjob hello -p '{"spec":{"suspend":true}}'` | <pre><code>final CronJob cj = client.cronJobs().get("default", "hello");<br/>cj.getSpec().setSuspend(true);<br/>client.cronJobs().update(cj);</code></pre> |
+| `kubectl get cronjob hello -o json` | <pre><code>final CronJob cj = client.cronJobs().get("default", "hello");<br/>String json = cj.toJson();</code></pre> |
 
 ### Namespace Operations
 
@@ -2797,10 +2795,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get namespaces` | `client.namespaces().listAllNamespaces()` |
 | `kubectl get namespace production` | `client.namespaces().get("production")` |
-| `kubectl create namespace development` | `Namespace ns = Namespace.builder()<br>  .name("development")<br>  .build();<br>client.namespaces().create(ns);` |
-| `kubectl create namespace prod --labels=env=production` | `Namespace ns = Namespace.builder()<br>  .name("prod")<br>  .label("env", "production")<br>  .build();<br>client.namespaces().create(ns);` |
+| `kubectl create namespace development` | <pre><code>Namespace ns = Namespace.builder()<br/>  .name("development")<br/>  .build();<br/>client.namespaces().create(ns);</code></pre> |
+| `kubectl create namespace prod --labels=env=production` | <pre><code>Namespace ns = Namespace.builder()<br/>  .name("prod")<br/>  .label("env", "production")<br/>  .build();<br/>client.namespaces().create(ns);</code></pre> |
 | `kubectl delete namespace development` | `client.namespaces().delete("development")` |
-| `kubectl get namespace production -o json` | `final Namespace ns = client.namespaces().get("production");<br>String json = ns.toJson();` |
+| `kubectl get namespace production -o json` | <pre><code>final Namespace ns = client.namespaces().get("production");<br/>String json = ns.toJson();</code></pre> |
 
 ### ServiceAccount Operations
 
@@ -2808,10 +2806,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get serviceaccounts -n default` | `client.serviceAccounts().list("default")` |
 | `kubectl get serviceaccount my-service-account -n default` | `client.serviceAccounts().get("default", "my-service-account")` |
-| `kubectl create serviceaccount my-service-account -n default` | `ServiceAccount sa = ServiceAccount.builder()<br>  .name("my-service-account")<br>  .namespace("default")<br>  .build();<br>client.serviceAccounts().create(sa);` |
+| `kubectl create serviceaccount my-service-account -n default` | <pre><code>ServiceAccount sa = ServiceAccount.builder()<br/>  .name("my-service-account")<br/>  .namespace("default")<br/>  .build();<br/>client.serviceAccounts().create(sa);</code></pre> |
 | `kubectl delete serviceaccount my-service-account -n default` | `client.serviceAccounts().delete("default", "my-service-account")` |
-| `kubectl describe serviceaccount my-service-account -n default` | `final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br>// Check sa.getStatus().getSecrets()` |
-| `kubectl get serviceaccount my-service-account -o json` | `final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br>String json = sa.toJson();` |
+| `kubectl describe serviceaccount my-service-account -n default` | <pre><code>final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br/>// Check sa.getStatus().getSecrets()</code></pre> |
+| `kubectl get serviceaccount my-service-account -o json` | <pre><code>final ServiceAccount sa = client.serviceAccounts().get("default", "my-service-account");<br/>String json = sa.toJson();</code></pre> |
 
 ### Role Operations
 
@@ -2819,10 +2817,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get roles -n default` | `client.roles().list("default")` |
 | `kubectl get role pod-reader -n default` | `client.roles().get("default", "pod-reader")` |
-| `kubectl create role pod-reader --verb=get --verb=list --resource=pods -n default` | `Role role = Role.builder()<br>  .name("pod-reader")<br>  .namespace("default")<br>  .spec(RoleSpec.builder()<br>    .rule(PolicyRule.builder()<br>      .apiGroup("")<br>      .resource("pods")<br>      .verb("get")<br>      .verb("list")<br>      .build())<br>    .build())<br>  .build();<br>client.roles().create(role);` |
+| `kubectl create role pod-reader --verb=get --verb=list --resource=pods -n default` | <pre><code>Role role = Role.builder()<br/>  .name("pod-reader")<br/>  .namespace("default")<br/>  .spec(RoleSpec.builder()<br/>    .rule(PolicyRule.builder()<br/>      .apiGroup("")<br/>      .resource("pods")<br/>      .verb("get")<br/>      .verb("list")<br/>      .build())<br/>    .build())<br/>  .build();<br/>client.roles().create(role);</code></pre> |
 | `kubectl delete role pod-reader -n default` | `client.roles().delete("default", "pod-reader")` |
-| `kubectl describe role pod-reader -n default` | `final Role role = client.roles().get("default", "pod-reader");<br>// Check role.getSpec().getRules()` |
-| `kubectl get role pod-reader -o json` | `final Role role = client.roles().get("default", "pod-reader");<br>String json = role.toJson();` |
+| `kubectl describe role pod-reader -n default` | <pre><code>final Role role = client.roles().get("default", "pod-reader");<br/>// Check role.getSpec().getRules()</code></pre> |
+| `kubectl get role pod-reader -o json` | <pre><code>final Role role = client.roles().get("default", "pod-reader");<br/>String json = role.toJson();</code></pre> |
 
 ### RoleBinding Operations
 
@@ -2830,10 +2828,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get rolebindings -n default` | `client.roleBindings().list("default")` |
 | `kubectl get rolebinding read-pods -n default` | `client.roleBindings().get("default", "read-pods")` |
-| `kubectl create rolebinding read-pods --role=pod-reader --serviceaccount=default:my-sa -n default` | `RoleBinding rb = RoleBinding.builder()<br>  .name("read-pods")<br>  .namespace("default")<br>  .spec(RoleBindingSpec.builder()<br>    .subject(Subject.builder()<br>      .kind("ServiceAccount")<br>      .name("my-sa")<br>      .namespace("default")<br>      .build())<br>    .roleRef(RoleRef.builder()<br>      .apiGroup("rbac.authorization.k8s.io")<br>      .kind("Role")<br>      .name("pod-reader")<br>      .build())<br>    .build())<br>  .build();<br>client.roleBindings().create(rb);` |
+| `kubectl create rolebinding read-pods --role=pod-reader --serviceaccount=default:my-sa -n default` | <pre><code>RoleBinding rb = RoleBinding.builder()<br/>  .name("read-pods")<br/>  .namespace("default")<br/>  .spec(RoleBindingSpec.builder()<br/>    .subject(Subject.builder()<br/>      .kind("ServiceAccount")<br/>      .name("my-sa")<br/>      .namespace("default")<br/>      .build())<br/>    .roleRef(RoleRef.builder()<br/>      .apiGroup("rbac.authorization.k8s.io")<br/>      .kind("Role")<br/>      .name("pod-reader")<br/>      .build())<br/>    .build())<br/>  .build();<br/>client.roleBindings().create(rb);</code></pre> |
 | `kubectl delete rolebinding read-pods -n default` | `client.roleBindings().delete("default", "read-pods")` |
-| `kubectl describe rolebinding read-pods -n default` | `final RoleBinding rb = client.roleBindings().get("default", "read-pods");<br>// Check rb.getSpec().getSubjects() and rb.getSpec().getRoleRef()` |
-| `kubectl get rolebinding read-pods -o json` | `final RoleBinding rb = client.roleBindings().get("default", "read-pods");<br>String json = rb.toJson();` |
+| `kubectl describe rolebinding read-pods -n default` | <pre><code>final RoleBinding rb = client.roleBindings().get("default", "read-pods");<br/>// Check rb.getSpec().getSubjects() and rb.getSpec().getRoleRef()</code></pre> |
+| `kubectl get rolebinding read-pods -o json` | <pre><code>final RoleBinding rb = client.roleBindings().get("default", "read-pods");<br/>String json = rb.toJson();</code></pre> |
 
 ### ClusterRole Operations
 
@@ -2841,10 +2839,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get clusterroles` | `client.clusterRoles().list()` |
 | `kubectl get clusterrole pod-reader` | `client.clusterRoles().get("pod-reader")` |
-| `kubectl create clusterrole pod-reader --verb=get --verb=list --resource=pods` | `ClusterRole role = ClusterRole.builder()<br>  .name("pod-reader")<br>  .spec(RoleSpec.builder()<br>    .rule(PolicyRule.builder()<br>      .apiGroup("")<br>      .resource("pods")<br>      .verb("get")<br>      .verb("list")<br>      .build())<br>    .build())<br>  .build();<br>client.clusterRoles().create(role);` |
+| `kubectl create clusterrole pod-reader --verb=get --verb=list --resource=pods` | <pre><code>ClusterRole role = ClusterRole.builder()<br/>  .name("pod-reader")<br/>  .spec(RoleSpec.builder()<br/>    .rule(PolicyRule.builder()<br/>      .apiGroup("")<br/>      .resource("pods")<br/>      .verb("get")<br/>      .verb("list")<br/>      .build())<br/>    .build())<br/>  .build();<br/>client.clusterRoles().create(role);</code></pre> |
 | `kubectl delete clusterrole pod-reader` | `client.clusterRoles().delete("pod-reader")` |
-| `kubectl describe clusterrole pod-reader` | `final ClusterRole role = client.clusterRoles().get("pod-reader");<br>// Check role.getSpec().getRules()` |
-| `kubectl get clusterrole pod-reader -o json` | `final ClusterRole role = client.clusterRoles().get("pod-reader");<br>String json = role.toJson();` |
+| `kubectl describe clusterrole pod-reader` | <pre><code>final ClusterRole role = client.clusterRoles().get("pod-reader");<br/>// Check role.getSpec().getRules()</code></pre> |
+| `kubectl get clusterrole pod-reader -o json` | <pre><code>final ClusterRole role = client.clusterRoles().get("pod-reader");<br/>String json = role.toJson();</code></pre> |
 
 ### ClusterRoleBinding Operations
 
@@ -2852,10 +2850,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get clusterrolebindings` | `client.clusterRoleBindings().list()` |
 | `kubectl get clusterrolebinding cluster-admin-binding` | `client.clusterRoleBindings().get("cluster-admin-binding")` |
-| `kubectl create clusterrolebinding admin-binding --clusterrole=cluster-admin --user=admin@example.com` | `ClusterRoleBinding rb = ClusterRoleBinding.builder()<br>  .name("admin-binding")<br>  .spec(ClusterRoleBindingSpec.builder()<br>    .subject(Subject.builder()<br>      .kind("User")<br>      .name("admin@example.com")<br>      .apiGroup("rbac.authorization.k8s.io")<br>      .build())<br>    .roleRef(RoleRef.builder()<br>      .apiGroup("rbac.authorization.k8s.io")<br>      .kind("ClusterRole")<br>      .name("cluster-admin")<br>      .build())<br>    .build())<br>  .build();<br>client.clusterRoleBindings().create(rb);` |
+| `kubectl create clusterrolebinding admin-binding --clusterrole=cluster-admin --user=admin@example.com` | <pre><code>ClusterRoleBinding rb = ClusterRoleBinding.builder()<br/>  .name("admin-binding")<br/>  .spec(ClusterRoleBindingSpec.builder()<br/>    .subject(Subject.builder()<br/>      .kind("User")<br/>      .name("admin@example.com")<br/>      .apiGroup("rbac.authorization.k8s.io")<br/>      .build())<br/>    .roleRef(RoleRef.builder()<br/>      .apiGroup("rbac.authorization.k8s.io")<br/>      .kind("ClusterRole")<br/>      .name("cluster-admin")<br/>      .build())<br/>    .build())<br/>  .build();<br/>client.clusterRoleBindings().create(rb);</code></pre> |
 | `kubectl delete clusterrolebinding cluster-admin-binding` | `client.clusterRoleBindings().delete("cluster-admin-binding")` |
-| `kubectl describe clusterrolebinding cluster-admin-binding` | `final ClusterRoleBinding rb = client.clusterRoleBindings().get("cluster-admin-binding");<br>// Check rb.getSpec().getSubjects() and rb.getSpec().getRoleRef()` |
-| `kubectl get clusterrolebinding cluster-admin-binding -o json` | `final ClusterRoleBinding rb = client.clusterRoleBindings().get("cluster-admin-binding");<br>String json = rb.toJson();` |
+| `kubectl describe clusterrolebinding cluster-admin-binding` | <pre><code>final ClusterRoleBinding rb = client.clusterRoleBindings().get("cluster-admin-binding");<br/>// Check rb.getSpec().getSubjects() and rb.getSpec().getRoleRef()</code></pre> |
+| `kubectl get clusterrolebinding cluster-admin-binding -o json` | <pre><code>final ClusterRoleBinding rb = client.clusterRoleBindings().get("cluster-admin-binding");<br/>String json = rb.toJson();</code></pre> |
 
 ### NetworkPolicy Operations
 
@@ -2863,10 +2861,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get networkpolicies -n default` | `client.networkPolicies().list("default")` |
 | `kubectl get networkpolicy allow-db-access -n default` | `client.networkPolicies().get("default", "allow-db-access")` |
-| `kubectl create -f networkpolicy.yaml` | `NetworkPolicy np = NetworkPolicy.builder()<br>  .name("allow-db-access")<br>  .namespace("default")<br>  .spec(NetworkPolicySpec.builder()<br>    .podSelector(LabelSelector.builder()<br>      .matchLabel("role", "db")<br>      .build())<br>    .policyType("Ingress")<br>    .ingressRule(NetworkPolicyIngressRule.builder()<br>      .from(NetworkPolicyPeer.builder()<br>        .podSelector(LabelSelector.builder()<br>          .matchLabel("role", "frontend")<br>          .build())<br>        .build())<br>      .build())<br>    .build())<br>  .build();<br>client.networkPolicies().create(np);` |
+| `kubectl create -f networkpolicy.yaml` | <pre><code>NetworkPolicy np = NetworkPolicy.builder()<br/>  .name("allow-db-access")<br/>  .namespace("default")<br/>  .spec(NetworkPolicySpec.builder()<br/>    .podSelector(LabelSelector.builder()<br/>      .matchLabel("role", "db")<br/>      .build())<br/>    .policyType("Ingress")<br/>    .ingressRule(NetworkPolicyIngressRule.builder()<br/>      .from(NetworkPolicyPeer.builder()<br/>        .podSelector(LabelSelector.builder()<br/>          .matchLabel("role", "frontend")<br/>          .build())<br/>        .build())<br/>      .build())<br/>    .build())<br/>  .build();<br/>client.networkPolicies().create(np);</code></pre> |
 | `kubectl delete networkpolicy allow-db-access -n default` | `client.networkPolicies().delete("default", "allow-db-access")` |
-| `kubectl describe networkpolicy allow-db-access -n default` | `final NetworkPolicy np = client.networkPolicies().get("default", "allow-db-access");<br>// Check np.getSpec().getIngress() and np.getSpec().getEgress()` |
-| `kubectl get networkpolicy allow-db-access -o json` | `final NetworkPolicy np = client.networkPolicies().get("default", "allow-db-access");<br>String json = np.toJson();` |
+| `kubectl describe networkpolicy allow-db-access -n default` | <pre><code>final NetworkPolicy np = client.networkPolicies().get("default", "allow-db-access");<br/>// Check np.getSpec().getIngress() and np.getSpec().getEgress()</code></pre> |
+| `kubectl get networkpolicy allow-db-access -o json` | <pre><code>final NetworkPolicy np = client.networkPolicies().get("default", "allow-db-access");<br/>String json = np.toJson();</code></pre> |
 
 ### HorizontalPodAutoscaler Operations
 
@@ -2874,10 +2872,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get hpa -n default` | `client.horizontalPodAutoscalers().list("default")` |
 | `kubectl get hpa php-apache -n default` | `client.horizontalPodAutoscalers().get("default", "php-apache")` |
-| `kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10` | `HorizontalPodAutoscaler hpa = HorizontalPodAutoscaler.builder()<br>  .name("php-apache")<br>  .namespace("default")<br>  .spec(HorizontalPodAutoscalerSpec.builder()<br>    .scaleTargetRef(CrossVersionObjectReference.builder()<br>      .apiVersion("apps/v1")<br>      .kind("Deployment")<br>      .name("php-apache")<br>      .build())<br>    .minReplicas(1)<br>    .maxReplicas(10)<br>    .metric(MetricSpec.builder()<br>      .type("Resource")<br>      .resource(ResourceMetricSource.builder()<br>        .name("cpu")<br>        .target(MetricTarget.builder()<br>          .type("Utilization")<br>          .averageUtilization(50)<br>          .build())<br>        .build())<br>      .build())<br>    .build())<br>  .build();<br>client.horizontalPodAutoscalers().create(hpa);` |
+| `kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10` | <pre><code>HorizontalPodAutoscaler hpa = HorizontalPodAutoscaler.builder()<br/>  .name("php-apache")<br/>  .namespace("default")<br/>  .spec(HorizontalPodAutoscalerSpec.builder()<br/>    .scaleTargetRef(CrossVersionObjectReference.builder()<br/>      .apiVersion("apps/v1")<br/>      .kind("Deployment")<br/>      .name("php-apache")<br/>      .build())<br/>    .minReplicas(1)<br/>    .maxReplicas(10)<br/>    .metric(MetricSpec.builder()<br/>      .type("Resource")<br/>      .resource(ResourceMetricSource.builder()<br/>        .name("cpu")<br/>        .target(MetricTarget.builder()<br/>          .type("Utilization")<br/>          .averageUtilization(50)<br/>          .build())<br/>        .build())<br/>      .build())<br/>    .build())<br/>  .build();<br/>client.horizontalPodAutoscalers().create(hpa);</code></pre> |
 | `kubectl delete hpa php-apache -n default` | `client.horizontalPodAutoscalers().delete("default", "php-apache")` |
-| `kubectl describe hpa php-apache -n default` | `final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers().get("default", "php-apache");<br>// Check hpa.getStatus().getCurrentReplicas(), hpa.getStatus().getDesiredReplicas()` |
-| `kubectl get hpa php-apache -o json` | `final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers().get("default", "php-apache");<br>String json = hpa.toJson();` |
+| `kubectl describe hpa php-apache -n default` | <pre><code>final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers().get("default", "php-apache");<br/>// Check hpa.getStatus().getCurrentReplicas(), hpa.getStatus().getDesiredReplicas()</code></pre> |
+| `kubectl get hpa php-apache -o json` | <pre><code>final HorizontalPodAutoscaler hpa = client.horizontalPodAutoscalers().get("default", "php-apache");<br/>String json = hpa.toJson();</code></pre> |
 
 ### VerticalPodAutoscaler Operations
 
@@ -2887,10 +2885,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get vpa -n default` | `client.verticalPodAutoscalers().list("default")` |
 | `kubectl get vpa my-app-vpa -n default` | `client.verticalPodAutoscalers().get("default", "my-app-vpa")` |
-| `kubectl apply -f vpa.yaml` | `VerticalPodAutoscaler vpa = VerticalPodAutoscaler.builder()<br>  .name("my-app-vpa")<br>  .namespace("default")<br>  .spec(VerticalPodAutoscalerSpec.builder()<br>    .targetRef(CrossVersionObjectReference.builder()<br>      .apiVersion("apps/v1")<br>      .kind("Deployment")<br>      .name("my-app")<br>      .build())<br>    .updatePolicy(VPAUpdatePolicy.builder()<br>      .updateMode("Off")<br>      .build())<br>    .build())<br>  .build();<br>client.verticalPodAutoscalers().create(vpa);` |
+| `kubectl apply -f vpa.yaml` | <pre><code>VerticalPodAutoscaler vpa = VerticalPodAutoscaler.builder()<br/>  .name("my-app-vpa")<br/>  .namespace("default")<br/>  .spec(VerticalPodAutoscalerSpec.builder()<br/>    .targetRef(CrossVersionObjectReference.builder()<br/>      .apiVersion("apps/v1")<br/>      .kind("Deployment")<br/>      .name("my-app")<br/>      .build())<br/>    .updatePolicy(VPAUpdatePolicy.builder()<br/>      .updateMode("Off")<br/>      .build())<br/>    .build())<br/>  .build();<br/>client.verticalPodAutoscalers().create(vpa);</code></pre> |
 | `kubectl delete vpa my-app-vpa -n default` | `client.verticalPodAutoscalers().delete("default", "my-app-vpa")` |
-| `kubectl describe vpa my-app-vpa -n default` | `final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers().get("default", "my-app-vpa");<br>// Check vpa.getStatus().getRecommendation()` |
-| `kubectl get vpa my-app-vpa -o json` | `final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers().get("default", "my-app-vpa");<br>String json = vpa.toJson();` |
+| `kubectl describe vpa my-app-vpa -n default` | <pre><code>final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers().get("default", "my-app-vpa");<br/>// Check vpa.getStatus().getRecommendation()</code></pre> |
+| `kubectl get vpa my-app-vpa -o json` | <pre><code>final VerticalPodAutoscaler vpa = client.verticalPodAutoscalers().get("default", "my-app-vpa");<br/>String json = vpa.toJson();</code></pre> |
 
 ### ResourceQuota Operations
 
@@ -2898,10 +2896,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get resourcequota -n my-ns` | `client.resourceQuotas().list("my-ns")` |
 | `kubectl get resourcequota compute-quota -n my-ns` | `client.resourceQuotas().get("my-ns", "compute-quota")` |
-| `kubectl create -f quota.yaml` | `ResourceQuota quota = ResourceQuota.builder()<br>  .name("compute-quota")<br>  .namespace("my-ns")<br>  .spec(ResourceQuotaSpec.builder()<br>    .hardLimit("requests.cpu", "10")<br>    .hardLimit("requests.memory", "20Gi")<br>    .hardLimit("pods", "50")<br>    .build())<br>  .build();<br>client.resourceQuotas().create(quota);` |
+| `kubectl create -f quota.yaml` | <pre><code>ResourceQuota quota = ResourceQuota.builder()<br/>  .name("compute-quota")<br/>  .namespace("my-ns")<br/>  .spec(ResourceQuotaSpec.builder()<br/>    .hardLimit("requests.cpu", "10")<br/>    .hardLimit("requests.memory", "20Gi")<br/>    .hardLimit("pods", "50")<br/>    .build())<br/>  .build();<br/>client.resourceQuotas().create(quota);</code></pre> |
 | `kubectl delete resourcequota compute-quota -n my-ns` | `client.resourceQuotas().delete("my-ns", "compute-quota")` |
-| `kubectl describe resourcequota compute-quota -n my-ns` | `final ResourceQuota quota = client.resourceQuotas().get("my-ns", "compute-quota");<br>// Check quota.getStatus().getUsed() vs quota.getStatus().getHard()` |
-| `kubectl get resourcequota compute-quota -o json` | `final ResourceQuota quota = client.resourceQuotas().get("my-ns", "compute-quota");<br>String json = quota.toJson();` |
+| `kubectl describe resourcequota compute-quota -n my-ns` | <pre><code>final ResourceQuota quota = client.resourceQuotas().get("my-ns", "compute-quota");<br/>// Check quota.getStatus().getUsed() vs quota.getStatus().getHard()</code></pre> |
+| `kubectl get resourcequota compute-quota -o json` | <pre><code>final ResourceQuota quota = client.resourceQuotas().get("my-ns", "compute-quota");<br/>String json = quota.toJson();</code></pre> |
 
 ### PersistentVolume Operations
 
@@ -2909,10 +2907,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get pv` | `client.persistentVolumes().list()` |
 | `kubectl get pv local-pv` | `client.persistentVolumes().get("local-pv")` |
-| `kubectl create -f persistentvolume.yaml` | `PersistentVolume pv = PersistentVolume.builder()...build();<br>client.persistentVolumes().create(pv);` |
+| `kubectl create -f persistentvolume.yaml` | <pre><code>PersistentVolume pv = PersistentVolume.builder()...build();<br/>client.persistentVolumes().create(pv);</code></pre> |
 | `kubectl delete pv local-pv` | `client.persistentVolumes().delete("local-pv")` |
-| `kubectl describe pv local-pv` | `final PersistentVolume pv = client.persistentVolumes().get("local-pv");<br>// Check pv.getSpec() and pv.getStatus()` |
-| `kubectl get pv local-pv -o json` | `final PersistentVolume pv = client.persistentVolumes().get("local-pv");<br>String json = pv.toJson();` |
+| `kubectl describe pv local-pv` | <pre><code>final PersistentVolume pv = client.persistentVolumes().get("local-pv");<br/>// Check pv.getSpec() and pv.getStatus()</code></pre> |
+| `kubectl get pv local-pv -o json` | <pre><code>final PersistentVolume pv = client.persistentVolumes().get("local-pv");<br/>String json = pv.toJson();</code></pre> |
 
 ### PersistentVolumeClaim Operations
 
@@ -2920,10 +2918,10 @@ Elev8 provides type-safe Java alternatives to common kubectl commands:
 |----------------|------------------|
 | `kubectl get pvc -n default` | `client.persistentVolumeClaims().list("default")` |
 | `kubectl get pvc my-pvc -n default` | `client.persistentVolumeClaims().get("default", "my-pvc")` |
-| `kubectl create -f persistentvolumeclaim.yaml` | `PersistentVolumeClaim pvc = PersistentVolumeClaim.builder()...build();<br>client.persistentVolumeClaims().create(pvc);` |
+| `kubectl create -f persistentvolumeclaim.yaml` | <pre><code>PersistentVolumeClaim pvc = PersistentVolumeClaim.builder()...build();<br/>client.persistentVolumeClaims().create(pvc);</code></pre> |
 | `kubectl delete pvc my-pvc -n default` | `client.persistentVolumeClaims().delete("default", "my-pvc")` |
-| `kubectl describe pvc my-pvc -n default` | `final PersistentVolumeClaim pvc = client.persistentVolumeClaims().get("default", "my-pvc");<br>// Check pvc.getSpec() and pvc.getStatus()` |
-| `kubectl get pvc my-pvc -o json` | `final PersistentVolumeClaim pvc = client.persistentVolumeClaims().get("default", "my-pvc");<br>String json = pvc.toJson();` |
+| `kubectl describe pvc my-pvc -n default` | <pre><code>final PersistentVolumeClaim pvc = client.persistentVolumeClaims().get("default", "my-pvc");<br/>// Check pvc.getSpec() and pvc.getStatus()</code></pre> |
+| `kubectl get pvc my-pvc -o json` | <pre><code>final PersistentVolumeClaim pvc = client.persistentVolumeClaims().get("default", "my-pvc");<br/>String json = pvc.toJson();</code></pre> |
 
 ### Complete Example: Creating a Deployment
 
@@ -2996,105 +2994,4 @@ Apache License 2.0 - see [LICENSE](LICENSE) for details.
 
 ## Roadmap
 
-### Completed
-
-- [x] IAM authentication with automatic token refresh
-- [x] Core Kubernetes client framework with HTTP abstraction
-- [x] EKS cluster auto-discovery (endpoint and CA certificate)
-- [x] Core resources with full CRUD (Pod, Service, Deployment)
-- [x] Type-safe builder pattern for all resources
-- [x] JSON serialization with Jackson
-- [x] Resource manager architecture
-- [x] Fluent API integration with EksClient
-- [x] OIDC/IRSA authentication support
-- [x] EKS Access Entries API integration
-- [x] Comprehensive unit test coverage
-- [x] ConfigMap and Secret resources
-- [x] DaemonSet resource support
-- [x] Job resource support
-- [x] StatefulSet resource support
-- [x] CronJob resource support
-- [x] Namespace resource support
-- [x] ReplicaSet resource support
-
-### In Progress
-
-#### Phase 1: Core Resources (High Priority)
-- [x] Namespace resource support
-- [x] ReplicaSet resource support
-- [x] Ingress resource support (networking.k8s.io/v1)
-- [x] ServiceAccount resource support
-- [x] PersistentVolume and PersistentVolumeClaim resources
-
-#### Phase 2: Security & RBAC ✅
-- [x] Role and RoleBinding resources (rbac.authorization.k8s.io/v1)
-- [x] ClusterRole and ClusterRoleBinding resources
-- [x] NetworkPolicy resource support (networking.k8s.io/v1)
-
-#### Phase 3: Scaling & Resource Management ✅
-- [x] HorizontalPodAutoscaler resource support (autoscaling/v2)
-- [x] VerticalPodAutoscaler resource support (autoscaling.k8s.io/v1)
-- [x] ResourceQuota resource support
-- [x] LimitRange resource support
-- [x] PodDisruptionBudget resource support (policy/v1)
-
-#### Phase 4: Storage & Persistence ✅
-- [x] StorageClass resource support (storage.k8s.io/v1)
-- [x] VolumeSnapshot support (snapshot.storage.k8s.io/v1)
-  - [x] VolumeSnapshotClass (cluster-scoped)
-  - [x] VolumeSnapshot (namespace-scoped)
-  - [x] VolumeSnapshotContent (cluster-scoped)
-- [x] CSIDriver resource support (storage.k8s.io/v1)
-
-#### Phase 5: Advanced Operations
-- [x] Watch API implementation for resource updates
-- [ ] Resource change event streaming
-- [x] Pod log streaming API
-- [x] Exec into pods support (foundation - WebSocket infrastructure established)
-- [ ] Port forwarding support
-- [x] Patch operations (JSON Patch/Strategic Merge Patch)
-- [x] Server-side Apply operations
-
-#### Phase 6: Events & Observability
-- [ ] Event resource support (v1)
-- [ ] Event watching and filtering
-- [ ] Resource status condition helpers
-- [ ] Metrics API support (metrics.k8s.io)
-
-#### Phase 7: Production Patterns & Performance
-- [ ] Informers pattern implementation
-- [ ] SharedInformers with client-side caching
-- [ ] Leader election support (coordination.k8s.io/v1)
-- [ ] Work queue implementation
-- [ ] Request retry with exponential backoff
-- [ ] Connection pooling optimizations
-- [ ] Rate limiting support
-
-#### Phase 8: Custom Resources
-- [ ] CustomResourceDefinition (CRD) resource support
-- [ ] Generic custom resource CRUD operations
-- [ ] Dynamic client for untyped resources
-- [ ] Code generation from CRD schemas
-
-#### Phase 9: Multi-Cloud Support
-- [ ] GKE authentication (GCP IAM/Workload Identity)
-- [ ] GKE cluster auto-discovery
-- [ ] GkeClient implementation
-- [ ] AKS authentication (Azure AD/Managed Identity)
-- [ ] AKS cluster auto-discovery
-- [ ] AksClient implementation
-- [ ] Multi-cloud abstraction layer
-
-#### Phase 10: Advanced Features
-- [ ] Reactive API support (Project Reactor/RxJava)
-- [ ] Field selectors for advanced filtering
-- [ ] Label selector query enhancements
-- [ ] Resource aggregation APIs
-- [ ] Admission webhooks support
-
-#### Phase 11: Release & Distribution
-- [ ] Maven Central publication
-- [ ] API stability guarantees
-- [ ] Semantic versioning strategy
-- [ ] Migration guides between versions
-- [ ] Performance benchmarks and documentation
+See [ROADMAP.md](ROADMAP.md) for the complete development roadmap including completed features and future plans.
