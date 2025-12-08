@@ -1,6 +1,7 @@
 package io.elev8.resources.verticalpodautoscaler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.elev8.resources.Condition;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,7 @@ import lombok.extern.jackson.Jacksonized;
 @Builder(toBuilder = true)
 @Jacksonized
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class VPACondition {
+public class VPACondition implements Condition {
     /**
      * Type describes the current condition.
      * Valid values:

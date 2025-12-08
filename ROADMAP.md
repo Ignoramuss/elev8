@@ -68,7 +68,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 ### Phase 6: Events & Observability
 - [x] Event resource support (v1)
 - [x] Event watching and filtering
-- [ ] Resource status condition helpers
+- [x] Resource status condition helpers
 - [ ] Metrics API support (metrics.k8s.io)
 
 ### Phase 7: Production Patterns & Performance
