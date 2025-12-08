@@ -1,6 +1,7 @@
 package io.elev8.resources.namespace;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.elev8.resources.Condition;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,7 +34,7 @@ public class NamespaceStatus {
     @Setter
     @NoArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class NamespaceCondition {
+    public static class NamespaceCondition implements Condition {
         /**
          * Type of namespace controller condition.
          */

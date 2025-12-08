@@ -1,6 +1,7 @@
 package io.elev8.resources.persistentvolumeclaim;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.elev8.resources.Condition;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -66,7 +67,7 @@ public class PersistentVolumeClaimStatus {
     @Builder(toBuilder = true)
     @Jacksonized
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class PersistentVolumeClaimCondition {
+    public static class PersistentVolumeClaimCondition implements Condition {
         /**
          * Type of PersistentVolumeClaim condition.
          * Possible values: Resizing, FileSystemResizePending.
