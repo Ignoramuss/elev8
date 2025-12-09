@@ -58,7 +58,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 
 ### Phase 5: Advanced Operations
 - [x] Watch API implementation for resource updates
-- [ ] Resource change event streaming
+- [x] Resource change event streaming
 - [x] Pod log streaming API
 - [x] Exec into pods support
 - [x] Port forwarding support

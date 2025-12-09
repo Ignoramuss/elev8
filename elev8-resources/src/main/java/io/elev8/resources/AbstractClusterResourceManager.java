@@ -7,6 +7,8 @@ import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpResponse;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
+import io.elev8.core.watch.ResourceChangeStream;
+import io.elev8.core.watch.StreamOptions;
 import io.elev8.core.watch.WatchEvent;
 import io.elev8.core.watch.WatchOptions;
 import io.elev8.core.watch.Watcher;
@@ -251,6 +253,25 @@ public abstract class AbstractClusterResourceManager<T extends KubernetesResourc
         } catch (KubernetesClientException e) {
             throw new ResourceException("Failed to watch cluster resources", e);
         }
+    }
+
+    @Override
+    public ResourceChangeStream<T> stream(final StreamOptions options) throws ResourceException {
+        final StreamOptions effectiveOptions = options != null ? options : StreamOptions.defaults();
+        final ResourceChangeStream<T> stream = new ResourceChangeStream<>(
+                effectiveOptions.getQueueCapacity(),
+                () -> {}
+        );
+
+        final WatchStreamAdapter<T> adapter = new WatchStreamAdapter<>(
+                stream,
+                effectiveOptions.isTrackPreviousState()
+        );
+
+        log.debug("Starting resource change stream for cluster-scoped resources");
+        watch(effectiveOptions.getWatchOptions(), adapter);
+
+        return stream;
     }
 
     /**
