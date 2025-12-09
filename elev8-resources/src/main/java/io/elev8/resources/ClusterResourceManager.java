@@ -2,6 +2,8 @@ package io.elev8.resources;
 
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
+import io.elev8.core.watch.ResourceChangeStream;
+import io.elev8.core.watch.StreamOptions;
 import io.elev8.core.watch.WatchOptions;
 import io.elev8.core.watch.Watcher;
 
@@ -101,4 +103,24 @@ public interface ClusterResourceManager<T extends KubernetesResource> {
      * @throws ResourceException if the watch operation fails
      */
     void watch(WatchOptions options, Watcher<T> watcher) throws ResourceException;
+
+    /**
+     * Stream resource change events for cluster-scoped resources.
+     * Returns a ResourceChangeStream that can be iterated or converted to a Java Stream.
+     * The caller is responsible for closing the stream when done.
+     *
+     * <p>Example usage:</p>
+     * <pre>{@code
+     * try (ResourceChangeStream<Namespace> stream = namespaceManager.stream(StreamOptions.defaults())) {
+     *     stream.stream()
+     *         .filter(ResourceChangeEvent::isCreated)
+     *         .forEach(e -> System.out.println("New namespace: " + e.getResource().getName()));
+     * }
+     * }</pre>
+     *
+     * @param options stream options for configuring the stream behavior
+     * @return a ResourceChangeStream for iterating over events
+     * @throws ResourceException if the stream operation fails to start
+     */
+    ResourceChangeStream<T> stream(StreamOptions options) throws ResourceException;
 }
