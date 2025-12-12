@@ -4,7 +4,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 
 > For installation and usage instructions, see [README.md](README.md)
 
-**Last Updated:** November 2025
+**Last Updated:** December 2025
 
 ## Completed
 
@@ -69,7 +69,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] Event resource support (v1)
 - [x] Event watching and filtering
 - [x] Resource status condition helpers
-- [ ] Metrics API support (metrics.k8s.io)
+- [x] Metrics API support (metrics.k8s.io)
 
 ### Phase 7: Production Patterns & Performance
 - [ ] Informers pattern implementation
