@@ -72,8 +72,10 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] Metrics API support (metrics.k8s.io)
 
 ### Phase 7: Production Patterns & Performance
-- [ ] Informers pattern implementation
-- [ ] SharedInformers with client-side caching
+- [x] Informers pattern implementation (basic)
+- [ ] Informer resync support
+- [ ] Informer indexing (secondary indices)
+- [ ] SharedInformers with store sharing
 - [ ] Leader election support (coordination.k8s.io/v1)
 - [ ] Work queue implementation
 - [ ] Request retry with exponential backoff
