@@ -371,6 +371,227 @@ class InformerTest {
         }
     }
 
+    @Nested
+    class Resync {
+        private volatile List<TestResource> resyncList;
+
+        @BeforeEach
+        void setUpResync() {
+            resyncList = new ArrayList<>(initialResources);
+        }
+
+        @Test
+        void shouldFireUpdateEventsOnResync() throws InterruptedException {
+            final TestResource resource = createResource("default", "pod-1");
+            initialResources.add(resource);
+            resyncList = new ArrayList<>(initialResources);
+
+            final CountDownLatch updateLatch = new CountDownLatch(1);
+            final List<TestResource[]> updates = new ArrayList<>();
+
+            informer = createInformerWithResync(200);
+            informer.addEventHandler(new ResourceEventHandler<>() {
+                @Override
+                public void onAdd(final TestResource r) {
+                }
+
+                @Override
+                public void onUpdate(final TestResource old, final TestResource newRes) {
+                    updates.add(new TestResource[]{old, newRes});
+                    updateLatch.countDown();
+                }
+
+                @Override
+                public void onDelete(final TestResource r) {
+                }
+            });
+
+            informer.start();
+            waitForSync();
+
+            updateLatch.await(2, TimeUnit.SECONDS);
+
+            assertThat(updates).isNotEmpty();
+            assertThat(updates.get(0)[0].getName()).isEqualTo("pod-1");
+            assertThat(updates.get(0)[1].getName()).isEqualTo("pod-1");
+
+            informer.stop();
+        }
+
+        @Test
+        void shouldDetectNewResourcesOnResync() throws InterruptedException {
+            final TestResource resource = createResource("default", "pod-1");
+            initialResources.add(resource);
+            resyncList = new ArrayList<>(initialResources);
+
+            final CountDownLatch addLatch = new CountDownLatch(2);
+            final List<TestResource> addedResources = new ArrayList<>();
+
+            informer = createInformerWithResync(200);
+            informer.addEventHandler(new ResourceEventHandler<>() {
+                @Override
+                public void onAdd(final TestResource r) {
+                    addedResources.add(r);
+                    addLatch.countDown();
+                }
+
+                @Override
+                public void onUpdate(final TestResource old, final TestResource newRes) {
+                }
+
+                @Override
+                public void onDelete(final TestResource r) {
+                }
+            });
+
+            informer.start();
+            waitForSync();
+
+            resyncList.add(createResource("default", "pod-2"));
+
+            addLatch.await(2, TimeUnit.SECONDS);
+
+            assertThat(addedResources).extracting(TestResource::getName)
+                    .contains("pod-1", "pod-2");
+
+            informer.stop();
+        }
+
+        @Test
+        void shouldDetectDeletedResourcesOnResync() throws InterruptedException {
+            final TestResource resource1 = createResource("default", "pod-1");
+            final TestResource resource2 = createResource("default", "pod-2");
+            initialResources.add(resource1);
+            initialResources.add(resource2);
+            resyncList = new ArrayList<>(initialResources);
+
+            final CountDownLatch deleteLatch = new CountDownLatch(1);
+            final List<TestResource> deletedResources = new ArrayList<>();
+
+            informer = createInformerWithResync(200);
+            informer.addEventHandler(new ResourceEventHandler<>() {
+                @Override
+                public void onAdd(final TestResource r) {
+                }
+
+                @Override
+                public void onUpdate(final TestResource old, final TestResource newRes) {
+                }
+
+                @Override
+                public void onDelete(final TestResource r) {
+                    deletedResources.add(r);
+                    deleteLatch.countDown();
+                }
+            });
+
+            informer.start();
+            waitForSync();
+
+            resyncList.removeIf(r -> r.getName().equals("pod-2"));
+
+            deleteLatch.await(2, TimeUnit.SECONDS);
+
+            assertThat(deletedResources).extracting(TestResource::getName)
+                    .contains("pod-2");
+
+            informer.stop();
+        }
+
+        @Test
+        void shouldNotStartResyncWhenDisabled() throws InterruptedException {
+            final TestResource resource = createResource("default", "pod-1");
+            initialResources.add(resource);
+
+            final AtomicInteger updateCount = new AtomicInteger(0);
+
+            informer = createInformer();
+            informer.addEventHandler(new ResourceEventHandler<>() {
+                @Override
+                public void onAdd(final TestResource r) {
+                }
+
+                @Override
+                public void onUpdate(final TestResource old, final TestResource newRes) {
+                    updateCount.incrementAndGet();
+                }
+
+                @Override
+                public void onDelete(final TestResource r) {
+                }
+            });
+
+            informer.start();
+            waitForSync();
+
+            Thread.sleep(500);
+
+            assertThat(updateCount.get()).isEqualTo(0);
+
+            informer.stop();
+        }
+
+        @Test
+        void shouldHandleResyncErrorGracefully() throws InterruptedException {
+            final TestResource resource = createResource("default", "pod-1");
+            initialResources.add(resource);
+            resyncList = new ArrayList<>(initialResources);
+
+            final AtomicInteger resyncCount = new AtomicInteger(0);
+            final CountDownLatch resyncLatch = new CountDownLatch(2);
+
+            informer = new Informer<>(
+                    () -> new ArrayList<>(initialResources),
+                    () -> new TestResourceChangeStream(streamEvents),
+                    200
+            ) {
+            };
+
+            final Informer<TestResource> resyncInformer = new Informer<>(
+                    () -> {
+                        if (resyncCount.getAndIncrement() == 1) {
+                            throw new RuntimeException("Resync error");
+                        }
+                        resyncLatch.countDown();
+                        return new ArrayList<>(resyncList);
+                    },
+                    () -> new TestResourceChangeStream(streamEvents),
+                    200
+            );
+
+            resyncInformer.addEventHandler(new ResourceEventHandler<>() {
+                @Override
+                public void onAdd(final TestResource r) {
+                }
+
+                @Override
+                public void onUpdate(final TestResource old, final TestResource newRes) {
+                    resyncLatch.countDown();
+                }
+
+                @Override
+                public void onDelete(final TestResource r) {
+                }
+            });
+
+            resyncInformer.start();
+
+            resyncLatch.await(3, TimeUnit.SECONDS);
+
+            assertThat(resyncInformer.isRunning()).isTrue();
+
+            resyncInformer.stop();
+        }
+
+        private Informer<TestResource> createInformerWithResync(final long resyncPeriodMillis) {
+            return new Informer<>(
+                    () -> new ArrayList<>(resyncList),
+                    () -> new TestResourceChangeStream(streamEvents),
+                    resyncPeriodMillis
+            );
+        }
+    }
+
     private Informer<TestResource> createInformer() {
         return new Informer<>(
                 () -> new ArrayList<>(initialResources),

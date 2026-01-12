@@ -53,7 +53,8 @@ public final class Informers {
 
         return new Informer<>(
                 () -> safeList(() -> manager.list(namespace)),
-                () -> safeStream(() -> manager.stream(namespace, effectiveOptions.getStreamOptions()))
+                () -> safeStream(() -> manager.stream(namespace, effectiveOptions.getStreamOptions())),
+                effectiveOptions.getResyncPeriodMillis()
         );
     }
 
@@ -77,7 +78,8 @@ public final class Informers {
 
         return new Informer<>(
                 () -> safeList(manager::listAllNamespaces),
-                () -> safeStream(() -> manager.streamAllNamespaces(effectiveOptions.getStreamOptions()))
+                () -> safeStream(() -> manager.streamAllNamespaces(effectiveOptions.getStreamOptions())),
+                effectiveOptions.getResyncPeriodMillis()
         );
     }
 
@@ -101,7 +103,8 @@ public final class Informers {
 
         return new Informer<>(
                 () -> safeList(manager::list),
-                () -> safeStream(() -> manager.stream(effectiveOptions.getStreamOptions()))
+                () -> safeStream(() -> manager.stream(effectiveOptions.getStreamOptions())),
+                effectiveOptions.getResyncPeriodMillis()
         );
     }
 

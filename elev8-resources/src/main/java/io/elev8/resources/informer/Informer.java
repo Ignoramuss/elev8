@@ -5,8 +5,14 @@ import io.elev8.core.watch.ResourceChangeStream;
 import io.elev8.resources.KubernetesResource;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -42,26 +48,31 @@ public class Informer<T extends KubernetesResource> implements AutoCloseable {
     private final List<ResourceEventHandler<T>> handlers = new CopyOnWriteArrayList<>();
     private final Supplier<List<T>> listSupplier;
     private final Supplier<ResourceChangeStream<T>> streamSupplier;
+    private final long resyncPeriodMillis;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean synced = new AtomicBoolean(false);
 
     private volatile Thread eventProcessorThread;
     private volatile ResourceChangeStream<T> currentStream;
+    private volatile ScheduledExecutorService resyncExecutor;
+    private volatile ScheduledFuture<?> resyncFuture;
 
     /**
      * Creates a new Informer with the given suppliers for list and stream operations.
+     * Resync is disabled by default.
      *
      * @param listSupplier supplies the initial list of resources
      * @param streamSupplier supplies the resource change stream for watching
      */
     public Informer(final Supplier<List<T>> listSupplier,
                     final Supplier<ResourceChangeStream<T>> streamSupplier) {
-        this(new InMemoryStore<>(), listSupplier, streamSupplier);
+        this(new InMemoryStore<>(), listSupplier, streamSupplier, 0);
     }
 
     /**
      * Creates a new Informer with a custom store.
+     * Resync is disabled by default.
      *
      * @param store the store to use for caching resources
      * @param listSupplier supplies the initial list of resources
@@ -70,9 +81,38 @@ public class Informer<T extends KubernetesResource> implements AutoCloseable {
     public Informer(final Store<T> store,
                     final Supplier<List<T>> listSupplier,
                     final Supplier<ResourceChangeStream<T>> streamSupplier) {
+        this(store, listSupplier, streamSupplier, 0);
+    }
+
+    /**
+     * Creates a new Informer with the given suppliers and resync period.
+     *
+     * @param listSupplier supplies the initial list of resources
+     * @param streamSupplier supplies the resource change stream for watching
+     * @param resyncPeriodMillis resync period in milliseconds (0 to disable)
+     */
+    public Informer(final Supplier<List<T>> listSupplier,
+                    final Supplier<ResourceChangeStream<T>> streamSupplier,
+                    final long resyncPeriodMillis) {
+        this(new InMemoryStore<>(), listSupplier, streamSupplier, resyncPeriodMillis);
+    }
+
+    /**
+     * Creates a new Informer with a custom store and resync period.
+     *
+     * @param store the store to use for caching resources
+     * @param listSupplier supplies the initial list of resources
+     * @param streamSupplier supplies the resource change stream for watching
+     * @param resyncPeriodMillis resync period in milliseconds (0 to disable)
+     */
+    public Informer(final Store<T> store,
+                    final Supplier<List<T>> listSupplier,
+                    final Supplier<ResourceChangeStream<T>> streamSupplier,
+                    final long resyncPeriodMillis) {
         this.store = store;
         this.listSupplier = listSupplier;
         this.streamSupplier = streamSupplier;
+        this.resyncPeriodMillis = resyncPeriodMillis;
     }
 
     /**
@@ -107,6 +147,8 @@ public class Informer<T extends KubernetesResource> implements AutoCloseable {
         }
 
         log.info("Stopping informer...");
+
+        stopResyncLoop();
 
         if (currentStream != null) {
             try {
@@ -199,11 +241,17 @@ public class Informer<T extends KubernetesResource> implements AutoCloseable {
             synced.set(true);
             log.info("Initial sync complete, {} resources cached", store.size());
 
+            if (resyncPeriodMillis > 0) {
+                startResyncLoop();
+            }
+
             watchLoop();
         } catch (Exception e) {
             if (running.get()) {
                 log.error("Error in informer event loop", e);
             }
+        } finally {
+            stopResyncLoop();
         }
     }
 
@@ -312,6 +360,87 @@ public class Informer<T extends KubernetesResource> implements AutoCloseable {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    private void startResyncLoop() {
+        log.info("Starting resync loop with period {} ms", resyncPeriodMillis);
+        resyncExecutor = Executors.newScheduledThreadPool(1, r -> {
+            final Thread t = new Thread(r, "informer-resync");
+            t.setDaemon(true);
+            return t;
+        });
+
+        resyncFuture = resyncExecutor.scheduleAtFixedRate(
+                this::performResync,
+                resyncPeriodMillis,
+                resyncPeriodMillis,
+                TimeUnit.MILLISECONDS
+        );
+    }
+
+    private void performResync() {
+        if (!running.get() || !synced.get()) {
+            return;
+        }
+
+        log.debug("Performing resync...");
+        try {
+            final List<T> oldResources = store.list();
+            final Map<String, T> oldState = new HashMap<>();
+            for (final T resource : oldResources) {
+                oldState.put(InMemoryStore.keyFor(resource), resource);
+            }
+
+            final List<T> newResources = listSupplier.get();
+            if (newResources == null) {
+                log.warn("Resync returned null resource list, skipping");
+                return;
+            }
+
+            final Map<String, T> newState = new HashMap<>();
+            for (final T resource : newResources) {
+                newState.put(InMemoryStore.keyFor(resource), resource);
+            }
+
+            store.replace(newResources);
+
+            for (final T newResource : newResources) {
+                final String key = InMemoryStore.keyFor(newResource);
+                final T oldResource = oldState.get(key);
+                if (oldResource != null) {
+                    dispatchOnUpdate(oldResource, newResource);
+                } else {
+                    dispatchOnAdd(newResource);
+                }
+            }
+
+            for (final T oldResource : oldResources) {
+                final String key = InMemoryStore.keyFor(oldResource);
+                if (!newState.containsKey(key)) {
+                    dispatchOnDelete(oldResource);
+                }
+            }
+
+            log.debug("Resync complete, {} resources in cache", store.size());
+        } catch (Exception e) {
+            log.warn("Resync failed, will retry at next interval: {}", e.getMessage());
+        }
+    }
+
+    private void stopResyncLoop() {
+        if (resyncFuture != null) {
+            resyncFuture.cancel(false);
+            resyncFuture = null;
+        }
+        if (resyncExecutor != null) {
+            resyncExecutor.shutdownNow();
+            try {
+                resyncExecutor.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            resyncExecutor = null;
         }
     }
 }

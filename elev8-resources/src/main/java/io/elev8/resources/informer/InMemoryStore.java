@@ -116,4 +116,18 @@ public class InMemoryStore<T extends KubernetesResource> implements Store<T> {
     public static String keyFor(final String namespace, final String name) {
         return namespace != null ? namespace + "/" + name : name;
     }
+
+    /**
+     * Generates the store key for a resource.
+     *
+     * @param resource the resource to generate a key for
+     * @param <R> the resource type
+     * @return the store key
+     */
+    public static <R extends KubernetesResource> String keyFor(final R resource) {
+        if (resource == null) {
+            return null;
+        }
+        return keyFor(resource.getNamespace(), resource.getName());
+    }
 }
