@@ -73,8 +73,8 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 
 ### Phase 7: Production Patterns & Performance
 - [x] Informers pattern implementation (basic)
-- [ ] Informer resync support
-- [ ] Informer indexing (secondary indices)
+- [x] Informer resync support
+- [x] Informer indexing (secondary indices)
 - [ ] SharedInformers with store sharing
 - [ ] Leader election support (coordination.k8s.io/v1)
 - [ ] Work queue implementation
