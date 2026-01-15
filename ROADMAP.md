@@ -75,7 +75,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] Informers pattern implementation (basic)
 - [x] Informer resync support
 - [x] Informer indexing (secondary indices)
-- [ ] SharedInformers with store sharing
+- [x] SharedInformers with store sharing
 - [ ] Leader election support (coordination.k8s.io/v1)
 - [ ] Work queue implementation
 - [ ] Request retry with exponential backoff
