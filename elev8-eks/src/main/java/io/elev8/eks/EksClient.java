@@ -14,6 +14,7 @@ import io.elev8.resources.event.EventManager;
 import io.elev8.resources.horizontalpodautoscaler.HorizontalPodAutoscalerManager;
 import io.elev8.resources.ingress.IngressManager;
 import io.elev8.resources.job.JobManager;
+import io.elev8.resources.lease.LeaseManager;
 import io.elev8.resources.limitrange.LimitRangeManager;
 import io.elev8.resources.verticalpodautoscaler.VerticalPodAutoscalerManager;
 import io.elev8.resources.namespace.NamespaceManager;
@@ -66,6 +67,7 @@ public final class EksClient implements AutoCloseable {
     private final DaemonSetManager daemonSetManager;
     private final EventManager eventManager;
     private final JobManager jobManager;
+    private final LeaseManager leaseManager;
     private final CronJobManager cronJobManager;
     private final StatefulSetManager statefulSetManager;
     private final ReplicaSetManager replicaSetManager;
@@ -182,6 +184,7 @@ public final class EksClient implements AutoCloseable {
         this.daemonSetManager = new DaemonSetManager(kubernetesClient);
         this.eventManager = new EventManager(kubernetesClient);
         this.jobManager = new JobManager(kubernetesClient);
+        this.leaseManager = new LeaseManager(kubernetesClient);
         this.cronJobManager = new CronJobManager(kubernetesClient);
         this.statefulSetManager = new StatefulSetManager(kubernetesClient);
         this.replicaSetManager = new ReplicaSetManager(kubernetesClient);
@@ -319,6 +322,10 @@ public final class EksClient implements AutoCloseable {
 
     public JobManager jobs() {
         return jobManager;
+    }
+
+    public LeaseManager leases() {
+        return leaseManager;
     }
 
     public CronJobManager cronJobs() {
