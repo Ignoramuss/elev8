@@ -2,6 +2,7 @@ package io.elev8.core.http;
 
 import lombok.Value;
 
+import java.time.Duration;
 import java.util.Map;
 
 @Value
@@ -24,5 +25,26 @@ public class HttpResponse {
 
     public boolean isForbidden() {
         return statusCode == 403;
+    }
+
+    public boolean isTooManyRequests() {
+        return statusCode == 429;
+    }
+
+    public boolean isServerError() {
+        return statusCode >= 500 && statusCode < 600;
+    }
+
+    public Duration getRetryAfter() {
+        final String retryAfter = headers.get("Retry-After");
+        if (retryAfter == null) {
+            return null;
+        }
+        try {
+            final long seconds = Long.parseLong(retryAfter.trim());
+            return Duration.ofSeconds(seconds);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

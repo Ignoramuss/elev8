@@ -2,6 +2,7 @@ package io.elev8.core.http;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,5 +58,52 @@ class HttpResponseTest {
         assertThat(new HttpResponse(403, "", Map.of()).isForbidden()).isTrue();
         assertThat(new HttpResponse(200, "", Map.of()).isForbidden()).isFalse();
         assertThat(new HttpResponse(401, "", Map.of()).isForbidden()).isFalse();
+    }
+
+    @Test
+    void shouldIdentifyTooManyRequestsStatus() {
+        assertThat(new HttpResponse(429, "", Map.of()).isTooManyRequests()).isTrue();
+        assertThat(new HttpResponse(200, "", Map.of()).isTooManyRequests()).isFalse();
+        assertThat(new HttpResponse(503, "", Map.of()).isTooManyRequests()).isFalse();
+    }
+
+    @Test
+    void shouldIdentifyServerErrorStatus() {
+        assertThat(new HttpResponse(500, "", Map.of()).isServerError()).isTrue();
+        assertThat(new HttpResponse(502, "", Map.of()).isServerError()).isTrue();
+        assertThat(new HttpResponse(503, "", Map.of()).isServerError()).isTrue();
+        assertThat(new HttpResponse(504, "", Map.of()).isServerError()).isTrue();
+        assertThat(new HttpResponse(599, "", Map.of()).isServerError()).isTrue();
+        assertThat(new HttpResponse(499, "", Map.of()).isServerError()).isFalse();
+        assertThat(new HttpResponse(600, "", Map.of()).isServerError()).isFalse();
+        assertThat(new HttpResponse(200, "", Map.of()).isServerError()).isFalse();
+    }
+
+    @Test
+    void shouldParseRetryAfterHeaderInSeconds() {
+        final HttpResponse response = new HttpResponse(429, "", Map.of("Retry-After", "60"));
+
+        assertThat(response.getRetryAfter()).isEqualTo(Duration.ofSeconds(60));
+    }
+
+    @Test
+    void shouldReturnNullWhenRetryAfterHeaderMissing() {
+        final HttpResponse response = new HttpResponse(429, "", Map.of());
+
+        assertThat(response.getRetryAfter()).isNull();
+    }
+
+    @Test
+    void shouldReturnNullWhenRetryAfterHeaderInvalid() {
+        final HttpResponse response = new HttpResponse(429, "", Map.of("Retry-After", "invalid"));
+
+        assertThat(response.getRetryAfter()).isNull();
+    }
+
+    @Test
+    void shouldHandleWhitespaceInRetryAfterHeader() {
+        final HttpResponse response = new HttpResponse(429, "", Map.of("Retry-After", "  30  "));
+
+        assertThat(response.getRetryAfter()).isEqualTo(Duration.ofSeconds(30));
     }
 }
