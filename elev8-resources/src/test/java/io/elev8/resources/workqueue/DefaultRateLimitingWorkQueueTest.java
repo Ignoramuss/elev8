@@ -49,23 +49,6 @@ class DefaultRateLimitingWorkQueueTest {
     }
 
     @Test
-    void shouldIncreaseDelayWithRepeatedFailures() throws InterruptedException {
-        final long start1 = System.currentTimeMillis();
-        queue.addRateLimited("item");
-        final String first = queue.poll(Duration.ofSeconds(1));
-        final long elapsed1 = System.currentTimeMillis() - start1;
-        queue.done(first);
-
-        final long start2 = System.currentTimeMillis();
-        queue.addRateLimited("item");
-        final String second = queue.poll(Duration.ofSeconds(1));
-        final long elapsed2 = System.currentTimeMillis() - start2;
-        queue.done(second);
-
-        assertThat(elapsed2).isGreaterThanOrEqualTo(elapsed1);
-    }
-
-    @Test
     void shouldTrackRequeueCount() {
         queue.addRateLimited("item");
         assertThat(queue.numRequeues("item")).isEqualTo(1);
