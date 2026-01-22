@@ -506,6 +506,7 @@ public final class KubernetesClient implements AutoCloseable {
                 .readTimeout(config.getReadTimeout())
                 .certificateAuthority(config.getCertificateAuthority())
                 .skipTlsVerify(config.isSkipTlsVerify())
+                .connectionPoolConfig(config.getConnectionPoolConfig())
                 .build();
     }
 

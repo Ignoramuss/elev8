@@ -1,6 +1,7 @@
 package io.elev8.core.client;
 
 import io.elev8.core.auth.AuthProvider;
+import io.elev8.core.http.ConnectionPoolConfig;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
@@ -33,4 +34,6 @@ public class KubernetesClientConfig {
 
     @Builder.Default
     String namespace = "default";
+
+    ConnectionPoolConfig connectionPoolConfig;
 }
