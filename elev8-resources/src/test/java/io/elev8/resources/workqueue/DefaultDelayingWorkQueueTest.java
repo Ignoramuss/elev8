@@ -219,9 +219,9 @@ class DefaultDelayingWorkQueueTest {
 
         assertThat(queue.pendingDelayCount()).isEqualTo(1);
 
-        Thread.sleep(150);
+        final String item = queue.poll(Duration.ofMillis(500));
+        assertThat(item).isEqualTo("same-item");
 
-        assertThat(queue.length()).isEqualTo(1);
-        assertThat(queue.poll(Duration.ofMillis(100))).isEqualTo("same-item");
+        assertThat(queue.poll(Duration.ofMillis(100))).isNull();
     }
 }
