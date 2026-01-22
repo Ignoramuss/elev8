@@ -154,6 +154,7 @@ public final class OkHttpClientImpl implements HttpClient {
         private Duration writeTimeout = Duration.ofSeconds(30);
         private String certificateAuthority;
         private boolean skipTlsVerify = false;
+        private ConnectionPoolConfig connectionPoolConfig;
 
         public Builder connectTimeout(final Duration connectTimeout) {
             this.connectTimeout = connectTimeout;
@@ -180,12 +181,25 @@ public final class OkHttpClientImpl implements HttpClient {
             return this;
         }
 
+        public Builder connectionPoolConfig(final ConnectionPoolConfig connectionPoolConfig) {
+            this.connectionPoolConfig = connectionPoolConfig;
+            return this;
+        }
+
         public OkHttpClientImpl build() {
             final OkHttpClient.Builder builder = new OkHttpClient.Builder()
                     .connectTimeout(connectTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .readTimeout(readTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .writeTimeout(writeTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .retryOnConnectionFailure(true);
+
+            if (connectionPoolConfig != null) {
+                final ConnectionPool pool = new ConnectionPool(
+                        connectionPoolConfig.getMaxIdleConnections(),
+                        connectionPoolConfig.getKeepAliveDuration().toMillis(),
+                        TimeUnit.MILLISECONDS);
+                builder.connectionPool(pool);
+            }
 
             if (skipTlsVerify) {
                 configureTrustAll(builder);
