@@ -2,6 +2,7 @@ package io.elev8.core.client;
 
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.http.ConnectionPoolConfig;
+import io.elev8.core.http.RateLimiterConfig;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
@@ -36,4 +37,6 @@ public class KubernetesClientConfig {
     String namespace = "default";
 
     ConnectionPoolConfig connectionPoolConfig;
+
+    RateLimiterConfig rateLimiterConfig;
 }
