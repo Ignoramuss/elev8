@@ -7,6 +7,7 @@ import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpException;
 import io.elev8.core.http.HttpResponse;
 import io.elev8.core.http.OkHttpClientImpl;
+import io.elev8.core.http.RateLimitingHttpClient;
 import io.elev8.core.logs.LogOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.portforward.PortForwardOptions;
@@ -501,13 +502,19 @@ public final class KubernetesClient implements AutoCloseable {
     }
 
     private HttpClient createHttpClient() {
-        return OkHttpClientImpl.builder()
+        HttpClient client = OkHttpClientImpl.builder()
                 .connectTimeout(config.getConnectTimeout())
                 .readTimeout(config.getReadTimeout())
                 .certificateAuthority(config.getCertificateAuthority())
                 .skipTlsVerify(config.isSkipTlsVerify())
                 .connectionPoolConfig(config.getConnectionPoolConfig())
                 .build();
+
+        if (config.getRateLimiterConfig() != null) {
+            client = RateLimitingHttpClient.wrap(client, config.getRateLimiterConfig());
+        }
+
+        return client;
     }
 
     @Override

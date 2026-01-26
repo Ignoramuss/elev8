@@ -77,10 +77,10 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] Informer indexing (secondary indices)
 - [x] SharedInformers with store sharing
 - [x] Leader election support (coordination.k8s.io/v1)
-- [ ] Work queue implementation
-- [ ] Request retry with exponential backoff
+- [x] Work queue implementation
+- [x] Request retry with exponential backoff
 - [x] Connection pooling optimizations
-- [ ] Rate limiting support
+- [x] Rate limiting support
 
 ### Phase 8: Custom Resources
 - [ ] CustomResourceDefinition (CRD) resource support
