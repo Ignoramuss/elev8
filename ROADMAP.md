@@ -83,7 +83,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] Rate limiting support
 
 ### Phase 8: Custom Resources
-- [ ] CustomResourceDefinition (CRD) resource support
+- [x] CustomResourceDefinition (CRD) resource support
 - [ ] Generic custom resource CRUD operations
 - [ ] Dynamic client for untyped resources
 - [ ] Code generation from CRD schemas

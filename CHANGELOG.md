@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CustomResourceDefinition (CRD) Support** - Full support for Kubernetes CRD resources (Phase 8)
+  - `CustomResourceDefinition` class with full spec, status, and builder support
+  - `CustomResourceDefinitionSpec` with group, names, scope, and versions configuration
+  - `CustomResourceDefinitionStatus` with conditions, accepted names, and stored versions
+  - `CRDNames` for kind, plural, singular, short names, and categories
+  - `CRDVersion` for version configuration with schema, subresources, and printer columns
+  - `CRDCondition` implementing the `Condition` interface
+  - `JSONSchemaProps` for OpenAPI v3 schema with Kubernetes extensions (x-kubernetes-*)
+  - `CustomResourceValidation` wrapper for openAPIV3Schema
+  - `CustomResourceSubresources` for status and scale subresource configuration
+  - `CustomResourceSubresourceScale` for scale subresource fields
+  - `CustomResourceColumnDefinition` for additional printer columns
+  - `ValidationRule` for CEL validation rules
+  - `ExternalDocumentation` for external docs reference
+  - Conversion support with `CustomResourceConversion`, `WebhookConversion`, `WebhookClientConfig`, `ServiceReference`
+  - `CustomResourceDefinitionManager` extending `AbstractClusterResourceManager` for CRUD operations
+  - Full integration with `EksClient.customResourceDefinitions()` getter
+  - Comprehensive unit test coverage (38 tests)
 - Initial project structure with Maven multi-module setup
 - Core abstractions for Kubernetes client
 - IAM authentication module with automatic STS token generation
