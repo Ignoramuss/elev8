@@ -86,7 +86,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] CustomResourceDefinition (CRD) resource support
 - [x] Generic custom resource CRUD operations
 - [x] Dynamic client for untyped resources
-- [ ] Code generation from CRD schemas
+- [x] Code generation from CRD schemas
 
 ### Phase 9: Multi-Cloud Support
 - [ ] GKE authentication (GCP IAM/Workload Identity)

@@ -1,0 +1,80 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: crontabs.stable.example.com
+spec:
+  group: stable.example.com
+  names:
+    kind: CronTab
+    plural: crontabs
+    singular: crontab
+    shortNames:
+      - ct
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                cronSpec:
+                  type: string
+                  description: The cron schedule expression
+                image:
+                  type: string
+                  description: Container image to run
+                replicas:
+                  type: integer
+                  description: Number of replicas
+                suspend:
+                  type: boolean
+                  description: Whether to suspend execution
+                resources:
+                  type: object
+                  properties:
+                    cpu:
+                      type: string
+                    memory:
+                      type: string
+                env:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+                labels:
+                  type: object
+                  additionalProperties:
+                    type: string
+            status:
+              type: object
+              properties:
+                replicas:
+                  type: integer
+                lastScheduleTime:
+                  type: string
+                  format: date-time
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string
