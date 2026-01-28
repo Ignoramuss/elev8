@@ -8,6 +8,8 @@ import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
 import io.elev8.resources.configmap.ConfigMapManager;
 import io.elev8.resources.crd.CustomResourceDefinitionManager;
+import io.elev8.resources.dynamic.DefaultDynamicClient;
+import io.elev8.resources.dynamic.DynamicClient;
 import io.elev8.resources.generic.GenericClusterResourceManager;
 import io.elev8.resources.generic.GenericResourceContext;
 import io.elev8.resources.generic.GenericResourceManager;
@@ -472,6 +474,16 @@ public final class EksClient implements AutoCloseable {
      */
     public GenericClusterResourceManager genericClusterResources(final GenericResourceContext context) {
         return new GenericClusterResourceManager(kubernetesClient, context);
+    }
+
+    /**
+     * Create a dynamic client that auto-discovers resources from the API server.
+     * The dynamic client provides runtime API discovery and automatic resource manager creation.
+     *
+     * @return a DynamicClient for working with any resource type
+     */
+    public DynamicClient dynamic() {
+        return new DefaultDynamicClient(kubernetesClient);
     }
 
     @Override

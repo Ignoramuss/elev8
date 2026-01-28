@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Dynamic Client for Untyped Resources** - Runtime API discovery and automatic resource manager creation (Phase 8)
+  - `DiscoveryClient` interface for querying Kubernetes API server discovery endpoints
+  - `DefaultDiscoveryClient` implementation for fetching API groups and resources from `/api` and `/apis`
+  - `CachedDiscoveryClient` decorator with configurable TTL for caching discovery results
+  - Discovery models: `APIGroup`, `APIGroupVersion`, `APIResource`, `APIResourceList`, `APIGroupList`
+  - `DiscoveryException` for discovery-related errors with optional HTTP status code
+  - `DynamicClient` interface for unified entry point to dynamic resource access
+  - `DefaultDynamicClient` implementation using discovery + GenericResourceManager
+  - Auto-discovery of resources by kind name (searches all API groups)
+  - Convenience methods: `get()`, `list()`, `create()`, `update()`, `delete()` by kind
+  - Separate methods for namespace-scoped (`resourcesForKind`) and cluster-scoped (`clusterResourcesForKind`) resources
+  - Manager caching for efficient repeated access to the same resource types
+  - Integration with `EksClient.dynamic()` factory method
+  - Support for both core API resources (e.g., Pod, Service) and custom resources (e.g., CronTab)
+  - Comprehensive unit test coverage (95+ tests across discovery and dynamic client)
 - **Generic Custom Resource CRUD Operations** - Work with custom resources without compile-time type information (Phase 8)
   - `GenericResourceContext` immutable configuration for resource type with API group, version, kind, plural, and scope
   - `GenericKubernetesResource` flexible resource class using `Map<String, Object>` for spec/status
