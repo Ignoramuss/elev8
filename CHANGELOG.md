@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CRD Code Generator** - Maven plugin for generating type-safe Java classes from CRD schemas (Phase 8)
+  - `elev8-codegen` Maven plugin module with goal prefix `crd`
+  - `CrdParser` for parsing CRD YAML/JSON files with validation
+  - `TypeMapper` for JSON Schema to Java type mapping (string, integer, boolean, array, object, etc.)
+  - `SpecStatusGenerator` for generating spec and status classes with Lombok annotations
+  - `ResourceClassGenerator` for generating resource classes extending `AbstractResource` with builder pattern
+  - `ManagerClassGenerator` for generating resource manager classes (namespaced and cluster-scoped)
+  - `SchemaToJavaGenerator` orchestrator for complete code generation pipeline
+  - `CrdGeneratorMojo` Maven plugin entry point with configurable parameters
+  - Support for nested types, arrays, maps, and date-time formats
+  - Automatic generation of `@JsonProperty` annotations for non-standard field names
+  - Plugin configuration: `crdDirectory`, `outputDirectory`, `targetPackage`, `generateManagers`, `useLombok`
+  - Comprehensive unit test coverage (64 tests)
 - **Dynamic Client for Untyped Resources** - Runtime API discovery and automatic resource manager creation (Phase 8)
   - `DiscoveryClient` interface for querying Kubernetes API server discovery endpoints
   - `DefaultDiscoveryClient` implementation for fetching API groups and resources from `/api` and `/apis`

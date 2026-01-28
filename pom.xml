@@ -47,6 +47,7 @@
         <module>elev8-auth-token</module>
         <module>elev8-resources</module>
         <module>elev8-eks</module>
+        <module>elev8-codegen</module>
         <module>examples</module>
     </modules>
 
@@ -95,6 +96,11 @@
             <dependency>
                 <groupId>io.elev8</groupId>
                 <artifactId>elev8-eks</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-codegen</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
