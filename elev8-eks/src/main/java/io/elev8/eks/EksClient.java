@@ -8,6 +8,9 @@ import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
 import io.elev8.resources.configmap.ConfigMapManager;
 import io.elev8.resources.crd.CustomResourceDefinitionManager;
+import io.elev8.resources.generic.GenericClusterResourceManager;
+import io.elev8.resources.generic.GenericResourceContext;
+import io.elev8.resources.generic.GenericResourceManager;
 import io.elev8.resources.cronjob.CronJobManager;
 import io.elev8.resources.daemonset.DaemonSetManager;
 import io.elev8.resources.deployment.DeploymentManager;
@@ -417,6 +420,58 @@ public final class EksClient implements AutoCloseable {
 
     public AccessEntryManager accessEntries() {
         return accessEntryManager;
+    }
+
+    /**
+     * Create a manager for namespace-scoped custom resources.
+     *
+     * @param group the API group (e.g., "stable.example.com")
+     * @param version the API version (e.g., "v1")
+     * @param kind the resource kind (e.g., "CronTab")
+     * @param plural the plural name (e.g., "crontabs")
+     * @return a GenericResourceManager for the custom resource
+     */
+    public GenericResourceManager genericResources(final String group,
+                                                   final String version,
+                                                   final String kind,
+                                                   final String plural) {
+        return new GenericResourceManager(kubernetesClient, group, version, kind, plural);
+    }
+
+    /**
+     * Create a manager for namespace-scoped custom resources using a context.
+     *
+     * @param context the resource context
+     * @return a GenericResourceManager for the custom resource
+     */
+    public GenericResourceManager genericResources(final GenericResourceContext context) {
+        return new GenericResourceManager(kubernetesClient, context);
+    }
+
+    /**
+     * Create a manager for cluster-scoped custom resources.
+     *
+     * @param group the API group (e.g., "example.com")
+     * @param version the API version (e.g., "v1")
+     * @param kind the resource kind (e.g., "ClusterPolicy")
+     * @param plural the plural name (e.g., "clusterpolicies")
+     * @return a GenericClusterResourceManager for the custom resource
+     */
+    public GenericClusterResourceManager genericClusterResources(final String group,
+                                                                  final String version,
+                                                                  final String kind,
+                                                                  final String plural) {
+        return new GenericClusterResourceManager(kubernetesClient, group, version, kind, plural);
+    }
+
+    /**
+     * Create a manager for cluster-scoped custom resources using a context.
+     *
+     * @param context the resource context
+     * @return a GenericClusterResourceManager for the custom resource
+     */
+    public GenericClusterResourceManager genericClusterResources(final GenericResourceContext context) {
+        return new GenericClusterResourceManager(kubernetesClient, context);
     }
 
     @Override

@@ -23,7 +23,7 @@ import java.util.Map;
  *
  * @param <T> the type of Kubernetes resource being watched
  */
-class WatchStreamAdapter<T extends KubernetesResource> implements Watcher<T> {
+public class WatchStreamAdapter<T extends KubernetesResource> implements Watcher<T> {
 
     private final ResourceChangeStream<T> stream;
     private final boolean trackPreviousState;
@@ -35,7 +35,7 @@ class WatchStreamAdapter<T extends KubernetesResource> implements Watcher<T> {
      * @param stream the stream to enqueue events to
      * @param trackPreviousState whether to maintain a cache of previous resource states
      */
-    WatchStreamAdapter(final ResourceChangeStream<T> stream, final boolean trackPreviousState) {
+    public WatchStreamAdapter(final ResourceChangeStream<T> stream, final boolean trackPreviousState) {
         this.stream = stream;
         this.trackPreviousState = trackPreviousState;
         this.stateCache = trackPreviousState ? new ConcurrentHashMap<>() : null;

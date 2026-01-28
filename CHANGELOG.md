@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Generic Custom Resource CRUD Operations** - Work with custom resources without compile-time type information (Phase 8)
+  - `GenericResourceContext` immutable configuration for resource type with API group, version, kind, plural, and scope
+  - `GenericKubernetesResource` flexible resource class using `Map<String, Object>` for spec/status
+  - Dot-notation accessors for nested field access (e.g., `getSpec("config.database.host")`)
+  - `@JsonAnySetter`/`@JsonAnyGetter` for handling unknown fields during deserialization
+  - `GenericResourceManager` for namespace-scoped custom resources with full CRUD operations
+  - `GenericClusterResourceManager` for cluster-scoped custom resources with full CRUD operations
+  - Factory methods for core resources (`forCoreResource`) and custom resources (`forCustomResource`)
+  - Convenience constructors for namespaced (`forNamespacedResource`) and cluster-scoped (`forClusterResource`) resources
+  - Full support for list, get, create, update, delete, patch, and apply operations
+  - Watch and stream support for real-time resource monitoring
+  - Builder pattern with `fromContext()` for easy resource construction
+  - Integration with `EksClient.genericResources()` and `EksClient.genericClusterResources()` factory methods
+  - Comprehensive unit test coverage (50+ tests)
 - **CustomResourceDefinition (CRD) Support** - Full support for Kubernetes CRD resources (Phase 8)
   - `CustomResourceDefinition` class with full spec, status, and builder support
   - `CustomResourceDefinitionSpec` with group, names, scope, and versions configuration
