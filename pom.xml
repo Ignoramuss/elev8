@@ -28,6 +28,7 @@
 
         <!-- Dependency versions -->
         <aws.sdk.version>2.29.34</aws.sdk.version>
+        <google-cloud-bom.version>26.51.0</google-cloud-bom.version>
         <jackson.version>2.18.2</jackson.version>
         <slf4j.version>2.0.16</slf4j.version>
         <logback.version>1.5.17</logback.version>
@@ -47,6 +48,8 @@
         <module>elev8-auth-token</module>
         <module>elev8-resources</module>
         <module>elev8-eks</module>
+        <module>elev8-auth-gcp</module>
+        <module>elev8-gke</module>
         <module>elev8-codegen</module>
         <module>examples</module>
     </modules>
@@ -58,6 +61,15 @@
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
                 <version>${aws.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Google Cloud BOM -->
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>libraries-bom</artifactId>
+                <version>${google-cloud-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -96,6 +108,16 @@
             <dependency>
                 <groupId>io.elev8</groupId>
                 <artifactId>elev8-eks</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-auth-gcp</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-gke</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
