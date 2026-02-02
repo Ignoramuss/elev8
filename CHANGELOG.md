@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **GKE Support** - Google Kubernetes Engine authentication and client (Phase 9 - Part 1)
+  - `elev8-auth-gcp` module with `GcpAuthProvider` implementing `AuthProvider`
+  - Application Default Credentials (ADC) support for automatic authentication
+  - Explicit `GoogleCredentials` support for programmatic configuration
+  - Service account JSON key file authentication
+  - Workload Identity support (automatic via ADC when running in GKE)
+  - Token caching with automatic refresh before expiry
+  - Scoped to `https://www.googleapis.com/auth/cloud-platform`
+  - `elev8-gke` module with `GkeClient` mirroring `EksClient` API
+  - GKE cluster auto-discovery using `ClusterManagerClient`
+  - Automatic endpoint and CA certificate extraction
+  - All resource managers (pods, deployments, services, etc.)
+  - Generic resource and cluster resource support
+  - Dynamic client for runtime API discovery
+  - Lombok `@Builder(toBuilder = true)` for flexible configuration
+  - Google Cloud BOM integration for dependency management
+  - Comprehensive unit test coverage
 - **CRD Code Generator** - Maven plugin for generating type-safe Java classes from CRD schemas (Phase 8)
   - `elev8-codegen` Maven plugin module with goal prefix `crd`
   - `CrdParser` for parsing CRD YAML/JSON files with validation
