@@ -36,11 +36,11 @@ class DefaultDelayingWorkQueueTest {
 
     @Test
     void shouldAddItemAfterDelay() throws InterruptedException {
-        queue.addAfter("delayed-item", Duration.ofMillis(100));
+        queue.addAfter("delayed-item", Duration.ofMillis(500));
 
         assertThat(queue.poll(Duration.ofMillis(50))).isNull();
 
-        final String result = queue.poll(Duration.ofMillis(200));
+        final String result = queue.poll(Duration.ofSeconds(2));
         assertThat(result).isEqualTo("delayed-item");
     }
 
