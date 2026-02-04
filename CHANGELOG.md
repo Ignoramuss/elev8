@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **AKS Support** - Azure Kubernetes Service authentication and client (Phase 9 - Part 2)
+  - `elev8-auth-azure` module with `AzureAuthProvider` implementing `AuthProvider`
+  - DefaultAzureCredential support for automatic authentication
+  - Explicit `TokenCredential` support for programmatic configuration
+  - Client secret authentication (tenant ID + client ID + client secret)
+  - Managed Identity support (system-assigned and user-assigned)
+  - Token caching with automatic refresh before expiry
+  - Scoped to AKS server resource ID
+  - `elev8-aks` module with `AksClient` mirroring `GkeClient` API
+  - AKS cluster auto-discovery using Azure Resource Manager
+  - Automatic endpoint and CA certificate extraction from kubeconfig
+  - All resource managers (pods, deployments, services, etc.)
+  - Generic resource and cluster resource support
+  - Dynamic client for runtime API discovery
+  - Lombok `@Builder(toBuilder = true)` for flexible configuration
+  - Azure SDK BOM integration for dependency management
+  - Comprehensive unit test coverage
 - **GKE Support** - Google Kubernetes Engine authentication and client (Phase 9 - Part 1)
   - `elev8-auth-gcp` module with `GcpAuthProvider` implementing `AuthProvider`
   - Application Default Credentials (ADC) support for automatic authentication

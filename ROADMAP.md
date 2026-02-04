@@ -92,9 +92,9 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] GKE authentication (GCP IAM/Workload Identity)
 - [x] GKE cluster auto-discovery
 - [x] GkeClient implementation
-- [ ] AKS authentication (Azure AD/Managed Identity)
-- [ ] AKS cluster auto-discovery
-- [ ] AksClient implementation
+- [x] AKS authentication (Azure AD/Managed Identity)
+- [x] AKS cluster auto-discovery
+- [x] AksClient implementation
 - [ ] Multi-cloud abstraction layer
 
 ### Phase 10: Advanced Features
