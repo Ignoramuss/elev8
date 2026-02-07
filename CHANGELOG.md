@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Multi-Cloud Abstraction Layer** - Unified interface for EKS, GKE, and AKS clients (Phase 9 - Part 3)
+  - `CloudKubernetesClient` interface in `elev8-resources` defining common API
+  - `AbstractCloudKubernetesClient` base class in `elev8-cloud` module
+  - All 27 resource managers moved to abstract base class
+  - Generic resource and dynamic client methods in common interface
+  - `EksClient`, `GkeClient`, and `AksClient` now extend `AbstractCloudKubernetesClient`
+  - Eliminated ~300 lines of duplicated resource manager boilerplate per client
+  - Cloud-specific methods remain on concrete classes (`accessEntries()` for EKS)
+  - Full backward compatibility preserved
 - **AKS Support** - Azure Kubernetes Service authentication and client (Phase 9 - Part 2)
   - `elev8-auth-azure` module with `AzureAuthProvider` implementing `AuthProvider`
   - DefaultAzureCredential support for automatic authentication
@@ -22,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All resource managers (pods, deployments, services, etc.)
   - Generic resource and cluster resource support
   - Dynamic client for runtime API discovery
-  - Lombok `@Builder(toBuilder = true)` for flexible configuration
+  - Lombok `@Builder` for flexible configuration
   - Azure SDK BOM integration for dependency management
   - Comprehensive unit test coverage
 - **GKE Support** - Google Kubernetes Engine authentication and client (Phase 9 - Part 1)
@@ -39,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All resource managers (pods, deployments, services, etc.)
   - Generic resource and cluster resource support
   - Dynamic client for runtime API discovery
-  - Lombok `@Builder(toBuilder = true)` for flexible configuration
+  - Lombok `@Builder` for flexible configuration
   - Google Cloud BOM integration for dependency management
   - Comprehensive unit test coverage
 - **CRD Code Generator** - Maven plugin for generating type-safe Java classes from CRD schemas (Phase 8)

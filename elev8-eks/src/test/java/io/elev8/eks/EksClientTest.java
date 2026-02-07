@@ -1,5 +1,6 @@
 package io.elev8.eks;
 
+import io.elev8.resources.cloud.CloudKubernetesClient;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -38,6 +39,7 @@ class EksClientTest {
                 .build();
 
         assertThat(client).isNotNull();
+        assertThat(client).isInstanceOf(CloudKubernetesClient.class);
         assertThat(client.getClusterName()).isEqualTo("test-cluster");
         assertThat(client.getRegion()).isEqualTo("us-east-1");
 

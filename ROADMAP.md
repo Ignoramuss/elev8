@@ -95,7 +95,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] AKS authentication (Azure AD/Managed Identity)
 - [x] AKS cluster auto-discovery
 - [x] AksClient implementation
-- [ ] Multi-cloud abstraction layer
+- [x] Multi-cloud abstraction layer
 
 ### Phase 10: Advanced Features
 - [ ] Reactive API support (Project Reactor/RxJava)

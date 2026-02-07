@@ -3,6 +3,7 @@ package io.elev8.gke;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import io.elev8.auth.gcp.GcpAuthProvider;
+import io.elev8.resources.cloud.CloudKubernetesClient;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -97,6 +98,7 @@ class GkeClientTest {
                 .build();
 
         assertThat(client).isNotNull();
+        assertThat(client).isInstanceOf(CloudKubernetesClient.class);
         assertThat(client.getProjectId()).isEqualTo("my-project");
         assertThat(client.getLocation()).isEqualTo("us-central1-a");
         assertThat(client.getClusterName()).isEqualTo("test-cluster");

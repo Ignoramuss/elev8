@@ -4,6 +4,7 @@ import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.credential.TokenRequestContext;
 import io.elev8.auth.azure.AzureAuthProvider;
+import io.elev8.resources.cloud.CloudKubernetesClient;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -100,6 +101,7 @@ class AksClientTest {
                 .build();
 
         assertThat(client).isNotNull();
+        assertThat(client).isInstanceOf(CloudKubernetesClient.class);
         assertThat(client.getSubscriptionId()).isEqualTo("sub-123");
         assertThat(client.getResourceGroupName()).isEqualTo("my-rg");
         assertThat(client.getClusterName()).isEqualTo("test-cluster");
