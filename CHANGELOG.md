@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Reactive API Support** - Async/reactive programming with Project Reactor (Phase 10)
+  - New `elev8-reactor` module for reactive operations
+  - `ReactiveResourceManager<T>` interface for reactive namespace-scoped operations
+  - `ReactiveClusterResourceManager<T>` interface for reactive cluster-scoped operations
+  - `AbstractReactiveResourceManager` and `AbstractReactiveClusterResourceManager` base implementations
+  - Wrapper pattern using `Mono.fromCallable()` for async execution
+  - `Flux.create()` for bridging watch streams to reactive streams
+  - `Schedulers.boundedElastic()` for efficient virtual thread execution (Java 21)
+  - `ReactiveCloudKubernetesClient` interface with all 27 reactive resource manager accessors
+  - `AbstractReactiveCloudKubernetesClient` base implementation wrapping sync clients
+  - `ReactiveEksClient` for reactive EKS operations with builder pattern
+  - `ReactiveGkeClient` for reactive GKE operations with builder pattern
+  - `ReactiveAksClient` for reactive AKS operations with builder pattern
+  - Static `from()` factory methods to wrap existing sync clients
+  - Full backward compatibility - all sync APIs remain unchanged
+  - Comprehensive unit test coverage (48 tests)
 - **Multi-Cloud Abstraction Layer** - Unified interface for EKS, GKE, and AKS clients (Phase 9 - Part 3)
   - `CloudKubernetesClient` interface in `elev8-resources` defining common API
   - `AbstractCloudKubernetesClient` base class in `elev8-cloud` module

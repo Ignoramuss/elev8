@@ -40,6 +40,7 @@
         <mockito.version>5.14.2</mockito.version>
         <assertj.version>3.27.1</assertj.version>
         <jacoco.version>0.8.14</jacoco.version>
+        <reactor.version>2023.0.12</reactor.version>
     </properties>
 
     <modules>
@@ -56,6 +57,7 @@
         <module>elev8-auth-azure</module>
         <module>elev8-aks</module>
         <module>elev8-codegen</module>
+        <module>elev8-reactor</module>
         <module>examples</module>
     </modules>
 
@@ -93,6 +95,15 @@
                 <groupId>com.azure.resourcemanager</groupId>
                 <artifactId>azure-resourcemanager-containerservice</artifactId>
                 <version>${azure-resourcemanager-containerservice.version}</version>
+            </dependency>
+
+            <!-- Project Reactor BOM -->
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-bom</artifactId>
+                <version>${reactor.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- Internal modules -->
@@ -159,6 +170,11 @@
             <dependency>
                 <groupId>io.elev8</groupId>
                 <artifactId>elev8-codegen</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-reactor</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
