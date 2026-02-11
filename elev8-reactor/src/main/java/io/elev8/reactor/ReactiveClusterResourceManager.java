@@ -1,5 +1,6 @@
 package io.elev8.reactor;
 
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.WatchEvent;
@@ -24,6 +25,14 @@ public interface ReactiveClusterResourceManager<T extends KubernetesResource> {
      * @return Mono emitting the list of resources
      */
     Mono<List<T>> list();
+
+    /**
+     * List all resources in the cluster with filtering and pagination options.
+     *
+     * @param options list options for filtering and pagination
+     * @return Mono emitting the list of resources
+     */
+    Mono<List<T>> list(ListOptions options);
 
     /**
      * Get a specific resource by name.

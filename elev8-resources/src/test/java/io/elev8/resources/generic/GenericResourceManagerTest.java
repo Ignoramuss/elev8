@@ -2,6 +2,7 @@ package io.elev8.resources.generic;
 
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.http.HttpResponse;
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.patch.PatchType;
 import io.elev8.core.patch.ApplyOptions;
@@ -127,6 +128,68 @@ class GenericResourceManagerTest {
         assertThat(resources).hasSize(2);
         assertThat(resources.get(0).getNamespace()).isEqualTo("default");
         assertThat(resources.get(1).getNamespace()).isEqualTo("kube-system");
+    }
+
+    @Test
+    void shouldListResourcesInNamespaceWithOptions() throws Exception {
+        final String responseBody = """
+                {
+                    "apiVersion": "stable.example.com/v1",
+                    "kind": "CronTabList",
+                    "items": [
+                        {
+                            "apiVersion": "stable.example.com/v1",
+                            "kind": "CronTab",
+                            "metadata": {"name": "cron1", "namespace": "default"},
+                            "spec": {"cronSpec": "* * * * */5"}
+                        }
+                    ]
+                }
+                """;
+
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        when(response.isSuccessful()).thenReturn(true);
+        when(response.getBody()).thenReturn(responseBody);
+
+        final ListOptions options = ListOptions.withFieldSelector("metadata.name=cron1");
+        when(client.get("/apis/stable.example.com/v1/namespaces/default/crontabs", options))
+                .thenReturn(response);
+
+        final List<GenericKubernetesResource> resources = manager.list("default", options);
+
+        assertThat(resources).hasSize(1);
+        assertThat(resources.get(0).getName()).isEqualTo("cron1");
+        verify(client).get("/apis/stable.example.com/v1/namespaces/default/crontabs", options);
+    }
+
+    @Test
+    void shouldListAllNamespacesWithOptions() throws Exception {
+        final String responseBody = """
+                {
+                    "apiVersion": "stable.example.com/v1",
+                    "kind": "CronTabList",
+                    "items": [
+                        {
+                            "apiVersion": "stable.example.com/v1",
+                            "kind": "CronTab",
+                            "metadata": {"name": "cron1", "namespace": "default"}
+                        }
+                    ]
+                }
+                """;
+
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        when(response.isSuccessful()).thenReturn(true);
+        when(response.getBody()).thenReturn(responseBody);
+
+        final ListOptions options = ListOptions.withLabelSelector("app=myapp");
+        when(client.get("/apis/stable.example.com/v1/crontabs", options))
+                .thenReturn(response);
+
+        final List<GenericKubernetesResource> resources = manager.listAllNamespaces(options);
+
+        assertThat(resources).hasSize(1);
+        verify(client).get("/apis/stable.example.com/v1/crontabs", options);
     }
 
     @Test

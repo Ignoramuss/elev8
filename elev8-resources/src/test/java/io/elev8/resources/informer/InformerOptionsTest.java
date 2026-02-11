@@ -33,6 +33,14 @@ class InformerOptionsTest {
     }
 
     @Test
+    void shouldCreateWithFieldSelector() {
+        final InformerOptions options = InformerOptions.withFieldSelector("metadata.name=my-pod");
+
+        assertThat(options.getStreamOptions()).isNotNull();
+        assertThat(options.getStreamOptions().getWatchOptions().getFieldSelector()).isEqualTo("metadata.name=my-pod");
+    }
+
+    @Test
     void shouldHandleNullStreamOptions() {
         final InformerOptions options = InformerOptions.withStreamOptions(null);
 

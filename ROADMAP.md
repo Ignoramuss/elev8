@@ -99,7 +99,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 
 ### Phase 10: Advanced Features
 - [x] Reactive API support (Project Reactor)
-- [ ] Field selectors for advanced filtering
+- [x] Field selectors for advanced filtering
 - [ ] Label selector query enhancements
 - [ ] Resource aggregation APIs
 - [ ] Admission webhooks support

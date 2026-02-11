@@ -1,5 +1,6 @@
 package io.elev8.resources;
 
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.ResourceChangeStream;
@@ -26,12 +27,31 @@ public interface ResourceManager<T extends KubernetesResource> {
     List<T> list(String namespace) throws ResourceException;
 
     /**
+     * List all resources in the namespace with filtering and pagination options.
+     *
+     * @param namespace the namespace to list resources from
+     * @param options list options for filtering and pagination
+     * @return list of resources
+     * @throws ResourceException if the operation fails
+     */
+    List<T> list(String namespace, ListOptions options) throws ResourceException;
+
+    /**
      * List all resources across all namespaces.
      *
      * @return list of resources
      * @throws ResourceException if the operation fails
      */
     List<T> listAllNamespaces() throws ResourceException;
+
+    /**
+     * List all resources across all namespaces with filtering and pagination options.
+     *
+     * @param options list options for filtering and pagination
+     * @return list of resources
+     * @throws ResourceException if the operation fails
+     */
+    List<T> listAllNamespaces(ListOptions options) throws ResourceException;
 
     /**
      * Get a specific resource by name.

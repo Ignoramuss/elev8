@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpResponse;
+import io.elev8.core.list.ListOptions;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.BeforeEach;
@@ -235,6 +236,22 @@ class AbstractClusterResourceManagerTest {
         assertThatThrownBy(() -> manager.delete("resource"))
                 .isInstanceOf(ResourceException.class)
                 .hasMessageContaining("Failed to delete resource");
+    }
+
+    @Test
+    void shouldCallCorrectPathForListWithOptions() throws Exception {
+        final HttpResponse mockResponse = mock(HttpResponse.class);
+        when(mockResponse.isSuccessful()).thenReturn(false);
+        when(mockResponse.getStatusCode()).thenReturn(500);
+        when(mockResponse.getBody()).thenReturn("Error");
+
+        final ListOptions options = ListOptions.withFieldSelector("metadata.name=my-resource");
+        when(mockClient.get("/api/v1/testresources", options)).thenReturn(mockResponse);
+
+        assertThatThrownBy(() -> manager.list(options))
+                .isInstanceOf(ResourceException.class);
+
+        verify(mockClient).get("/api/v1/testresources", options);
     }
 
     @Test

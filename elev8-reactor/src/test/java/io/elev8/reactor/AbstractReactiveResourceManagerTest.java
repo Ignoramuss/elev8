@@ -1,5 +1,6 @@
 package io.elev8.reactor;
 
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.patch.PatchType;
@@ -69,6 +70,35 @@ class AbstractReactiveResourceManagerTest {
                 .verifyComplete();
 
         verify(delegate).listAllNamespaces();
+    }
+
+    @Test
+    void shouldListResourcesWithOptions() throws ResourceException {
+        final ListOptions options = ListOptions.withFieldSelector("status.phase=Running");
+        doReturn(List.of(resource1)).when(delegate).list("default", options);
+
+        StepVerifier.create(manager.list("default", options))
+                .assertNext(resources -> {
+                    assertThat(resources).hasSize(1);
+                    assertThat(resources).containsExactly(resource1);
+                })
+                .verifyComplete();
+
+        verify(delegate).list("default", options);
+    }
+
+    @Test
+    void shouldListAllNamespacesWithOptions() throws ResourceException {
+        final ListOptions options = ListOptions.withLabelSelector("app=myapp");
+        doReturn(List.of(resource1, resource2)).when(delegate).listAllNamespaces(options);
+
+        StepVerifier.create(manager.listAllNamespaces(options))
+                .assertNext(resources -> {
+                    assertThat(resources).hasSize(2);
+                })
+                .verifyComplete();
+
+        verify(delegate).listAllNamespaces(options);
     }
 
     @Test

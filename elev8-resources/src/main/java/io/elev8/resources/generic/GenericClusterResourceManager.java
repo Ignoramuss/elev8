@@ -5,6 +5,7 @@ import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpResponse;
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.ResourceChangeStream;
@@ -74,6 +75,34 @@ public final class GenericClusterResourceManager implements ClusterResourceManag
             log.debug("Listing generic cluster resources at path: {}", path);
 
             final HttpResponse response = client.get(path);
+
+            if (!response.isSuccessful()) {
+                throw new ResourceException(
+                        "Failed to list resources: " + response.getBody(),
+                        response.getStatusCode());
+            }
+
+            final ResourceList<GenericKubernetesResource> resourceList =
+                    AbstractResource.getObjectMapper().readValue(
+                            response.getBody(),
+                            new TypeReference<ResourceList<GenericKubernetesResource>>() {});
+
+            return resourceList.getItems();
+
+        } catch (KubernetesClientException e) {
+            throw new ResourceException("Failed to list resources", e);
+        } catch (Exception e) {
+            throw new ResourceException("Failed to parse resource list", e);
+        }
+    }
+
+    @Override
+    public List<GenericKubernetesResource> list(final ListOptions options) throws ResourceException {
+        try {
+            final String path = buildClusterPath();
+            log.debug("Listing generic cluster resources at path: {} with options", path);
+
+            final HttpResponse response = client.get(path, options);
 
             if (!response.isSuccessful()) {
                 throw new ResourceException(
