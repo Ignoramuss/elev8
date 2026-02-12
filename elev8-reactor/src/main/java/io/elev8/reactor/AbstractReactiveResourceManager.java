@@ -1,5 +1,6 @@
 package io.elev8.reactor;
 
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.WatchEvent;
@@ -34,8 +35,20 @@ public class AbstractReactiveResourceManager<T extends KubernetesResource> imple
     }
 
     @Override
+    public Mono<List<T>> list(final String namespace, final ListOptions options) {
+        return Mono.fromCallable(() -> delegate.list(namespace, options))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @Override
     public Mono<List<T>> listAllNamespaces() {
         return Mono.fromCallable(delegate::listAllNamespaces)
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @Override
+    public Mono<List<T>> listAllNamespaces(final ListOptions options) {
+        return Mono.fromCallable(() -> delegate.listAllNamespaces(options))
                 .subscribeOn(Schedulers.boundedElastic());
     }
 

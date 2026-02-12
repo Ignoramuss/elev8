@@ -51,4 +51,16 @@ public class InformerOptions {
                 .streamOptions(StreamOptions.withLabelSelector(labelSelector))
                 .build();
     }
+
+    /**
+     * Creates an InformerOptions instance with a field selector.
+     *
+     * @param fieldSelector the field selector to filter resources
+     * @return a new InformerOptions with the specified field selector
+     */
+    public static InformerOptions withFieldSelector(final String fieldSelector) {
+        return InformerOptions.builder()
+                .streamOptions(StreamOptions.withFieldSelector(fieldSelector))
+                .build();
+    }
 }

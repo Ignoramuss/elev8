@@ -1,5 +1,6 @@
 package io.elev8.reactor;
 
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.patch.PatchType;
@@ -51,6 +52,22 @@ class AbstractReactiveClusterResourceManagerTest {
                 .verifyComplete();
 
         verify(delegate).list();
+    }
+
+    @Test
+    void shouldListClusterResourcesWithOptions() throws ResourceException {
+        final Namespace ns1 = Namespace.builder().name("ns1").build();
+        final ListOptions options = ListOptions.withFieldSelector("metadata.name=ns1");
+        doReturn(List.of(ns1)).when(delegate).list(options);
+
+        StepVerifier.create(manager.list(options))
+                .assertNext(namespaces -> {
+                    assertThat(namespaces).hasSize(1);
+                    assertThat(namespaces).containsExactly(ns1);
+                })
+                .verifyComplete();
+
+        verify(delegate).list(options);
     }
 
     @Test

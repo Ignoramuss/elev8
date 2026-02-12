@@ -1,5 +1,6 @@
 package io.elev8.resources;
 
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.ResourceChangeStream;
@@ -25,6 +26,15 @@ public interface ClusterResourceManager<T extends KubernetesResource> {
      * @throws ResourceException if the operation fails
      */
     List<T> list() throws ResourceException;
+
+    /**
+     * List all resources in the cluster with filtering and pagination options.
+     *
+     * @param options list options for filtering and pagination
+     * @return list of resources
+     * @throws ResourceException if the operation fails
+     */
+    List<T> list(ListOptions options) throws ResourceException;
 
     /**
      * Get a specific resource by name.

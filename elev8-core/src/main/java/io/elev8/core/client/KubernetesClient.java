@@ -2,6 +2,7 @@ package io.elev8.core.client;
 
 import io.elev8.core.auth.AuthenticationException;
 import io.elev8.core.exec.ExecOptions;
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.exec.ExecWebSocketAdapter;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpException;
@@ -51,6 +52,47 @@ public final class KubernetesClient implements AutoCloseable {
      */
     public HttpResponse get(final String path) throws KubernetesClientException {
         return execute("GET", path, null);
+    }
+
+    /**
+     * Execute a GET request to the Kubernetes API with list options for filtering and pagination.
+     *
+     * @param path the API path (e.g., "/api/v1/namespaces/default/pods")
+     * @param options list options for filtering and pagination
+     * @return the HTTP response
+     * @throws KubernetesClientException if the request fails
+     */
+    public HttpResponse get(final String path, final ListOptions options) throws KubernetesClientException {
+        if (options == null) {
+            return get(path);
+        }
+        try {
+            if (config.getAuthProvider().needsRefresh()) {
+                log.debug("Refreshing authentication token for list");
+                config.getAuthProvider().refresh();
+            }
+
+            final String url = buildListUrl(path, options);
+
+            final Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", config.getAuthProvider().getAuthHeader());
+            headers.put("Accept", "application/json");
+
+            final HttpResponse response = httpClient.get(url, headers);
+
+            if (response.isUnauthorized() || response.isForbidden()) {
+                throw new KubernetesClientException(
+                        "Authentication failed: " + response.getStatusCode() + " - " + response.getBody(),
+                        response.getStatusCode());
+            }
+
+            return response;
+
+        } catch (AuthenticationException e) {
+            throw new KubernetesClientException("Failed to authenticate for list operation", e);
+        } catch (HttpException e) {
+            throw new KubernetesClientException("List request failed: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -299,6 +341,38 @@ public final class KubernetesClient implements AutoCloseable {
         } catch (WebSocketException e) {
             throw new KubernetesClientException("Port forward WebSocket connection failed: " + e.getMessage(), e);
         }
+    }
+
+    private String buildListUrl(final String path, final ListOptions options) {
+        final StringBuilder url = new StringBuilder(config.getApiServerUrl());
+        url.append(path);
+
+        boolean firstParam = true;
+
+        if (options != null) {
+            if (options.getLabelSelector() != null) {
+                url.append(firstParam ? "?" : "&").append("labelSelector=").append(options.getLabelSelector());
+                firstParam = false;
+            }
+            if (options.getFieldSelector() != null) {
+                url.append(firstParam ? "?" : "&").append("fieldSelector=").append(options.getFieldSelector());
+                firstParam = false;
+            }
+            if (options.getLimit() != null) {
+                url.append(firstParam ? "?" : "&").append("limit=").append(options.getLimit());
+                firstParam = false;
+            }
+            if (options.getContinueToken() != null) {
+                url.append(firstParam ? "?" : "&").append("continue=").append(urlEncode(options.getContinueToken()));
+                firstParam = false;
+            }
+            if (options.getResourceVersion() != null) {
+                url.append(firstParam ? "?" : "&").append("resourceVersion=").append(options.getResourceVersion());
+                firstParam = false;
+            }
+        }
+
+        return url.toString();
     }
 
     private String buildWatchUrl(final String path, final WatchOptions options) {

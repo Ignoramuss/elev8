@@ -93,4 +93,16 @@ public class StreamOptions {
                 .watchOptions(WatchOptions.withLabelSelector(labelSelector))
                 .build();
     }
+
+    /**
+     * Creates a StreamOptions instance with a field selector.
+     *
+     * @param fieldSelector the field selector to filter resources
+     * @return a new StreamOptions with the specified field selector
+     */
+    public static StreamOptions withFieldSelector(final String fieldSelector) {
+        return StreamOptions.builder()
+                .watchOptions(WatchOptions.withFieldSelector(fieldSelector))
+                .build();
+    }
 }

@@ -5,6 +5,7 @@ import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpClient;
 import io.elev8.core.http.HttpResponse;
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.watch.ResourceChangeStream;
@@ -57,12 +58,66 @@ public abstract class AbstractResourceManager<T extends KubernetesResource> impl
     }
 
     @Override
+    public List<T> list(final String namespace, final ListOptions options) throws ResourceException {
+        try {
+            final String path = buildNamespacePath(namespace);
+            log.debug("Listing resources at path: {} with options", path);
+
+            final HttpResponse response = client.get(path, options);
+
+            if (!response.isSuccessful()) {
+                throw new ResourceException(
+                        "Failed to list resources: " + response.getBody(),
+                        response.getStatusCode());
+            }
+
+            final ResourceList<T> resourceList = AbstractResource.getObjectMapper().readValue(
+                    response.getBody(),
+                    new TypeReference<ResourceList<T>>() {});
+
+            return resourceList.getItems();
+
+        } catch (KubernetesClientException e) {
+            throw new ResourceException("Failed to list resources", e);
+        } catch (Exception e) {
+            throw new ResourceException("Failed to parse resource list", e);
+        }
+    }
+
+    @Override
     public List<T> listAllNamespaces() throws ResourceException {
         try {
             final String path = apiPath;
             log.debug("Listing resources across all namespaces at path: {}", path);
 
             final HttpResponse response = client.get(path);
+
+            if (!response.isSuccessful()) {
+                throw new ResourceException(
+                        "Failed to list resources: " + response.getBody(),
+                        response.getStatusCode());
+            }
+
+            final ResourceList<T> resourceList = AbstractResource.getObjectMapper().readValue(
+                    response.getBody(),
+                    new TypeReference<ResourceList<T>>() {});
+
+            return resourceList.getItems();
+
+        } catch (KubernetesClientException e) {
+            throw new ResourceException("Failed to list resources", e);
+        } catch (Exception e) {
+            throw new ResourceException("Failed to parse resource list", e);
+        }
+    }
+
+    @Override
+    public List<T> listAllNamespaces(final ListOptions options) throws ResourceException {
+        try {
+            final String path = apiPath;
+            log.debug("Listing resources across all namespaces at path: {} with options", path);
+
+            final HttpResponse response = client.get(path, options);
 
             if (!response.isSuccessful()) {
                 throw new ResourceException(

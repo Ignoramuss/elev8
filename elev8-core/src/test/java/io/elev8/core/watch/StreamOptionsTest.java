@@ -87,6 +87,18 @@ class StreamOptionsTest {
     }
 
     @Nested
+    class WithFieldSelector {
+
+        @Test
+        void shouldSetFieldSelector() {
+            final StreamOptions options = StreamOptions.withFieldSelector("metadata.name=my-pod");
+
+            assertThat(options.getWatchOptions().getFieldSelector()).isEqualTo("metadata.name=my-pod");
+            assertThat(options.getQueueCapacity()).isEqualTo(1000);
+        }
+    }
+
+    @Nested
     class Builder {
 
         @Test

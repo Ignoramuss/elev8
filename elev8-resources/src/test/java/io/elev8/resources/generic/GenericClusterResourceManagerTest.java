@@ -2,6 +2,7 @@ package io.elev8.resources.generic;
 
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.http.HttpResponse;
+import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.PatchOptions;
 import io.elev8.core.patch.PatchType;
 import io.elev8.core.patch.ApplyOptions;
@@ -93,6 +94,37 @@ class GenericClusterResourceManagerTest {
         assertThat(resources).hasSize(2);
         assertThat(resources.get(0).getName()).isEqualTo("policy1");
         assertThat(resources.get(1).getName()).isEqualTo("policy2");
+    }
+
+    @Test
+    void shouldListClusterResourcesWithOptions() throws Exception {
+        final String responseBody = """
+                {
+                    "apiVersion": "example.com/v1",
+                    "kind": "ClusterPolicyList",
+                    "items": [
+                        {
+                            "apiVersion": "example.com/v1",
+                            "kind": "ClusterPolicy",
+                            "metadata": {"name": "policy1"},
+                            "spec": {"enforce": true}
+                        }
+                    ]
+                }
+                """;
+
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        when(response.isSuccessful()).thenReturn(true);
+        when(response.getBody()).thenReturn(responseBody);
+
+        final ListOptions options = ListOptions.withFieldSelector("metadata.name=policy1");
+        when(client.get("/apis/example.com/v1/clusterpolicies", options)).thenReturn(response);
+
+        final List<GenericKubernetesResource> resources = manager.list(options);
+
+        assertThat(resources).hasSize(1);
+        assertThat(resources.get(0).getName()).isEqualTo("policy1");
+        verify(client).get("/apis/example.com/v1/clusterpolicies", options);
     }
 
     @Test
