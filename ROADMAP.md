@@ -101,7 +101,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] Reactive API support (Project Reactor)
 - [x] Field selectors for advanced filtering
 - [ ] Label selector query enhancements
-- [ ] Resource aggregation APIs
+- [x] Resource aggregation APIs
 - [ ] Admission webhooks support
 
 ### Phase 11: Release & Distribution
