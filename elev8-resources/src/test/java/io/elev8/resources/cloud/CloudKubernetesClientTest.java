@@ -1,5 +1,6 @@
 package io.elev8.resources.cloud;
 
+import io.elev8.resources.aggregation.ResourceAggregator;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -118,5 +119,15 @@ class CloudKubernetesClientTest {
         client.close();
 
         verify(client).close();
+    }
+
+    @Test
+    void aggregateShouldReturnResourceAggregator() {
+        final CloudKubernetesClient client = mock(CloudKubernetesClient.class,
+                org.mockito.Mockito.withSettings().defaultAnswer(org.mockito.Mockito.CALLS_REAL_METHODS));
+
+        final ResourceAggregator aggregator = client.aggregate();
+
+        assertThat(aggregator).isNotNull();
     }
 }

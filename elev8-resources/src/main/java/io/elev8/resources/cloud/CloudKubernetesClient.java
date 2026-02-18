@@ -1,6 +1,7 @@
 package io.elev8.resources.cloud;
 
 import io.elev8.core.client.KubernetesClient;
+import io.elev8.resources.aggregation.ResourceAggregator;
 import io.elev8.resources.clusterrole.ClusterRoleManager;
 import io.elev8.resources.clusterrolebinding.ClusterRoleBindingManager;
 import io.elev8.resources.configmap.ConfigMapManager;
@@ -107,6 +108,15 @@ public interface CloudKubernetesClient extends AutoCloseable {
     GenericClusterResourceManager genericClusterResources(GenericResourceContext context);
 
     DynamicClient dynamic();
+
+    /**
+     * Creates a {@link ResourceAggregator} for querying multiple resource types at once.
+     *
+     * @return a new resource aggregator bound to this client
+     */
+    default ResourceAggregator aggregate() {
+        return new ResourceAggregator(this);
+    }
 
     @Override
     void close();
