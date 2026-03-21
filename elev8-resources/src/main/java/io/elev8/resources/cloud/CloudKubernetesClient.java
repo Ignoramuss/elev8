@@ -33,6 +33,8 @@ import io.elev8.resources.secret.SecretManager;
 import io.elev8.resources.service.ServiceManager;
 import io.elev8.resources.serviceaccount.ServiceAccountManager;
 import io.elev8.resources.statefulset.StatefulSetManager;
+import io.elev8.resources.admissionregistration.MutatingWebhookConfigurationManager;
+import io.elev8.resources.admissionregistration.ValidatingWebhookConfigurationManager;
 import io.elev8.resources.verticalpodautoscaler.VerticalPodAutoscalerManager;
 
 /**
@@ -98,6 +100,10 @@ public interface CloudKubernetesClient extends AutoCloseable {
     NamespaceManager namespaces();
 
     CustomResourceDefinitionManager customResourceDefinitions();
+
+    MutatingWebhookConfigurationManager mutatingWebhookConfigurations();
+
+    ValidatingWebhookConfigurationManager validatingWebhookConfigurations();
 
     GenericResourceManager genericResources(String group, String version, String kind, String plural);
 
