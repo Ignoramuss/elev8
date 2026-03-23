@@ -1,5 +1,6 @@
 package io.elev8.core.list;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +52,33 @@ class ListOptionsTest {
 
             assertThat(options.getLabelSelector()).isEqualTo("app=myapp,env=prod");
             assertThat(options.getFieldSelector()).isNull();
+        }
+    }
+
+    @Nested
+    class WithLabelSelectorQuery {
+
+        @Test
+        void shouldSetLabelSelectorFromQuery() {
+            final LabelSelectorQuery query = LabelSelectorQuery.builder()
+                    .equals("app", "myapp")
+                    .in("env", "staging", "prod")
+                    .build();
+
+            final ListOptions options = ListOptions.withLabelSelector(query);
+
+            assertThat(options.getLabelSelector()).isEqualTo("app=myapp,env in (staging,prod)");
+            assertThat(options.getFieldSelector()).isNull();
+            assertThat(options.getLimit()).isNull();
+        }
+
+        @Test
+        void shouldHandleSingleRequirement() {
+            final LabelSelectorQuery query = LabelSelectorQuery.exists("managed-by");
+
+            final ListOptions options = ListOptions.withLabelSelector(query);
+
+            assertThat(options.getLabelSelector()).isEqualTo("managed-by");
         }
     }
 

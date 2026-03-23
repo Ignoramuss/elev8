@@ -1,5 +1,6 @@
 package io.elev8.core.watch;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -82,6 +83,24 @@ class StreamOptionsTest {
             final StreamOptions options = StreamOptions.withLabelSelector("app=myapp");
 
             assertThat(options.getWatchOptions().getLabelSelector()).isEqualTo("app=myapp");
+            assertThat(options.getQueueCapacity()).isEqualTo(1000);
+        }
+    }
+
+    @Nested
+    class WithLabelSelectorQuery {
+
+        @Test
+        void shouldSetLabelSelectorFromQuery() {
+            final LabelSelectorQuery query = LabelSelectorQuery.builder()
+                    .in("tier", "frontend", "backend")
+                    .exists("managed-by")
+                    .build();
+
+            final StreamOptions options = StreamOptions.withLabelSelector(query);
+
+            assertThat(options.getWatchOptions().getLabelSelector())
+                    .isEqualTo("tier in (frontend,backend),managed-by");
             assertThat(options.getQueueCapacity()).isEqualTo(1000);
         }
     }

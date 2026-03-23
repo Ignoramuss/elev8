@@ -1,5 +1,6 @@
 package io.elev8.core.watch;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -91,6 +92,18 @@ public class StreamOptions {
     public static StreamOptions withLabelSelector(final String labelSelector) {
         return StreamOptions.builder()
                 .watchOptions(WatchOptions.withLabelSelector(labelSelector))
+                .build();
+    }
+
+    /**
+     * Creates a StreamOptions instance with a type-safe label selector query.
+     *
+     * @param query the label selector query
+     * @return a new StreamOptions with the specified label selector
+     */
+    public static StreamOptions withLabelSelector(final LabelSelectorQuery query) {
+        return StreamOptions.builder()
+                .watchOptions(WatchOptions.withLabelSelector(query))
                 .build();
     }
 

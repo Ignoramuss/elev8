@@ -1,5 +1,6 @@
 package io.elev8.resources.informer;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import io.elev8.resources.ClusterResourceManager;
 import io.elev8.resources.KubernetesResource;
 import io.elev8.resources.ResourceManager;
@@ -38,6 +39,16 @@ public interface SharedInformerBuilder<T extends KubernetesResource> {
      * @return this builder
      */
     SharedInformerBuilder<T> withLabelSelector(String labelSelector);
+
+    /**
+     * Configures the informer with a type-safe label selector query.
+     *
+     * @param query the label selector query
+     * @return this builder
+     */
+    default SharedInformerBuilder<T> withLabelSelector(final LabelSelectorQuery query) {
+        return withLabelSelector(query.toQueryString());
+    }
 
     /**
      * Configures the informer with a field selector.

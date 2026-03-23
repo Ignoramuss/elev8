@@ -1,5 +1,6 @@
 package io.elev8.resources.informer;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import io.elev8.core.watch.StreamOptions;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,6 +50,18 @@ public class InformerOptions {
     public static InformerOptions withLabelSelector(final String labelSelector) {
         return InformerOptions.builder()
                 .streamOptions(StreamOptions.withLabelSelector(labelSelector))
+                .build();
+    }
+
+    /**
+     * Creates an InformerOptions instance with a type-safe label selector query.
+     *
+     * @param query the label selector query
+     * @return a new InformerOptions with the specified label selector
+     */
+    public static InformerOptions withLabelSelector(final LabelSelectorQuery query) {
+        return InformerOptions.builder()
+                .streamOptions(StreamOptions.withLabelSelector(query))
                 .build();
     }
 

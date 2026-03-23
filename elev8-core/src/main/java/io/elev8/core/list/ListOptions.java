@@ -1,5 +1,6 @@
 package io.elev8.core.list;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -73,6 +74,18 @@ public class ListOptions {
     public static ListOptions withLabelSelector(final String labelSelector) {
         return ListOptions.builder()
                 .labelSelector(labelSelector)
+                .build();
+    }
+
+    /**
+     * Creates a ListOptions instance with a type-safe label selector query.
+     *
+     * @param query the label selector query
+     * @return a new ListOptions with the specified label selector
+     */
+    public static ListOptions withLabelSelector(final LabelSelectorQuery query) {
+        return ListOptions.builder()
+                .labelSelector(query.toQueryString())
                 .build();
     }
 
