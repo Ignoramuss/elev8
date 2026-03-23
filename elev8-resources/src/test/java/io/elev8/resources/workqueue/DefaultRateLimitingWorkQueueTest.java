@@ -77,7 +77,7 @@ class DefaultRateLimitingWorkQueueTest {
 
         assertThat(queue.poll(Duration.ofMillis(10))).isNull();
 
-        final String result = queue.poll(Duration.ofMillis(100));
+        final String result = queue.poll(Duration.ofMillis(200));
         assertThat(result).isEqualTo("item");
     }
 

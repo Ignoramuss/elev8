@@ -1,5 +1,6 @@
 package io.elev8.resources.informer;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import io.elev8.core.watch.StreamOptions;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +31,20 @@ class InformerOptionsTest {
 
         assertThat(options.getStreamOptions()).isNotNull();
         assertThat(options.getStreamOptions().getWatchOptions().getLabelSelector()).isEqualTo("app=nginx");
+    }
+
+    @Test
+    void shouldCreateWithLabelSelectorQuery() {
+        final LabelSelectorQuery query = LabelSelectorQuery.builder()
+                .equals("app", "nginx")
+                .notIn("env", "dev", "test")
+                .build();
+
+        final InformerOptions options = InformerOptions.withLabelSelector(query);
+
+        assertThat(options.getStreamOptions()).isNotNull();
+        assertThat(options.getStreamOptions().getWatchOptions().getLabelSelector())
+                .isEqualTo("app=nginx,env notin (dev,test)");
     }
 
     @Test

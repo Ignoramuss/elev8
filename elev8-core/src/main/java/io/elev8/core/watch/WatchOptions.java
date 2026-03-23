@@ -1,5 +1,6 @@
 package io.elev8.core.watch;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -74,6 +75,18 @@ public class WatchOptions {
     public static WatchOptions withLabelSelector(final String labelSelector) {
         return WatchOptions.builder()
                 .labelSelector(labelSelector)
+                .build();
+    }
+
+    /**
+     * Creates a WatchOptions instance with a type-safe label selector query.
+     *
+     * @param query the label selector query
+     * @return a new WatchOptions with the specified label selector
+     */
+    public static WatchOptions withLabelSelector(final LabelSelectorQuery query) {
+        return WatchOptions.builder()
+                .labelSelector(query.toQueryString())
                 .build();
     }
 

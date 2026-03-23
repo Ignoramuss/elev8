@@ -1,5 +1,6 @@
 package io.elev8.core.watch;
 
+import io.elev8.core.selector.LabelSelectorQuery;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,6 +58,20 @@ class WatchOptionsTest {
         final WatchOptions options = WatchOptions.withFieldSelector("status.phase=Running");
 
         assertEquals("status.phase=Running", options.getFieldSelector());
+        assertNull(options.getResourceVersion());
+        assertEquals(300, options.getTimeoutSeconds());
+    }
+
+    @Test
+    void testWithLabelSelectorQuery() {
+        final LabelSelectorQuery query = LabelSelectorQuery.builder()
+                .equals("app", "myapp")
+                .notEquals("env", "dev")
+                .build();
+
+        final WatchOptions options = WatchOptions.withLabelSelector(query);
+
+        assertEquals("app=myapp,env!=dev", options.getLabelSelector());
         assertNull(options.getResourceVersion());
         assertEquals(300, options.getTimeoutSeconds());
     }
