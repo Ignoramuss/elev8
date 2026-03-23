@@ -102,7 +102,7 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] Field selectors for advanced filtering
 - [ ] Label selector query enhancements
 - [x] Resource aggregation APIs
-- [ ] Admission webhooks support
+- [x] Admission webhooks support
 
 ### Phase 11: Release & Distribution
 - [ ] Maven Central publication

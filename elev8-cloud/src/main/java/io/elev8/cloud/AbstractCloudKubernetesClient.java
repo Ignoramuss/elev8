@@ -34,6 +34,8 @@ import io.elev8.resources.secret.SecretManager;
 import io.elev8.resources.service.ServiceManager;
 import io.elev8.resources.serviceaccount.ServiceAccountManager;
 import io.elev8.resources.statefulset.StatefulSetManager;
+import io.elev8.resources.admissionregistration.MutatingWebhookConfigurationManager;
+import io.elev8.resources.admissionregistration.ValidatingWebhookConfigurationManager;
 import io.elev8.resources.verticalpodautoscaler.VerticalPodAutoscalerManager;
 import lombok.Getter;
 
@@ -74,6 +76,8 @@ public abstract class AbstractCloudKubernetesClient implements CloudKubernetesCl
     private final ResourceQuotaManager resourceQuotaManager;
     private final NamespaceManager namespaceManager;
     private final CustomResourceDefinitionManager customResourceDefinitionManager;
+    private final MutatingWebhookConfigurationManager mutatingWebhookConfigurationManager;
+    private final ValidatingWebhookConfigurationManager validatingWebhookConfigurationManager;
 
     protected AbstractCloudKubernetesClient(final KubernetesClient kubernetesClient) {
         this.kubernetesClient = kubernetesClient;
@@ -105,6 +109,8 @@ public abstract class AbstractCloudKubernetesClient implements CloudKubernetesCl
         this.resourceQuotaManager = new ResourceQuotaManager(kubernetesClient);
         this.namespaceManager = new NamespaceManager(kubernetesClient);
         this.customResourceDefinitionManager = new CustomResourceDefinitionManager(kubernetesClient);
+        this.mutatingWebhookConfigurationManager = new MutatingWebhookConfigurationManager(kubernetesClient);
+        this.validatingWebhookConfigurationManager = new ValidatingWebhookConfigurationManager(kubernetesClient);
     }
 
     @Override
@@ -245,6 +251,16 @@ public abstract class AbstractCloudKubernetesClient implements CloudKubernetesCl
     @Override
     public CustomResourceDefinitionManager customResourceDefinitions() {
         return customResourceDefinitionManager;
+    }
+
+    @Override
+    public MutatingWebhookConfigurationManager mutatingWebhookConfigurations() {
+        return mutatingWebhookConfigurationManager;
+    }
+
+    @Override
+    public ValidatingWebhookConfigurationManager validatingWebhookConfigurations() {
+        return validatingWebhookConfigurationManager;
     }
 
     @Override
