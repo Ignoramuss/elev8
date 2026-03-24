@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.elev8</groupId>
+        <artifactId>elev8-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>elev8-bom</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Elev8 BOM</name>
+    <description>Bill of Materials for Elev8 Kubernetes client modules</description>
+    <url>https://github.com/Ignoramuss/elev8</url>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-resources</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-cloud</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-eks</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-gke</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-aks</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-reactor</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-codegen</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-auth-iam</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-auth-oidc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-auth-accessentries</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-auth-token</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-auth-gcp</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.elev8</groupId>
+                <artifactId>elev8-auth-azure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

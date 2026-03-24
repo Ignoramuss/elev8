@@ -1,5 +1,6 @@
 package io.elev8.core.client;
 
+import io.elev8.core.annotation.Stable;
 import io.elev8.core.auth.AuthenticationException;
 import io.elev8.core.exec.ExecOptions;
 import io.elev8.core.list.ListOptions;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Core Kubernetes client for making API requests.
  */
+@Stable(since = "0.1.0")
 @Slf4j
 public final class KubernetesClient implements AutoCloseable {
 

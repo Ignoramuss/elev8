@@ -105,11 +105,11 @@ This document outlines the development roadmap for Elev8, a cloud-native Kuberne
 - [x] Admission webhooks support
 
 ### Phase 11: Release & Distribution
-- [ ] Maven Central publication
-- [ ] API stability guarantees
-- [ ] Semantic versioning strategy
-- [ ] Migration guides between versions
-- [ ] Performance benchmarks and documentation
+- [x] Maven Central publication
+- [x] API stability guarantees
+- [x] Semantic versioning strategy
+- [x] Migration guides between versions
+- [x] Performance benchmarks and documentation
 
 ## Contributing
 

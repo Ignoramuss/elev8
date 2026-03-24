@@ -1,5 +1,6 @@
 package io.elev8.resources.dynamic;
 
+import io.elev8.core.annotation.Beta;
 import io.elev8.core.discovery.DiscoveryClient;
 import io.elev8.core.discovery.DiscoveryException;
 import io.elev8.resources.ResourceException;
@@ -9,6 +10,7 @@ import io.elev8.resources.generic.GenericResourceManager;
 
 import java.util.List;
 
+@Beta(since = "0.1.0")
 public interface DynamicClient {
 
     DiscoveryClient discovery();

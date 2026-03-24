@@ -1,10 +1,13 @@
 package io.elev8.core.http;
 
+import io.elev8.core.annotation.Stable;
+
 import java.util.Map;
 
 /**
  * HTTP client abstraction for Kubernetes API requests.
  */
+@Stable(since = "0.1.0")
 public interface HttpClient {
 
     /**

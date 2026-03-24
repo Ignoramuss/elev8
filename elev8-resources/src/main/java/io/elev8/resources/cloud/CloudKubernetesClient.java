@@ -1,5 +1,6 @@
 package io.elev8.resources.cloud;
 
+import io.elev8.core.annotation.Beta;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.resources.aggregation.ResourceAggregator;
 import io.elev8.resources.clusterrole.ClusterRoleManager;
@@ -41,6 +42,7 @@ import io.elev8.resources.verticalpodautoscaler.VerticalPodAutoscalerManager;
  * Common interface for cloud-specific Kubernetes clients.
  * Provides unified access to Kubernetes resource managers across EKS, GKE, and AKS.
  */
+@Beta(since = "0.1.0")
 public interface CloudKubernetesClient extends AutoCloseable {
 
     KubernetesClient getKubernetesClient();

@@ -4,6 +4,7 @@ import io.elev8.auth.accessentries.AccessEntryManager;
 import io.elev8.auth.iam.IamAuthProvider;
 import io.elev8.auth.oidc.OidcAuthProvider;
 import io.elev8.cloud.AbstractCloudKubernetesClient;
+import io.elev8.core.annotation.Beta;
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
@@ -23,6 +24,7 @@ import java.time.Duration;
 /**
  * EKS-optimized Kubernetes client with native AWS IAM authentication.
  */
+@Beta(since = "0.1.0")
 @Slf4j
 public class EksClient extends AbstractCloudKubernetesClient {
 

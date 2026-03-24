@@ -1,5 +1,6 @@
 package io.elev8.resources;
 
+import io.elev8.core.annotation.Stable;
 import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
@@ -17,6 +18,7 @@ import java.util.List;
  *
  * @param <T> the resource type
  */
+@Stable(since = "0.1.0")
 public interface ClusterResourceManager<T extends KubernetesResource> {
 
     /**

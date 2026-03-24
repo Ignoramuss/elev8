@@ -1,5 +1,6 @@
 package io.elev8.reactor;
 
+import io.elev8.core.annotation.Alpha;
 import io.elev8.resources.clusterrole.ClusterRole;
 import io.elev8.resources.clusterrolebinding.ClusterRoleBinding;
 import io.elev8.resources.cloud.CloudKubernetesClient;
@@ -34,6 +35,7 @@ import io.elev8.resources.verticalpodautoscaler.VerticalPodAutoscaler;
  * Reactive interface for cloud-specific Kubernetes clients.
  * Provides non-blocking access to Kubernetes resources using Project Reactor.
  */
+@Alpha(since = "0.1.0")
 public interface ReactiveCloudKubernetesClient extends AutoCloseable {
 
     ReactiveResourceManager<Pod> pods();

@@ -1,9 +1,12 @@
 package io.elev8.core.auth;
 
+import io.elev8.core.annotation.Stable;
+
 /**
  * Interface for Kubernetes authentication providers.
  * Implementations provide authentication tokens for Kubernetes API requests.
  */
+@Stable(since = "0.1.0")
 public interface AuthProvider {
 
     /**

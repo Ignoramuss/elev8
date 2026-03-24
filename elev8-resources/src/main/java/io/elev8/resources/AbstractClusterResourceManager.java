@@ -1,6 +1,7 @@
 package io.elev8.resources;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.elev8.core.annotation.Stable;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpClient;
@@ -22,6 +23,7 @@ import java.util.List;
  * Cluster-scoped resources (like PersistentVolume, Namespace, ClusterRole, etc.)
  * are not confined to a specific namespace and exist at the cluster level.
  */
+@Stable(since = "0.1.0")
 @Slf4j
 public abstract class AbstractClusterResourceManager<T extends KubernetesResource>
         implements ClusterResourceManager<T> {

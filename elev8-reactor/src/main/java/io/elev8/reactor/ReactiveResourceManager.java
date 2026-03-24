@@ -1,5 +1,6 @@
 package io.elev8.reactor;
 
+import io.elev8.core.annotation.Alpha;
 import io.elev8.core.list.ListOptions;
 import io.elev8.core.patch.ApplyOptions;
 import io.elev8.core.patch.PatchOptions;
@@ -17,6 +18,7 @@ import java.util.List;
  *
  * @param <T> the resource type
  */
+@Alpha(since = "0.1.0")
 public interface ReactiveResourceManager<T extends KubernetesResource> {
 
     /**
@@ -28,11 +30,6 @@ public interface ReactiveResourceManager<T extends KubernetesResource> {
     Mono<List<T>> list(String namespace);
 
     /**
-     * List all resources across all namespaces.
-     *
-     * @return Mono emitting the list of resources
-     */
-    /**
      * List all resources in the namespace with filtering and pagination options.
      *
      * @param namespace the namespace to list resources from
@@ -41,6 +38,11 @@ public interface ReactiveResourceManager<T extends KubernetesResource> {
      */
     Mono<List<T>> list(String namespace, ListOptions options);
 
+    /**
+     * List all resources across all namespaces.
+     *
+     * @return Mono emitting the list of resources
+     */
     Mono<List<T>> listAllNamespaces();
 
     /**

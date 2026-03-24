@@ -1,6 +1,7 @@
 package io.elev8.resources;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.elev8.core.annotation.Stable;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientException;
 import io.elev8.core.http.HttpClient;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Stable(since = "0.1.0")
 @Slf4j
 public abstract class AbstractResourceManager<T extends KubernetesResource> implements ResourceManager<T> {
 
@@ -31,7 +33,7 @@ public abstract class AbstractResourceManager<T extends KubernetesResource> impl
     }
 
     @Override
-    public List<T> list(String namespace) throws ResourceException {
+    public List<T> list(final String namespace) throws ResourceException {
         try {
             final String path = buildNamespacePath(namespace);
             log.debug("Listing resources at path: {}", path);
@@ -139,7 +141,7 @@ public abstract class AbstractResourceManager<T extends KubernetesResource> impl
     }
 
     @Override
-    public T get(String namespace, String name) throws ResourceException {
+    public T get(final String namespace, final String name) throws ResourceException {
         try {
             final String path = buildResourcePath(namespace, name);
             log.debug("Getting resource at path: {}", path);
@@ -220,7 +222,7 @@ public abstract class AbstractResourceManager<T extends KubernetesResource> impl
     }
 
     @Override
-    public void delete(String namespace, String name) throws ResourceException {
+    public void delete(final String namespace, final String name) throws ResourceException {
         try {
             final String path = buildResourcePath(namespace, name);
             log.debug("Deleting resource at path: {}", path);

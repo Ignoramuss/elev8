@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.elev8.core.annotation.Stable;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * Abstract base class for Kubernetes resources with JSON serialization support.
  */
+@Stable(since = "0.1.0")
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -48,7 +50,7 @@ public abstract class AbstractResource implements KubernetesResource {
      * @param <T> resource type
      * @return parsed resource
      */
-    public static <T extends KubernetesResource> T fromJson(String json, Class<T> clazz) {
+    public static <T extends KubernetesResource> T fromJson(final String json, final Class<T> clazz) {
         try {
             return OBJECT_MAPPER.readValue(json, clazz);
         } catch (JsonProcessingException e) {
