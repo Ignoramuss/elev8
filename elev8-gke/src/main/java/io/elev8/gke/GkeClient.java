@@ -4,6 +4,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.container.v1.ClusterManagerClient;
 import io.elev8.auth.gcp.GcpAuthProvider;
 import io.elev8.cloud.AbstractCloudKubernetesClient;
+import io.elev8.core.annotation.Beta;
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
@@ -15,6 +16,7 @@ import java.time.Duration;
 /**
  * GKE-optimized Kubernetes client with native GCP authentication.
  */
+@Beta(since = "0.1.0")
 @Slf4j
 public class GkeClient extends AbstractCloudKubernetesClient {
 

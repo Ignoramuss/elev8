@@ -52,7 +52,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Prerequisites
 
-- Java 17 or later
+- Java 21 or later
 - Maven 3.8+
 - Git
 - An AWS account with EKS cluster access (for integration testing)
@@ -60,7 +60,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 ### Building the Project
 
 ```bash
-git clone https://github.com/yourusername/elev8.git
+git clone https://github.com/Ignoramuss/elev8.git
 cd elev8
 mvn clean install
 ```
@@ -173,15 +173,25 @@ Access Entries API, including validation and rollback.
 Closes #123
 ```
 
+## API Stability and Migration
+
+When making changes to public APIs, follow these rules:
+
+- Changes to `@Stable` or `@Beta` APIs **must** include an update to `MIGRATION.md`
+- Deprecate APIs for at least one minor release before removal
+- When promoting an API's stability level (e.g., `@Alpha` to `@Beta`), document the change in `MIGRATION.md`
+
+### Pull Request Checklist
+
+Before submitting a PR that modifies public APIs, verify:
+
+- [ ] `MIGRATION.md` is updated if any `@Stable` or `@Beta` APIs changed
+- [ ] New public APIs have an appropriate stability annotation (`@Alpha`, `@Beta`, or `@Stable`)
+- [ ] Deprecated APIs include a `@deprecated` Javadoc tag with replacement guidance
+
 ## Release Process
 
-Releases are managed by project maintainers. The process includes:
-
-1. Version bump
-2. Changelog update
-3. Tag creation
-4. Maven Central deployment
-5. GitHub release with notes
+Releases are managed by project maintainers. See [RELEASING.md](RELEASING.md) for the detailed process.
 
 ## Questions?
 

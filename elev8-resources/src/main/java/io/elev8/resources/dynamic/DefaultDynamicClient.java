@@ -1,5 +1,6 @@
 package io.elev8.resources.dynamic;
 
+import io.elev8.core.annotation.Beta;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.discovery.APIResource;
 import io.elev8.core.discovery.CachedDiscoveryClient;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Beta(since = "0.1.0")
 @Slf4j
 public final class DefaultDynamicClient implements DynamicClient {
 

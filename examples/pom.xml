@@ -14,6 +14,10 @@
     <name>Elev8 Examples</name>
     <description>Usage examples for Elev8</description>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.elev8</groupId>

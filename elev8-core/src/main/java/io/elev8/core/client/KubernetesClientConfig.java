@@ -1,5 +1,6 @@
 package io.elev8.core.client;
 
+import io.elev8.core.annotation.Stable;
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.http.ConnectionPoolConfig;
 import io.elev8.core.http.RateLimiterConfig;
@@ -12,6 +13,7 @@ import java.time.Duration;
 /**
  * Configuration for Kubernetes client.
  */
+@Stable(since = "0.1.0")
 @Value
 @Builder
 public class KubernetesClientConfig {

@@ -1,5 +1,6 @@
 package io.elev8.cloud;
 
+import io.elev8.core.annotation.Beta;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.resources.cloud.CloudKubernetesClient;
 import io.elev8.resources.clusterrole.ClusterRoleManager;
@@ -43,6 +44,7 @@ import lombok.Getter;
  * Abstract base class for cloud-specific Kubernetes clients.
  * Provides common resource manager initialization and accessors for EKS, GKE, and AKS clients.
  */
+@Beta(since = "0.1.0")
 public abstract class AbstractCloudKubernetesClient implements CloudKubernetesClient {
 
     @Getter

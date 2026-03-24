@@ -1,5 +1,7 @@
 package io.elev8.core.selector;
 
+import io.elev8.core.annotation.Alpha;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
  *     .build();
  * }</pre>
  */
+@Alpha(since = "0.1.0")
 public final class LabelSelectorQuery {
 
     private final List<Requirement> requirements;

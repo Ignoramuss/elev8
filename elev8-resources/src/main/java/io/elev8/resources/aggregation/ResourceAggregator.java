@@ -1,5 +1,6 @@
 package io.elev8.resources.aggregation;
 
+import io.elev8.core.annotation.Alpha;
 import io.elev8.core.list.ListOptions;
 import io.elev8.resources.KubernetesResource;
 import io.elev8.resources.ResourceException;
@@ -25,6 +26,7 @@ import java.util.Set;
  *     .list();
  * }</pre>
  */
+@Alpha(since = "0.1.0")
 public final class ResourceAggregator {
 
     private final CloudKubernetesClient client;

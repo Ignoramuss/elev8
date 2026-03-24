@@ -9,6 +9,7 @@ import com.azure.resourcemanager.containerservice.models.CredentialResult;
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster;
 import io.elev8.auth.azure.AzureAuthProvider;
 import io.elev8.cloud.AbstractCloudKubernetesClient;
+import io.elev8.core.annotation.Beta;
 import io.elev8.core.auth.AuthProvider;
 import io.elev8.core.client.KubernetesClient;
 import io.elev8.core.client.KubernetesClientConfig;
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * AKS-optimized Kubernetes client with native Azure authentication.
  */
+@Beta(since = "0.1.0")
 @Slf4j
 public class AksClient extends AbstractCloudKubernetesClient {
 
